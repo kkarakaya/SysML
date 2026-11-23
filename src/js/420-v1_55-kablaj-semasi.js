@@ -141,23 +141,24 @@ function hcSysLayout(){
 }
 function hcPortAnchor(P, p, side){ const u = P[p.owner]; if(!u) return null; const i = hcUnitConns(p.owner).findIndex(x => x.id === p.id); return {x:side > 0 ? u.x + u.w : u.x, y:u.y + HC_UH + i * HC_RH + HC_RH / 2}; }
 function hcCableColor(c, st){ const top = Object.entries(st.byCat).sort((a, b) => b[1] - a[1])[0]; const cat = top && hcCat(top[0]); return cat ? cat.col : '#555'; }
-/* exp: dışa aktarma (olay öznitelikleri ve seçim çizilmez); only: yalnız bu kablolar; catF: yalnız bu hat tipindeki tellerin bulunduğu kablolar (v1.56 mimari görünümleri) */
+/* exp: dışa aktarma (olay öznitelikleri ve seçim çizilmez); only: yalnız bu kablolar; catF: yalnız bu hat tipindeki tellerin bulunduğu kablolar (v1.57 mimari görünümleri; verilmezse HCS.catF) */
 function hcSysSVG(opt){
-  opt = opt || {}; const P = hcSysLayout(), cs = hcCables().filter(c => (!opt.only || opt.only.includes(c.id)) && (!opt.catF || hcCableStats(c).byCat[opt.catF])), det = opt.det != null ? opt.det : HCS.det;
+  opt = opt || {}; const catF = opt.catF !== undefined ? opt.catF : HCS.catF || '', P = hcSysLayout(), cs = hcCables().filter(c => (!opt.only || opt.only.includes(c.id)) && (!catF || hcCableStats(c).byCat[catF])), det = opt.det != null ? opt.det : HCS.det;
+  const dimPort = p => catF && p.hc.cat !== catF && !hcPins(p).some(x => hcPinUsed(x.d) && hcPinCat(x.d) === catF);
   let maxX = 400, maxY = 300; Object.values(P).forEach(u => { maxX = Math.max(maxX, u.x + u.w + 60); maxY = Math.max(maxY, u.y + u.h + 60); });
   const usedPorts = new Map(); cs.forEach(c => c.nodes.forEach(n => { if(n.kind === 'conn') usedPorts.set(n.port, c); }));
   let units = '', cables = '', labels = '';
-  hcUnits().forEach(u => { const p0 = P[u.id], cs0 = hcUnitConns(u.id);
+  hcUnits().forEach(u => { const p0 = P[u.id], cs0 = hcUnitConns(u.id); if(catF && cs0.every(dimPort)) return;   /* mimari görünümünde ilgisiz birimler gizli */
     units += `<g class="hcU" ${opt.exp ? '' : `data-hcu="${u.id}"`}><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${p0.h}" rx="6" fill="#fff" stroke="#34495e" stroke-width="1.4"/><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${HC_UH}" rx="6" fill="#34495e"/><rect x="${p0.x}" y="${p0.y + HC_UH - 6}" width="${p0.w}" height="6" fill="#34495e"/>
       <text x="${p0.x + p0.w / 2}" y="${p0.y + 20}" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" style="cursor:move">${esc(u.name)}</text>`;
     cs0.forEach((p, i) => { const y = p0.y + HC_UH + i * HC_RH, cat = hcCat(p.hc.cat), t = hcType(p.hc.ct), cb = usedPorts.get(p.id);
-      units += `<g ${opt.exp ? '' : `data-hcpt="${p.id}"`}><rect x="${p0.x + 4}" y="${y + 2}" width="${p0.w - 8}" height="${HC_RH - 4}" rx="3" fill="${cb ? '#eef5ff' : '#f7f7f7'}" stroke="#dde"/><rect x="${p0.x + 4}" y="${y + 2}" width="5" height="${HC_RH - 4}" fill="${cat ? cat.col : '#bbb'}"/>
+      units += `<g ${opt.exp ? '' : `data-hcpt="${p.id}"`}${dimPort(p) ? ' opacity="0.3"' : ''}><rect x="${p0.x + 4}" y="${y + 2}" width="${p0.w - 8}" height="${HC_RH - 4}" rx="3" fill="${cb ? '#eef5ff' : '#f7f7f7'}" stroke="#dde"/><rect x="${p0.x + 4}" y="${y + 2}" width="5" height="${HC_RH - 4}" fill="${cat ? cat.col : '#bbb'}"/>
         <text x="${p0.x + 14}" y="${y + 16}" font-size="11.5" font-weight="600">${esc(p.name)}</text><text x="${p0.x + 50}" y="${y + 16}" font-size="10" fill="#667">${esc(((t && (t.pn || t.name)) || 'tip yok').slice(0, 26))}</text>
         ${opt.exp ? '' : `<circle cx="${p0.x}" cy="${y + HC_RH / 2}" r="5" fill="#fff" stroke="#2e86de" stroke-width="1.5" data-hch="${p.id}" style="cursor:crosshair"/><circle cx="${p0.x + p0.w}" cy="${y + HC_RH / 2}" r="5" fill="#fff" stroke="#2e86de" stroke-width="1.5" data-hch="${p.id}" style="cursor:crosshair"/>`}</g>`; });
     if(!cs0.length) units += `<text x="${p0.x + 10}" y="${p0.y + HC_UH + 16}" font-size="11" fill="#999">arayüz yok</text>`;
     units += '</g>'; });
   cs.forEach(c => {
-    const st = hcCableStats(c), col = hcCableColor(c, st), sel = !opt.exp && HCS.sel === c.id, conns = c.nodes.filter(n => n.kind === 'conn' && E(n.port) && P[E(n.port).owner]);
+    const st = hcCableStats(c), col = catF && hcCat(catF) ? hcCat(catF).col : hcCableColor(c, st), sel = !opt.exp && HCS.sel === c.id, conns = c.nodes.filter(n => n.kind === 'conn' && E(n.port) && P[E(n.port).owner]);
     if(!conns.length) return;
     const cen = conns.map(n => { const p = E(n.port), u = P[p.owner]; return {n, p, cx:u.x + u.w / 2}; }), mx = cen.reduce((s, x) => s + x.cx, 0) / cen.length;
     const anchors = cen.map(x => ({n:x.n, a:hcPortAnchor(P, x.p, (conns.length === 2 ? (cen.find(y => y !== x) || x).cx : mx) >= x.cx ? 1 : -1), side:(conns.length === 2 ? (cen.find(y => y !== x) || x).cx : mx) >= x.cx ? 1 : -1}));
@@ -168,10 +169,10 @@ function hcSysSVG(opt){
     cables += `<g ${attrs}><path d="${path}" fill="none" stroke="transparent" stroke-width="12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="${sel ? sw + 2 : sw}"${st.wires ? '' : ' stroke-dasharray="6 4"'}/>${anchors.length > 2 ? `<circle cx="${lx}" cy="${ly}" r="5" fill="${col}"/>` : ''}
       ${anchors.map(x => `<circle cx="${x.a.x}" cy="${x.a.y}" r="3.5" fill="${col}"/>`).join('')}`;
     const mk0 = (st.nE ? ' ✖' + st.nE : '') + (st.nW ? ' ⚠' + st.nW : '');
-    const lab = det ? `${c.name} · ${st.wires} tel${mk0}${c.nodes.some(n => n.kind === 'splice') ? ' · ' + c.nodes.filter(n => n.kind === 'splice').length + ' splice' : ''}` : c.name + mk0;
+    const lab = det ? `${c.name} · ${catF ? (st.byCat[catF] || 0) + ' / ' : ''}${st.wires} tel${mk0}${c.nodes.some(n => n.kind === 'splice') ? ' · ' + c.nodes.filter(n => n.kind === 'splice').length + ' splice' : ''}` : c.name + mk0;
     const tw = lab.length * 6.4 + 12, lc = st.nE ? '#c0392b' : st.nW ? '#d68910' : col;
     labels += `<g ${attrs}><rect x="${lx - tw / 2}" y="${ly - 20}" width="${tw}" height="16" rx="8" fill="#fff" stroke="${lc}" stroke-width="${sel || st.nE ? 2 : 1}"/><text x="${lx}" y="${ly - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="${lc}">${esc(lab)}</text>`;
-    if(det){ const cats = Object.entries(st.byCat).filter(([k]) => k); cats.forEach(([k, v], i) => { const ct = hcCat(k); if(ct) labels += `<text x="${lx}" y="${ly + 10 + i * 12}" text-anchor="middle" font-size="10" fill="${ct.col}" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(ct.name)} ${v}</text>`; }); }
+    if(det){ const cats = Object.entries(st.byCat).filter(([k]) => k && (!catF || k === catF)); cats.forEach(([k, v], i) => { const ct = hcCat(k); if(ct) labels += `<text x="${lx}" y="${ly + 10 + i * 12}" text-anchor="middle" font-size="10" fill="${ct.col}" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(ct.name)} ${v}</text>`; }); }
     labels += '</g>';
     cables += '</g>';
   });

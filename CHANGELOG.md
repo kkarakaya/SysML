@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü
 
+## v1.57.0 — 2026-11-23
+
+- **Kablaj özeti:** birim, arayüz, kablo, hat (uçtan uca), tel, splice, hata / uyarı sayaçları; hat tiplerine, birimlere ve kablolara göre tablolar; özet Excel (hat listesi dahil)
+- **Hat tipine göre mimariler:** sistem şeması güç / haberleşme / ayrık… mimarisine süzülür (ilgisiz kablolar ve birimler gizli, konnektörler soluk); şema çubuğunda "Mimari" seçimi
+- **Mimari PDF:** tüm sistem ve seçilen hat tipleri, her biri A3 sayfa (süzülmüş şema, lejant, antet)
+- Hat kimliği pin uçlarından türetilir (test kapsamı için kararlı)
+- Birim testleri 182, regresyon testi 61 adım
+
 ## v1.56.0 — 2026-11-23
 
 - **AWG önerisi:** tel akımı (demet / tek tel kapasitesi), kablo maks. uzunluğundan gerilim düşümü (gidiş + dönüş, % ayarlanabilir; dönüş hattı besleme gerilimini kullanır) ve uç kontakların AWG aralığından önerilen (en ince uygun) ve en kalın AWG; uygun tel yoksa gerekçe ve gereken AWG; model doğrulamada "Kablaj AWG"

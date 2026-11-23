@@ -1079,6 +1079,21 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   v56.undo = await page.evaluate(() => { undo(); undo(); undo(); return true; });
   ok('Kablaj AWG ve teknik resim: öneri penceresi ve uygulama (AWG + bükümlü çift), antet alanı, tek kablo PDF indirme, çoklu kablo penceresi', Object.values(v56).every(v => v === true), v56);
 
+  console.log('8h5) v1.57 kablaj özeti ve mimariler');
+  await page.evaluate(() => { const a = hcNewUnit('OZ A'), b = hcNewUnit('OZ B'), pa = hcNewPort(a.id, 'J1'), pb = hcNewPort(b.id, 'J1'); pa.hc.ct = pb.hc.ct = 'lib:md-9P'; hcSetPin(pa, '1', 'lbl', 'l_28v'); hcSetPin(pa, '2', 'lbl', 'l_txp'); hcSetPin(pb, '1', 'lbl', 'l_28v'); hcSetPin(pb, '2', 'lbl', 'l_rxp'); hcConnect(pa.id, pb.id); afterChange();
+    window.__dl = []; document.querySelector('[data-act="harnessMenu"]').click(); });
+  await page.waitForTimeout(150); await page.click('#ctx .mi:has-text("Kablaj özeti")'); await page.waitForTimeout(200);
+  const v57 = await page.evaluate(() => ({ view: ST.cur === '@hcsum' && /hat \(uçtan uca\)/.test(document.querySelector('#view').textContent), rows: document.querySelectorAll('#view [data-hc4="arch"]').length >= 2 }));
+  await page.click('[data-hc4="arch"][data-k="c_pwr"]'); await page.waitForTimeout(200);
+  Object.assign(v57, await page.evaluate(() => ({ filtered: ST.cur === '@hcsys' && HCS.catF === 'c_pwr' && document.querySelector('.vbar [data-hc4f="cat"]').value === 'c_pwr' })));
+  await page.evaluate(() => openD('@hcsum')); await page.waitForTimeout(100); await page.click('[data-hc4="xl"]'); await page.waitForTimeout(100);
+  v57.xlsx = await page.evaluate(() => /kablaj özeti\.xlsx$/.test(window.__dl.pop().name));
+  await page.click('[data-hc4="archall"]'); await page.waitForTimeout(100); v57.dlg = await page.evaluate(() => document.querySelectorAll('#modalBox [data-hca4]').length >= 3);
+  await page.click('#hcAO'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v57.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /Kablaj mimarileri\.pdf$/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-'; });
+  await page.evaluate(() => { HCS.catF = ''; });
+  ok('Kablaj özeti: sayılar, hat tipine göre mimari görünümü (süzgeç), özet Excel, mimari PDF penceresi ve indirme', Object.values(v57).every(v => v === true), v57);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);
