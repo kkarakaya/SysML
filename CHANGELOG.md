@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü
 
+## v1.56.0 — 2026-11-23
+
+- **AWG önerisi:** tel akımı (demet / tek tel kapasitesi), kablo maks. uzunluğundan gerilim düşümü (gidiş + dönüş, % ayarlanabilir; dönüş hattı besleme gerilimini kullanır) ve uç kontakların AWG aralığından önerilen (en ince uygun) ve en kalın AWG; uygun tel yoksa gerekçe ve gereken AWG; model doğrulamada "Kablaj AWG"
+- **Bükümlü çift önerisi:** çift eşi / etiket adına göre; RS-422/485, CAN 120 Ω, 1553 78 Ω, Ethernet / LVDS 100 Ω ekranlı çift; güç besleme + dönüş çifti; tek tıkla uygulama (TP / TSP grupları, ekran)
+- **Teknik resim (A3 yatay PDF):** pin pin bağlantı şeması, tel listesi (sığmazsa devam sayfası), sağ altta BOM ve antet; ayrı sayfada dikdörtgen konnektör görünümleri (ön / arka yüz, numaralandırma başlangıç köşesi, ilk pin oku, hat tipi renkleri)
+- Tek kablo, seçili kablolar tek PDF veya her kablo ayrı PDF; BOM + tel listesi Excel
+- Kablo antet alanları (başlık, çizim no, revizyon, hazırlayan, kontrol, onay, tarih)
+- Birim testleri 179, regresyon testi 60 adım
+
 ## v1.55.0 — 2026-11-23
 
 - **Kablaj şeması (sistem seviyesi):** tüm birimler, konnektörler ve kablolar tek şemada; konnektörden konnektöre sürükleyerek kablo (W1, W2…), etiket ve eşleşme kurallarıyla otomatik tel; taşınabilir birimler, tekerlekle yakınlaştırma, kaydırma, sığdır; basit / detaylı görünüm düğmesi

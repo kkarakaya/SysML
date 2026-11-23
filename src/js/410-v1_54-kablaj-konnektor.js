@@ -298,7 +298,7 @@ VIEWS['@hcunits'] = {tr:'Birim Arayüzleri ve Pinout', ic:'PIN', note:'Her birim
 /* ---------- menü, araç çubuğu, iş akışı ---------- */
 HOOKS.menu.analysis.unshift(r => r.push(...hcLibMenu()));   /* gruplama / Temel süzgecinden (menuFinal) önce */
 if(typeof MENU_ADV !== 'undefined') MENU_ADV.analysis = new RegExp(MENU_ADV.analysis.source + '|^Konnektör kütüphanesi|^Hat tipleri ve etiketler|^Birim arayüzleri');   /* Temel görünümde Kablaj ▾ menüsünde */
-if(typeof MENU_GROUPS !== 'undefined'){ MENU_GROUPS.analysis.cls.unshift(['Kablaj ve konnektörler', /Konnektör kütüphanesi|Hat tipleri ve etiketler|Birim arayüzleri|Kablaj/]); MENU_GROUPS.analysis.show.splice(1, 0, 'Kablaj ve konnektörler'); }
+if(typeof MENU_GROUPS !== 'undefined'){ MENU_GROUPS.analysis.cls.unshift(['Kablaj ve konnektörler', /Konnektör kütüphanesi|Hat tipleri ve etiketler|Birim arayüzleri|Kablaj|Kablo teknik/]); MENU_GROUPS.analysis.show.splice(1, 0, 'Kablaj ve konnektörler'); }
 ACT.harnessMenu = () => { const b = document.querySelector('[data-act="harnessMenu"]').getBoundingClientRect(); setTimeout(() => menu(b.left, b.bottom + 4, hcLibMenu()), 0); };
 (() => { const tb = document.querySelector('#toolbar [data-act="analysisMenu"]');
   if(tb && !document.querySelector('#toolbar [data-act="harnessMenu"]')){ tb.insertAdjacentHTML('afterend', '<button data-act="harnessMenu" title="Konnektör kütüphanesi, hat etiketleri, birim arayüzleri ve pinout, kablaj şeması">Kablaj ▾</button>'); if(typeof TB_IC !== 'undefined') TB_IC.harnessMenu = 'tools'; if(typeof decorateToolbar === 'function') decorateToolbar(); } })();

@@ -1059,6 +1059,26 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(100); const k0 = await page.evaluate(() => HCS.k); await page.mouse.move(700, 500); await page.mouse.wheel(0, -200); await page.waitForTimeout(100); v55.zoom = await page.evaluate(k => HCS.k > k, k0);
   ok('Kablaj şeması: konnektörden konnektöre sürükleyerek kablo + etiketle otomatik tel, detaylı görünüm, çift tıkla kablo detayı, "bağlı değil" combobox, hat tipi uyuşmazlığı, model doğrulama, geri al, tekerlekle yakınlaştırma', Object.values(v55).every(v => v === true), v55);
 
+  console.log('8h4) v1.56 kablaj: AWG önerisi ve teknik resim PDF');
+  await page.evaluate(() => { const mkU = (n, nm, ct, cat, pins) => { const u = hcNewUnit(n); const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); return p; };
+    const a = mkU('TR Güç', 'J7', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'src', ipk:6}, B:{lbl:'l_28r', ipk:6}}), b = mkU('TR Yük', 'J8', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'snk', ipk:6}, B:{lbl:'l_28r', ipk:6}});
+    window.__tc = hcConnect(a.id, b.id); HCS.cab = window.__tc.id; openD('@hccable'); });
+  await page.waitForTimeout(150);
+  await page.click('.vbar [data-hc3="sug"]'); await page.waitForTimeout(150);
+  const v56 = { dlg: await page.evaluate(() => /AWG ve bükümlü çift önerisi/.test(document.querySelector('#modalBox h2').textContent) && document.querySelectorAll('#modalBox tbody tr').length === 2) };
+  await page.click('#hcSgOk'); await page.waitForTimeout(150);
+  Object.assign(v56, await page.evaluate(() => { const c = hcR().cables[HCS.cab]; return { awg: c.wires.every(w => w.awg === 20), twist: c.wires.every(w => /^TP\d$/.test(w.grp)) }; }));
+  await page.fill('[data-hc3d="by"]', 'K. Test'); await page.press('[data-hc3d="by"]', 'Tab'); await page.waitForTimeout(100);
+  v56.dwg = await page.evaluate(() => hcDwg(hcR().cables[HCS.cab]).by === 'K. Test' && /K\. Test/.test(hcDrawingPages(hcR().cables[HCS.cab])[0].str));
+  await page.evaluate(() => { window.__dl = []; }); await page.click('.vbar [data-hc3="pdf"]');
+  await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v56.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /W\d+ - teknik resim\.pdf$/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-' && f.size > 20000; });
+  await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(100); await page.click('.vbar [data-hc3="pdfall"]'); await page.waitForTimeout(100);
+  v56.multi = await page.evaluate(() => document.querySelectorAll('#modalBox [data-hcd]').length === hcCables().length && !!document.querySelector('#hcDS'));
+  await page.click('#hcDC');
+  v56.undo = await page.evaluate(() => { undo(); undo(); undo(); return true; });
+  ok('Kablaj AWG ve teknik resim: öneri penceresi ve uygulama (AWG + bükümlü çift), antet alanı, tek kablo PDF indirme, çoklu kablo penceresi', Object.values(v56).every(v => v === true), v56);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);
