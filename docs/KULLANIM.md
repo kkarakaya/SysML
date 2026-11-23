@@ -1226,6 +1226,25 @@ Araç çubuğundaki **Kablaj ▾** menüsünden (veya **İş akışı → 3. Ara
 
 Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları: farklı hat tipi **hata**, örtüşmeyen gerilim aralıkları (ör. 10–15 V ↔ 20–25 V) **hata**, iki çıkış / iki güç kaynağı **hata**, eşleşmeyen etiket ve iki giriş **uyarı**.
 
+## 5ar. Kablaj şeması: sistem şeması, kablo detayı, dallanma ve splice
+
+**Kablaj ▾ → Kablaj şeması** (`@hcsys`) tüm birimleri, konnektörlerini ve kabloları tek şemada gösterir.
+- **Kablo oluşturma:** bir konnektörün yanındaki **●** noktasından başka bir konnektöre sürükleyin. Kablo W1, W2… adıyla oluşur (adı sonra değiştirilebilir); dolu pinler etiket ve eşleşme kurallarına göre otomatik tellenir (ör. RS422_TX+ → RS422_RX+).
+- **Dallanma:** zaten bir kabloya takılı konnektöre sürüklerseniz yeni konnektör o kabloya **dal** olarak eklenir. Eşleşen pin zaten bağlıysa tel otomatik olarak bir **splice**'a bölünür (A—B → A—SP1, SP1—B, SP1—C). Bir birim konnektörü yalnız bir kabloya takılabilir.
+- **Basit / Detaylı görünüm:** basit görünümde her kablo tek çizgi ve adıdır; detaylı görünümde tel sayısı, hat tiplerine göre dağılım, splice sayısı ve ✖ hata / ⚠ uyarı sayıları görünür. Kablo rengi baskın hat tipinin rengidir; hatalı kablonun etiketi kırmızı, uyarılı kablonunki turuncudur.
+- Birimleri başlığından sürükleyerek taşıyın (konum modele kaydedilir); tekerlekle yakınlaştırın, boş alanı sürükleyerek kaydırın, **Sığdır** ve **Yerleşimi sıfırla** düğmelerini kullanın. Konnektöre çift tıklamak pinout'unu açar.
+- **Bağlantıyı sil:** üstten veya tıklayarak seçilen kabloyu ve tellerini siler.
+
+**Kablo detayı** (`@hccable`) — kabloya çift tıklayınca yalnız o kablo açılır:
+- Pin pin bağlantı şeması: her uçta birim ve konnektör adı, konnektör PN ve kablo ucundaki eşleşen konnektör PN; ortada splice'lar; teller hat tipi rengiyle, hatalı teller kırmızı, bağlı olmayanlar kesikli.
+- Kablo adı, maks. uzunluk (AWG önerisinde gerilim düşümü için) ve not; **Dal ekle**, **+ Splice**, **Etiketlere göre eşle**, **Tümüne AWG**.
+- Tel tablosu: uçlar (pin veya splice), **Durum** (Bağlı / Bağlı değil — "bağlı değil" tel tanımlı kalır ama denetime ve sayımlara girmez), AWG, renk, bükümlü grup (aynı grup adı = bükümlü çift/üçlü), ekranlı, hesaplanan akım ve denetim.
+
+**Eşleştirme denetimi** (kabloda ve Model doğrulamada, kural adı "Kablaj eşleştirme"): aynı netteki tüm pin çiftleri için farklı hat tipi (hata), eşleşmeyen etiket (uyarı), örtüşmeyen gerilim aralıkları (hata), iki çıkış / iki kaynak (hata), iki giriş (uyarı); bir pine birden çok tel (uyarı — splice kullanın), tel akımı AWG kapasitesini aşıyor (demet / tek tel), AWG kontağın kabul aralığı dışında, splice'a tek pin bağlı.
+- **Tel akımı:** iki pin uçlu telde büyük olan pin akımı; splice'a giden telde düğüm akımı — pin akımı ile netteki diğer pinlerin toplamından küçük olanı (kaynak teli yüklerin toplamını, yük teli kendi akımını taşır).
+- **Splice üzerinde AWG geçişi** engellenmez: tüm teller akım sınırı içindeyse "uygun ✓" bilgisi, aşan varsa uyarı verilir.
+- Tel kapasite tablosu (AWG 30–4, tek tel ve demet içinde, yaklaşık AS50881 değerleri) modelde düzenlenebilir.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

@@ -30,8 +30,15 @@ function hcDefaults(){
   const contacts = [K('#22D', 5, 22, 28, 'MIL-DTL-38999 / HD D-Sub'), K('#20', 7.5, 20, 24, 'MIL-DTL-38999 / 26482'), K('#16', 13, 16, 20, 'MIL-DTL-38999 / 26482'), K('#12', 23, 12, 14, 'MIL-DTL-38999'),
     K('#8', 46, 8, 10, 'Güç kontağı'), K('D-Sub #20', 5, 20, 24, 'MIL-DTL-24308 standart yoğunluk'), K('Micro-D TwistPin', 3, 24, 30, 'MIL-DTL-83513'),
     K('Fisher Ø0.7', 4, 24, 28, 'Fisher Core S102 — yaklaşık, katalogla doğrulayın'), K('Fisher Ø0.9', 6, 22, 26, 'Fisher Core S103 — yaklaşık, katalogla doğrulayın'), K('Fisher Ø1.3', 10, 20, 24, 'Fisher Core S104 — yaklaşık, katalogla doğrulayın')];
-  return {v:1, cats, labels, rules, contacts, ctypes:{}, cables:{}};
+  return {v:1, cats, labels, rules, contacts, ctypes:{}, cables:{}, lay:{}, awg:hcAwgDefaults()};
 }
+/* tel tablosu: taşıma kapasitesi (A) — tek tel serbest havada ve demet içinde; yaklaşık SAE AS50881 / MIL-W-5088 değerleri (M22759, 200 °C), düzenlenebilir.
+   Direnç bakır, 20 °C, AWG çapından hesaplanır (Ω/km). */
+function hcAwgDefaults(){
+  const T = [[30, 3, 1], [28, 4, 1.5], [26, 5, 2.5], [24, 7, 3.5], [22, 9, 5], [20, 11, 7.5], [18, 16, 10], [16, 22, 13], [14, 32, 17], [12, 41, 23], [10, 55, 33], [8, 73, 46], [6, 101, 60], [4, 135, 80]];
+  return T.map(([awg, single, bundle]) => ({awg, single, bundle, ohm:+hcAwgOhm(awg).toFixed(2)}));
+}
+function hcAwgOhm(awg){ const d = 0.127 * Math.pow(92, (36 - awg) / 39); return 0.017241 / (Math.PI * d * d / 4) * 1000; }   /* Ω/km */
 let HC_DEF0 = null;
 function hcM(){ if(!M.hrn) M.hrn = hcDefaults(); const d = hcDefaults(); for(const k in d) if(M.hrn[k] == null) M.hrn[k] = d[k]; return M.hrn; }
 const hcR = () => (M && M.hrn) || HC_DEF0 || (HC_DEF0 = hcDefaults());
@@ -285,7 +292,7 @@ function hcImgPick(t){
 }
 function hcUserType(id){ const H = hcM(); return H.ctypes[id] || null; }
 function hcCopyType(t){ const H = hcM(), c = JSON.parse(JSON.stringify(t)); c.id = 'ct' + uid(); delete c.builtin; c.name = t.name + (t.builtin ? '' : ' (kopya)'); c.note = t.builtin ? '' : c.note; H.ctypes[c.id] = c; return c; }
-const hcLibMenu = () => [{t:'Konnektör kütüphanesi', f:() => { HC.tab = 'types'; openD('@hclib'); }}, {t:'Hat tipleri ve etiketler', f:() => { HC.tab = 'labels'; openD('@hclib'); }}, {t:'Birim arayüzleri ve pinout', f:() => openD('@hcunits')}];
+let hcLibMenu = () => [{t:'Konnektör kütüphanesi', f:() => { HC.tab = 'types'; openD('@hclib'); }}, {t:'Hat tipleri ve etiketler', f:() => { HC.tab = 'labels'; openD('@hclib'); }}, {t:'Birim arayüzleri ve pinout', f:() => openD('@hcunits')}];
 VIEWS['@hclib'] = {tr:'Konnektör Kütüphanesi', ic:'CON', note:'Konnektör tiplerini, hat tiplerini, etiketleri, eşleşme kurallarını ve kontak boyutlarını yönetin.<br><br><b>Yerleşik tipler</b> (MIL-DTL-38999, 26482, Micro-D, D-Sub, Fisher) salt okunurdur; <b>Kopyala</b> ile düzenlenebilir tip oluşturun ya da <b>+ Yeni tip</b> ile sıfırdan tanımlayın.<br><br>Kontak listesi pin numaralarını ve kontak boyutlarını belirler; pin akımı kontak sınırını aşarsa uyarı verilir.', render:hcLibHTML, bar:hcLibBar, status:() => hcTypes().length + ' konnektör tipi · ' + hcR().labels.length + ' etiket'};
 VIEWS['@hcunits'] = {tr:'Birim Arayüzleri ve Pinout', ic:'PIN', note:'Her birim için arayüzleri (konnektörleri) tanımlayın: konnektör tipi, arayüz türü (haberleşme, güç…) ve pin pin pinout.<br><br>Pinlere etiket atayın; kablaj şemasında eşleştirme denetimi bu etiketlere, hat tiplerine, yönlere ve gerilim aralıklarına göre yapılır.<br><br>Arayüzler modelde bloğun portlarıdır; IBD, ICD ve N² matrisinde de görünür.', render:hcUnitHTML, bar:hcUnitBar, status:() => hcUnits().length + ' birim · ' + Object.values(M.els).filter(hcIsConn).length + ' arayüz'};
 /* ---------- menü, araç çubuğu, iş akışı ---------- */

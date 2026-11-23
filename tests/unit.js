@@ -201,5 +201,29 @@ T('kablaj pinout: etiket varsayılanları, çift eşi karşılığı, kontak ak�
 T('kablaj pinout: boş pin kaydı silinir, tip pin adı değişince pinout taşınır', () => R(() => { const u = hcNewUnit('C'), p = hcNewPort(u.id); hcM(); const t = hcCopyType(hcType('lib:md-9P')); p.hc.ct = t.id; hcSetPin(p, '4', 'sig', 'X'); hcSetPin(p, '4', 'sig', ''); const gone = !p.hc.pins['4'];
   hcSetPin(p, '5', 'sig', 'Y'); hcRenamePin(t.id, '5', '5A'); return gone && p.hc.pins['5A'].sig === 'Y' && !p.hc.pins['5'] && !t.builtin; }));
 
+/* ---------- v1.55 kablaj şeması: kablo, dallanma, splice, eşleştirme ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n).id;
+  const psu = mkU('PSU', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'src', ipk:12}, B:{lbl:'l_28r', ipk:12}}]]);
+  const mc = mkU('MC', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'snk', ipk:4}, B:{lbl:'l_28r', ipk:4}}], ['J2', 'lib:38999-20-13-35P', 'c_com', {1:{lbl:'l_txp'}, 2:{lbl:'l_txn'}, 3:{lbl:'l_rxp'}, 4:{lbl:'l_rxn'}}], ['J3', 'lib:md-9P', 'c_dis', {1:{lbl:'l_do', vmin:10, vmax:15}}]]);
+  const sn = mkU('SN', [['J1', 'lib:md-9S', 'c_com', {1:{lbl:'l_rxp'}, 2:{lbl:'l_rxn'}, 3:{lbl:'l_txp'}, 4:{lbl:'l_txn'}}], ['J2', 'lib:md-9S', 'c_pwr', {1:{lbl:'l_28v', dir:'snk', ipk:2}}], ['J3', 'lib:md-9S', 'c_dis', {1:{lbl:'l_di', vmin:20, vmax:25}}]]);
+  const cam = mkU('CAM', [['P1', 'lib:ds-DE9P', 'c_pwr', {1:{lbl:'l_28v', ipk:3, dir:'snk'}, 2:{lbl:'l_28r', ipk:3}}]]);
+  window.__K = {psu:J(psu, 'J1'), mc1:J(mc, 'J1'), mc2:J(mc, 'J2'), mc3:J(mc, 'J3'), sn1:J(sn, 'J1'), sn2:J(sn, 'J2'), sn3:J(sn, 'J3'), cam:J(cam, 'P1')}; return true; });
+T('kablaj şeması: etiket ve eşleşme kuralıyla otomatik pin eşleme (TX+ → RX+)', () => R(() => { const K = window.__K, c = hcConnect(K.mc2, K.sn1); const ends = c.wires.map(w => hcEndLabel(c, w.a) + '>' + hcEndLabel(c, w.b)).sort().join(' ');
+  return c.name === 'W1' && c.wires.length === 4 && ends === 'J1-1>J2-1 J1-2>J2-2 J1-3>J2-3 J1-4>J2-4' && hcCableIssues(c).every(x => x.sev === 'bilgi') || ends; }));
+T('kablaj şeması: dal ekleme teli splice\'a böler; KCL ile tel akımı (kaynak 7 A, yükler 4 A / 3 A)', () => R(() => { const K = window.__K, c = hcConnect(K.psu, K.mc1); hcConnect(K.cam, K.mc1); const nets = hcNets(c), sp = c.nodes.filter(n => n.kind === 'splice');
+  const cur = w => hcWireCurrent(c, w, nets), byEnd = lbl => c.wires.find(w => [w.a, w.b].some(e => hcEndLong(c, e) === lbl));
+  return sp.length === 2 && c.wires.length === 6 && cur(byEnd('PSU · J1 / A')) === 7 && cur(byEnd('MC · J1 / A')) === 4 && cur(byEnd('CAM · P1 / 1')) === 3 && nets.length === 2 && hcCableOfPort(K.cam) === c; }));
+T('kablaj şeması: bir konnektör ikinci kabloya takılamaz', () => R(() => { const K = window.__K, n0 = hcCables().length; hcConnect(K.mc2, K.cam); return hcCables().length === n0; }));
+T('kablaj şeması: güç ↔ haberleşme ve örtüşmeyen ayrık gerilim hata; "bağlı değil" tel denetimden çıkar', () => R(() => { const K = window.__K, c = hcNewCable([K.mc3, K.sn3]); const iss1 = c.wires.length === 1 ? hcCableIssues(c) : [];   /* DISC_OUT ↔ DISC_IN kuralla otomatik eşlendi */
+  const e1 = hcCableIssues(c).some(x => x.sev === 'hata' && /örtüşmüyor/.test(x.msg)); c.wires[0].on = false; const e2 = !hcCableIssues(c).some(x => /örtüşmüyor/.test(x.msg)) && hcCableStats(c).wires === 0 && hcCableStats(c).off === 1;
+  const d = hcNewCable([K.sn2]); hcAddConnNode(d, K.mc2); hcAddWire(d, {n:d.nodes[0].id, pin:'1'}, {n:d.nodes[1].id, pin:'1'}); const e3 = hcCableIssues(d).some(x => x.sev === 'hata' && /Hat tipi uyuşmuyor/.test(x.msg)) && hcCableIssues(d).some(x => x.sev === 'hata' && /başka bir kabloya/.test(x.msg));
+  delete hcM().cables[d.id]; return e1 && e2 && e3 && iss1.length > 0 || {e1, e2, e3, i:iss1.length, x:hcCableIssues(d).map(x => x.msg)}; }));
+T('kablaj şeması: splice AWG geçişi — sınır içinde bilgi (uygun), aşınca uyarı; AWG kontak aralığı ve kapasite', () => R(() => { const c = hcCableOfPort(window.__K.psu); c.wires.forEach(w => w.awg = 20); const sp = c.nodes.find(n => n.kind === 'splice'), w = c.wires.find(x => (x.a.n === sp.id || x.b.n === sp.id) && [x.a, x.b].some(e => /CAM/.test(hcEndLong(c, e))));
+  w.awg = 24; const ok = hcCableIssues(c).some(x => x.sev === 'bilgi' && /AWG geçişi/.test(x.msg) && /✓/.test(x.msg)); w.awg = 30; const warn = hcCableIssues(c).some(x => x.sev === 'uyarı' && /AWG geçişi/.test(x.msg));
+  const rng = hcCableIssues(c).some(x => /AWG 30, .*kabul eder/.test(x.msg) || /AWG 30 kapasitesi/.test(x.msg)); w.awg = 20; return ok && warn && rng; }));
+T('kablaj şeması: port silinince kablo düğümü ve telleri temizlenir; SVG üretilir', () => R(() => { const K = window.__K, c = hcCableOfPort(K.mc2), n0 = c.wires.length; const svg = hcSysSVG({exp:true}).svg, csvg = hcCableSVG(c).svg; delModel([K.sn1]); return n0 === 4 && c.wires.length === 0 && c.nodes.length === 1 && /W1/.test(svg) && /SN · J1|SN/.test(csvg); }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
