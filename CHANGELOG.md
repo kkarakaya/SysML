@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü
 
+## v1.58.0 — 2026-11-23
+
+- **Kablaj test tanımı:** testler (Test Durumu elemanı) için her birimin test edilen pinleri tek tek seçilir; konnektör ve birim bazında toplu seçim, arama, yalnız kabloya bağlı pinler; pin satırında hat ve onu doğrulayan diğer testler
+- **Hat kapsaması:** her testin ve tüm testlerin kablo hatlarının yüzde kaçını doğruladığı; açıkta kalan ve testlerde kullanılan hatlar; hat tipine göre kapsama; hat × test matrisi; "uçlardan biri / tüm uçlar" kuralı; kapsama Excel
+- Sistem kablaj şemasında **Test kapsaması** katmanı (kablolar yeşil / turuncu / kırmızı, "test %x")
+- Test Durumu özellik panelinde kablaj kapsamı; silinen konnektörün pinleri testlerden temizlenir
+- Birim testleri 185, regresyon testi 62 adım
+
 ## v1.57.0 — 2026-11-23
 
 - **Kablaj özeti:** birim, arayüz, kablo, hat (uçtan uca), tel, splice, hata / uyarı sayaçları; hat tiplerine, birimlere ve kablolara göre tablolar; özet Excel (hat listesi dahil)

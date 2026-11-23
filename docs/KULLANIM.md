@@ -1273,6 +1273,26 @@ Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları:
 
 **Mimarileri PDF olarak indir…** — tüm sistem ve seçilen hat tipleri, her biri A3 yatay bir sayfa (süzülmüş detaylı şema, lejant, MIM-… çizim numaralı antet); tablodaki **PDF** düğmesi tek bir mimariyi indirir.
 
+## 5au. Kablaj test tanımı ve hat kapsaması
+
+**Kablaj ▾ → Kablaj test tanımı ve kapsama** (`@hctest`). Testler modelde **Test Durumu** (TestCase) elemanıdır; gereksinim doğrulaması, VCRM ve raporlarda da görünürler.
+
+**Test tanımı sekmesi:**
+- **+ Yeni test** ile test oluşturun (ya da mevcut bir testi seçin / **Çoğalt**). Test adı, açıklama / prosedür özeti ve sonuç (Planlandı, Geçti, Kaldı, Kısmen) düzenlenebilir.
+- Her birim için konnektörler ve dolu pinler listelenir; testte doğrulanan pinleri tek tek işaretleyin. Konnektör başlığındaki kutu o konnektörün tüm pinlerini, birim başlığındaki **Tümünü seç / Temizle** o birimin tüm pinlerini seçer veya bırakır.
+- Her pin satırında bağlı olduğu hat (kablo ve karşı uçlar) ve o hattı doğrulayan diğer testler görünür. **Yalnız kabloya bağlı pinler** ve arama kutusu (birim, konnektör, pin, sinyal, etiket) listeyi daraltır.
+- Üstteki çubuk testin kablo hatlarının yüzde kaçını doğruladığını gösterir.
+
+**Kapsama sekmesi:**
+- Sayaçlar: kablo hattı, testlerde doğrulanan, açıkta kalan, toplam kapsama %, kablaj testi sayısı.
+- **Testlere göre** (her testin pin, hat ve kapsama %) ve **hat tiplerine göre** kapsama tabloları.
+- Hat listesi **Tüm hatlar / Açıkta kalan hatlar / Testlerde kullanılan hatlar** süzgeciyle; her test bir sütun (hat × test matrisi).
+- **Hat doğrulanmış sayılır:** "uçlarından biri testteyse" (varsayılan) ya da "tüm uçları testteyse".
+- **Şemada göster** / sistem şemasındaki **Test kapsaması** düğmesi kabloları kapsama oranına göre renklendirir (yeşil tam, turuncu kısmi, kırmızı test yok) ve kablo etiketinde "test %x (k/n)" yazar.
+- **Excel:** testler, hat kapsaması matrisi ve test pinleri sayfaları.
+
+Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinlerini düzenle** düğmesi bulunur. Bir konnektör silinince testlerdeki pinleri de temizlenir.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

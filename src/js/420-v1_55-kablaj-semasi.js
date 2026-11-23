@@ -158,7 +158,8 @@ function hcSysSVG(opt){
     if(!cs0.length) units += `<text x="${p0.x + 10}" y="${p0.y + HC_UH + 16}" font-size="11" fill="#999">arayüz yok</text>`;
     units += '</g>'; });
   cs.forEach(c => {
-    const st = hcCableStats(c), col = catF && hcCat(catF) ? hcCat(catF).col : hcCableColor(c, st), sel = !opt.exp && HCS.sel === c.id, conns = c.nodes.filter(n => n.kind === 'conn' && E(n.port) && P[E(n.port).owner]);
+    const cov = (opt.cov != null ? opt.cov : HCS.cov) && typeof hcCableCov === 'function' ? hcCableCov(c) : null;   /* v1.58 test kapsaması katmanı */
+    const st = hcCableStats(c), col = cov ? (cov.n && cov.r >= 1 ? '#27ae60' : cov.r > 0 ? '#d68910' : '#c0392b') : catF && hcCat(catF) ? hcCat(catF).col : hcCableColor(c, st), sel = !opt.exp && HCS.sel === c.id, conns = c.nodes.filter(n => n.kind === 'conn' && E(n.port) && P[E(n.port).owner]);
     if(!conns.length) return;
     const cen = conns.map(n => { const p = E(n.port), u = P[p.owner]; return {n, p, cx:u.x + u.w / 2}; }), mx = cen.reduce((s, x) => s + x.cx, 0) / cen.length;
     const anchors = cen.map(x => ({n:x.n, a:hcPortAnchor(P, x.p, (conns.length === 2 ? (cen.find(y => y !== x) || x).cx : mx) >= x.cx ? 1 : -1), side:(conns.length === 2 ? (cen.find(y => y !== x) || x).cx : mx) >= x.cx ? 1 : -1}));
@@ -168,9 +169,9 @@ function hcSysSVG(opt){
     else { lx = anchors.reduce((s, x) => s + x.a.x + x.side * 60, 0) / anchors.length; ly = anchors.reduce((s, x) => s + x.a.y, 0) / anchors.length; path = anchors.map(x => `M${x.a.x},${x.a.y} C${x.a.x + x.side * 60},${x.a.y} ${lx},${ly} ${lx},${ly}`).join(' '); }
     cables += `<g ${attrs}><path d="${path}" fill="none" stroke="transparent" stroke-width="12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="${sel ? sw + 2 : sw}"${st.wires ? '' : ' stroke-dasharray="6 4"'}/>${anchors.length > 2 ? `<circle cx="${lx}" cy="${ly}" r="5" fill="${col}"/>` : ''}
       ${anchors.map(x => `<circle cx="${x.a.x}" cy="${x.a.y}" r="3.5" fill="${col}"/>`).join('')}`;
-    const mk0 = (st.nE ? ' ✖' + st.nE : '') + (st.nW ? ' ⚠' + st.nW : '');
+    const mk0 = cov ? ` · test %${Math.round(cov.r * 100)} (${cov.k}/${cov.n})` : (st.nE ? ' ✖' + st.nE : '') + (st.nW ? ' ⚠' + st.nW : '');
     const lab = det ? `${c.name} · ${catF ? (st.byCat[catF] || 0) + ' / ' : ''}${st.wires} tel${mk0}${c.nodes.some(n => n.kind === 'splice') ? ' · ' + c.nodes.filter(n => n.kind === 'splice').length + ' splice' : ''}` : c.name + mk0;
-    const tw = lab.length * 6.4 + 12, lc = st.nE ? '#c0392b' : st.nW ? '#d68910' : col;
+    const tw = lab.length * 6.4 + 12, lc = cov ? col : st.nE ? '#c0392b' : st.nW ? '#d68910' : col;
     labels += `<g ${attrs}><rect x="${lx - tw / 2}" y="${ly - 20}" width="${tw}" height="16" rx="8" fill="#fff" stroke="${lc}" stroke-width="${sel || st.nE ? 2 : 1}"/><text x="${lx}" y="${ly - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="${lc}">${esc(lab)}</text>`;
     if(det){ const cats = Object.entries(st.byCat).filter(([k]) => k && (!catF || k === catF)); cats.forEach(([k, v], i) => { const ct = hcCat(k); if(ct) labels += `<text x="${lx}" y="${ly + 10 + i * 12}" text-anchor="middle" font-size="10" fill="${ct.col}" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(ct.name)} ${v}</text>`; }); }
     labels += '</g>';
