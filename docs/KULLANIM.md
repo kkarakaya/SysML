@@ -1206,6 +1206,26 @@ Araç çubuğunun sağındaki **Temel / Uzman** düğmesi (veya Araçlar ▾ →
 
 Dolu alanlar korunur. Ardından Word test prosedürü penceresi açılır (doküman şablonu, kapak ve revizyon tablosu ayarları geçerlidir). Taslak profilde seviye "[TBD] seviye" olarak yazılır.
 
+## 5aq. Kablaj: konnektör kütüphanesi, hat etiketleri, birim arayüzleri ve pinout
+
+Araç çubuğundaki **Kablaj ▾** menüsünden (veya **İş akışı → 3. Arayüzleri ve kablajı tasarla**) açılır.
+
+**Konnektör kütüphanesi** (`@hclib`)
+- **Konnektör tipleri:** yerleşik örnek tipler MIL-DTL-38999 Seri III (/20 duvar flanşlı, /24 jam-nut receptacle, /26 plug), MIL-DTL-26482, Micro-D (MIL-DTL-83513), D-Sub (MIL-DTL-24308, yüksek yoğunluk dahil) ve Fisher Core ailelerindendir. Yerleşik tipler salt okunurdur; **Kopyala** ile düzenlenebilir kopya oluşturun ya da **+ Yeni tip** ile sıfırdan tanımlayın.
+- Tip alanları: ad, aile, standart, üretici, parça no, eşleşen konnektör PN, kabuk boyutu, insert düzeni, kontak cinsiyeti (erkek/dişi), gövde tipi (plug / receptacle), keying, kilit tipi, kontak sonlandırma, maks. gerilim, sıcaklık aralığı, IP, kaplama, backshell, ağırlık, gövde şekli, pin numaralarının hangi yüzden görüldüğü ve numaralandırmanın başladığı köşe (teknik resimde kullanılır), resim ve istenen kadar **ek özellik**.
+- **Kontaklar:** pin numarası ve kontak boyutu (#22D, #20, #16, #12…). Pin sayısı, sayısal veya harf (I/O/Q hariç) numaralandırma ve kontak boyutuyla liste tek düğmeyle oluşturulur; tek tek pin eklenip numarası değiştirilebilir (arayüzlerdeki pinout yeni numaraya taşınır).
+- **Hat tipleri ve etiketler:** hat tipleri (Haberleşme, Güç, Ayrık, Analog, RF, Video, Şasi / Ekran — düzenlenebilir başlangıç seti) arayüzlerin ve pinlerin sınıfıdır. Etiketler (RS422_TX+, 28V, DISC_IN…) hat tipine bağlıdır ve varsayılan yön ile gerilim aralığı taşır. **Eşleşme kuralları** farklı etiketli uçların doğru bağlantı sayılmasını sağlar (ör. RS422_TX+ ↔ RS422_RX+).
+- **Kontak boyutları:** maks. akım ve kabul edilen AWG aralığı (kablaj tel önerisinde üst/alt sınır). Değerler örnektir, kendi kontak kataloğunuzla güncelleyin.
+
+**Birim arayüzleri ve pinout** (`@hcunits`)
+- **+ Yeni birim** bir blok oluşturur; mevcut bloklar da birim olarak seçilebilir.
+- **+ Arayüz (konnektör)** birime J1, J2… adında bir port ekler; konnektör tipini ve arayüz türünü seçin. Arayüzler modelde bloğun portlarıdır, IBD / ICD / N² ile aynı modeli paylaşır.
+- Pinout tablosu: sinyal adı, etiket (listede **+ Yeni etiket…**), hat tipi (etiket yoksa), yön, V min / V maks, nominal ve tepe akım, diferansiyel çift eşi, ekranlı, not. Etiket seçilince boş yön / gerilim alanları etiketin varsayılanlarıyla dolar; çift eşi karşı pine de yazılır.
+- Denetimler (tabloda ve **Model doğrulama**'da): pin akımı kontak sınırını aşıyor, gerilim konnektör çalışma gerilimini aşıyor, min > maks, çift eşi tutarsız, pin tipte yok, hat tipi arayüz türünden farklı.
+- **Pinout Excel:** seçili birimin (seçili değilse tüm birimlerin) pinout tablosu ve denetim sonuçları.
+
+Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları: farklı hat tipi **hata**, örtüşmeyen gerilim aralıkları (ör. 10–15 V ↔ 20–25 V) **hata**, iki çıkış / iki güç kaynağı **hata**, eşleşmeyen etiket ve iki giriş **uyarı**.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

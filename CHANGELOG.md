@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü
 
+## v1.54.0 — 2026-11-23
+
+- **Kablaj — konnektör kütüphanesi:** MIL-DTL-38999 Seri III, MIL-DTL-26482, Micro-D, D-Sub (standart ve yüksek yoğunluk) ve Fisher Core örnek tipleri (54 tip); kullanıcı tipleri: PN, eşleşen PN, kabuk, insert, cinsiyet, plug/receptacle, keying, kilit, sonlandırma, gerilim, sıcaklık, IP, kaplama, backshell, ağırlık, gövde şekli, pin görünüm yüzü ve başlangıç köşesi, resim, ek özellikler; kontak listesi üreteci
+- **Hat tipleri, etiketler ve eşleşme kuralları:** düzenlenebilir başlangıç seti; etiket varsayılan yön ve gerilim aralığı; kontak boyutu tablosu (akım sınırı, AWG aralığı)
+- **Birim arayüzleri ve pinout:** birim (blok) başına konnektör arayüzleri (port), pin pin sinyal / etiket / hat tipi / yön / gerilim / akım / çift eşi / ekran; pin denetimleri (kontak akım sınırı, gerilim, çift eşi) tabloda ve model doğrulamada; pinout Excel
+- **Pin uyumluluk motoru** (kablaj şeması için): hat tipi, etiket / kural, gerilim aralığı örtüşmesi ve yön denetimi
+- Araç çubuğunda **Kablaj ▾** menüsü; iş akışına "Arayüzleri ve kablajı tasarla" adımı
+- Model biçimi: `M.hrn` (ilk kullanımda oluşur), konnektör portlarında `hc`; dallanma ve splice için kablo yapısı ayrıldı (v1.55)
+- Birim testleri 165, regresyon testi 58 adım
+
 ## v1.53.0 — 2026-10-17
 
 - **Sıkıştırılmış Word ve Excel:** .docx / .xlsx içindeki XML parçaları DEFLATE ile sıkıştırılır (uygulama içinde, eşzamanlı; görseller olduğu gibi saklanır). Örnek: gereksinim Excel'i 77 KB → 17 KB, VCRM 28 KB → 7 KB. LibreOffice, python-docx / openpyxl ve uygulamanın kendi okuyucusuyla doğrulandı

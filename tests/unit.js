@@ -188,5 +188,18 @@ T('AECTP-400 şablonu: 3 gereksinim + taslak profil (Refine) + test; seviyeler T
 T('test prosedürü taslağı: adımlar eksen başına, hazırlık/kabul doldurulur, dolu alan korunur', () => R(() => { const r = allReqs().find(x => /rastgele titreşim/.test(x.text || '') && envProfilesOf(x).some(p => p.tbd)); const tc = envTpDraft(r.id, true); const st = tcSteps(tc); const axes = st.filter(s => /^(X|Y|Z) ekseninde/.test(s.a)).length; const pre = tc.pre; tc.steps = [{a:'özel', exp:''}]; envTpDraft(r.id, true); return axes === 3 && /kalibrasyon/.test(pre) && /Ölçüm Değerlendirme kararı/.test(tc.accept) && tcSteps(tc).length === 1 && st[st.length - 1].exp === 'Ölçüm kararı: Geçti'; }));
 T('çevre cümlesi: akustik profil OASPL ile', () => R(() => { const p = mk('TestProfile', M.rootId, {name:'Gürültü', ptype:'acoustic', pts:[[100, 100], [800, 100]], dur:'2'}); return envClause(p) === '100 Hz ile 800 Hz arasında 110 dB OASPL (ref 20 µPa) seviyesindeki "Gürültü" profiline 2 dk maruz kaldığında'; }));
 
+/* ---------- v1.54 kablaj: konnektör kütüphanesi ve pin uyumluluğu ---------- */
+fresh();
+T('kablaj: yerleşik kütüphane — 38999 PN ve pin sayıları', () => R(() => { const t = hcType('lib:38999-20-13-35P'), m = hcType('lib:md-37S'), l = hcType('lib:38999-26-13-98S'); return t.pn === 'D38999/20WC35PN' && t.pins.length === 22 && t.pins[0].size === '#22D' && m.pins.length === 37 && l.pins.map(p => p.no).join('') === 'ABCDEFGHJK'; }));
+T('kablaj: okuma modeli değiştirmez (M.hrn yalnız yazınca oluşur)', () => R(() => { delete M.hrn; hcTypes(); hcLabel('l_28v'); hcPinCompat({lbl:'l_txp'}, {lbl:'l_rxp'}); return !M.hrn; }));
+T('kablaj pin uyumu: aynı etiket / eşleşme kuralı uyumlu', () => R(() => hcPinCompat({lbl:'l_28v'}, {lbl:'l_28v'}).length === 0 && hcPinCompat({lbl:'l_txp', vmin:-6, vmax:6}, {lbl:'l_rxp', vmin:-6, vmax:6}).length === 0));
+T('kablaj pin uyumu: farklı hat tipi hata', () => R(() => hcPinCompat({lbl:'l_txp'}, {lbl:'l_28v'}).some(x => x[0] === 'hata' && /Hat tipi/.test(x[1]))));
+T('kablaj pin uyumu: örtüşmeyen gerilim aralığı (10–15 V ↔ 20–25 V) hata', () => R(() => hcPinCompat({cat:'c_dis', vmin:10, vmax:15}, {cat:'c_dis', vmin:20, vmax:25}).some(x => x[0] === 'hata' && /örtüşmüyor/.test(x[1])) && !hcPinCompat({cat:'c_dis', vmin:10, vmax:22}, {cat:'c_dis', vmin:20, vmax:25}).length));
+T('kablaj pin uyumu: iki çıkış hata, boş uç uyarı', () => R(() => hcPinCompat({cat:'c_dis', dir:'out'}, {cat:'c_dis', dir:'out'}).some(x => x[0] === 'hata') && hcPinCompat({lbl:'l_di'}, {})[0][0] === 'uyarı'));
+T('kablaj pinout: etiket varsayılanları, çift eşi karşılığı, kontak akım sınırı', () => R(() => { const u = hcNewUnit('B'), p = hcNewPort(u.id); p.hc.ct = 'lib:38999-20-11-35P'; hcSetPin(p, '1', 'lbl', 'l_txp'); hcSetPin(p, '2', 'lbl', 'l_txn'); hcSetPin(p, '1', 'pair', '2'); hcSetPin(p, '3', 'inom', '7');
+  const s = hcConnStats(p); return p.hc.pins['1'].dir === 'out' && p.hc.pins['1'].vmax === 6 && p.hc.pins['2'].pair === '1' && s.used.length === 3 && s.iss.some(x => x[0] === 'hata' && /Pin 3: Akım 7 A/.test(x[1])) && hcUnits().includes(u); }));
+T('kablaj pinout: boş pin kaydı silinir, tip pin adı değişince pinout taşınır', () => R(() => { const u = hcNewUnit('C'), p = hcNewPort(u.id); hcM(); const t = hcCopyType(hcType('lib:md-9P')); p.hc.ct = t.id; hcSetPin(p, '4', 'sig', 'X'); hcSetPin(p, '4', 'sig', ''); const gone = !p.hc.pins['4'];
+  hcSetPin(p, '5', 'sig', 'Y'); hcRenamePin(t.id, '5', '5A'); return gone && p.hc.pins['5A'].sig === 'Y' && !p.hc.pins['5'] && !t.builtin; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
