@@ -284,5 +284,13 @@ T('protokol: ek kaydı port ve profile bağlanır, son sahibi kaldırılınca si
   H.files.f1 = {id:'f1', name:'ICD.pdf', size:10, data:'JVBERg=='}; hpLink(pa, 'f1'); hpLink(hpGet('pr_ser1'), 'f1'); const two = hpOwners('f1').length;
   hpUnlink(pa, 'f1'); const kept = !!H.files.f1; hpUnlink(hpGet('pr_ser1'), 'f1'); return two === 2 && kept && !H.files.f1 && hcPortBadge(pa, 0, 0).includes('RS-422'); }));
 
+/* ---------- v1.60 mimarilerde arama ---------- */
+T('kablaj arama: pin / etiket / birim / kablo / protokol eşleşmesi, hattın karşı ucu ve kablosu vurgulanır', () => R(() => { const a = hcUnits().find(u => u.name === 'A'), b = hcUnits().find(u => u.name === 'B');
+  const r1 = hcSearch('rs422_tx+'), r2 = hcSearch('B'), r3 = hcSearch('örnek seri'), c = hcCables().find(x => x.nodes.some(n => n.kind === 'conn' && E(n.port) && E(n.port).owner === a.id)), r4 = hcSearch(c.name), r0 = hcSearch('qqzz');
+  return r1.hits.some(x => x.t === 'Pin') && r1.units.has(a.id) && r1.units.has(b.id) && r1.cables.size === 1 && r1.lines.size === 1 && r1.cats.c_com === 1
+    && r2.units.has(b.id) && r3.hits.some(x => x.t === 'Protokol') && r4.cables.has(c.id) && r4.hits.some(x => x.t === 'Kablo') && r0.hits.length === 0 && hcSearch('') === null || {r1:r1.hits, r3:r3.hits.length}; }));
+T('kablaj arama: şemada eşleşmeyenler soluk, dışa aktarmada arama yalnız açıkça verilirse', () => R(() => { HC7.q = 'rs422_tx+'; const live = hcSysSVG({}).svg, exp = hcSysSVG({exp:true}).svg, hl = hcSysSVG({exp:true, hl:hcSearch('rs422_tx+')}).svg, page = hcArchPage('', 1, 1, {hl:hcSearch('rs422_tx+'), title:'Arama sayfası', sub:'vurgulu'}); HC7.q = '';
+  return /#f9d56e/.test(live) && /opacity="0\.1[25]"|opacity="0\.18"|opacity="0\.3"/.test(live) && !/#f9d56e/.test(exp) && /#f9d56e/.test(hl) && /ARAMA SAYFASI/.test(page) && /vurgulu/.test(page); }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }

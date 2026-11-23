@@ -1141,6 +1141,21 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   v59.valid = await page.evaluate(() => validateModel().some(x => x.rule === 'Haberleşme protokolü' && /Bayt sırası/.test(x.msg)));
   ok('Haberleşme protokolleri: profil, mesaj/alan, porta atama, endian uyumsuzluğu, ek (gömülü), şema rozeti, yazılım ICD Word/Excel, doğrulama', Object.values(v59).every(v => v === true), v59);
 
+  console.log('8h8) v1.60 kablaj arama, yakınlaştırma, görünüm PDF');
+  await page.evaluate(() => { window.__dl = []; HCS.catF = ''; HCS.cov = false; openD('@hcsys'); }); await page.waitForTimeout(200);
+  await page.fill('.vbar [data-hc7f="q"]', 'rs422_rx+'); await page.waitForTimeout(500);
+  const v60 = await page.evaluate(() => ({ focus: document.activeElement && document.activeElement.dataset.hc7f === 'q', panel: /sonuç/.test(($('#hc7Panel') || {}).textContent || ''), hits: document.querySelectorAll('#hc7Panel .hc7hit').length >= 1,
+    lit: document.querySelectorAll('#hcSys [stroke="#f39c12"]').length >= 2, dim: document.querySelectorAll('#hcSys [opacity="0.18"], #hcSys [opacity="0.3"]').length >= 1 }));
+  await page.click('#hc7Panel .hc7hit >> nth=0'); await page.waitForTimeout(200);
+  await page.click('[data-hc7="pdf"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v60.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /arama/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-'; });
+  await page.click('[data-hc7="clr"]'); await page.waitForTimeout(200); v60.cleared = await page.evaluate(() => !$('#hc7Panel') && !document.querySelector('#hcSys [stroke="#f39c12"]'));
+  await page.evaluate(() => { HCS.cab = hcCables()[0].id; openD('@hccable'); }); await page.waitForTimeout(200);
+  await page.click('[data-hc7="cin"]'); await page.waitForTimeout(100);
+  v60.zoom = await page.evaluate(() => HC7.ck > 1.2 && +$('#hcCabSvg').getAttribute('width') > $('#hcCabSvg').viewBox.baseVal.width);
+  await page.click('[data-hc7="c100"]'); v60.reset = await page.evaluate(() => HC7.ck === 1);
+  ok('Kablaj arama: sonuç paneli, vurgu/soluklaştırma, odak korunur, sonuca git, görünüm PDF, temizle, kablo görünümünde yakınlaştırma', Object.values(v60).every(v => v === true), v60);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);

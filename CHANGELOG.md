@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü
 
+## v1.60.0 — 2026-11-23
+
+- **Mimarilerde arama:** birim, konnektör (tip, parça no), pin (`J2-3`, sinyal), etiket, hat tipi, protokol (profil, fiziksel katman, mesaj), ek, kablo, tel (renk, grup) ve test adında arama; eşleşmeyenler soluk, eşleşenler vurgulu; pin eşleşmesinde hat karşı uca kadar izlenir
+- Sonuç paneli: türe göre gruplu sonuçlar, sonuca git (kaydır + parlat), eşleşen hatların mimarilere göre dağılımı ve tek tıkla mimariye süzme
+- **Kablo detayında** yakınlaştırma (+ / − / sığdır / %100, Ctrl + tekerlek), sürükleyerek kaydırma, eşleşen pin ve tel satırlarının vurgusu
+- **Görünümü PDF:** ekrandaki görünüm (mimari süzgeci, arama vurgusu, test kapsaması) A3 sayfa
+- Birim testleri 191, regresyon testi 64 adım
+
 ## v1.59.0 — 2026-11-23
 
 - **Haberleşme protokol profilleri:** fiziksel katman, hız / veri / eşlik / dur biti, adres, endian, başlık baytları, komut ID ve uzunluk alanı (ofset, boy), CRC (hazır tipler + özel polinom / başlangıç, kapsam), periyot / zaman aşımı; otomatik çerçeve düzeni; mesaj listesi ve mesaj alanları (tip, boy, birim, LSB, aralık; ofset ve boy otomatik)

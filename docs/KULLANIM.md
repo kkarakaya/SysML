@@ -1354,6 +1354,42 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Excel:** profiller, mesajlar, alanlar, arayüzler ve uyumluluk sayfaları.
 - Bir profil seçiliyse yalnız o profil, seçili değilse tüm profiller dışa aktarılır.
 
+## 5aw. Kablaj mimarilerinde arama, yakınlaştırma ve görünüm PDF'i
+
+**Arama:** Sistem kablaj şeması çubuğundaki arama kutusuna yazın.
+- **Aranan alanlar:**
+  - birim adı
+  - konnektör adı, tipi, parça numarası, ailesi ve açıklaması
+  - pin: `J2-3` / `J2.3` biçiminde numara, sinyal adı, etiket, hat tipi ve not
+  - protokol: profil adı, fiziksel katman, adres, endian, CRC, mesaj ID'si ve mesaj adı
+  - ek dosya adı
+  - kablo adı ve notu
+  - tel adı, rengi, bükümlü grubu
+  - kablaj testi adı
+- **Kurallar:**
+  - Büyük-küçük harf fark etmez.
+  - Boşlukla ayrılan kelimelerin hepsi aynı öğede geçmelidir.
+- **Şemadaki görünüm:**
+  - Eşleşen konnektörler turuncu çerçeveyle, eşleşen kablolar sarı gölgeyle vurgulanır; diğer birimler, konnektörler ve kablolar soluklaşır.
+  - Bir pin eşleşince o pinin hattı izlenir: hattın kablosu ve karşı uçtaki konnektörler de vurgulanır.
+- **Sonuç paneli** (sağ üst):
+  - Sonuçlar türe göre gruplanır (Birim, Konnektör, Pin, Protokol, Ek, Kablo, Tel, Test).
+  - Sonuca tıklayınca şema o birime veya kabloya kayar ve öğe kısa süre parlar. Test sonucu test tanımını açar.
+  - **Enter** ilk sonuca gider, **Esc** aramayı temizler.
+- **Tüm mimarilerde arama:**
+  - Panelin üstünde eşleşen hatların hangi mimarilerde (Güç, Haberleşme, Ayrık…) olduğu sayılarla gösterilir.
+  - Bir mimariye tıklayınca şema o mimariye süzülür ve arama vurgusu korunur.
+  - Mimari süzgecinde gizli kalan bir sonuca gidilirse süzgeç kaldırılır.
+
+**Kablo detayında:**
+- Aynı arama kutusu eşleşen pin satırlarını şemada ve tel tablosunda sarıyla vurgular.
+- **+ / − / Sığdır / %100** düğmeleri ve **Ctrl + tekerlek** yakınlaştırır.
+- Şemayı fareyle sürükleyerek kaydırabilirsiniz.
+
+**Sistem şemasında yakınlaştırma:** tekerlek ve +/− ile yakınlaştırılır, boş alan sürüklenerek kaydırılır, **Sığdır** ile tümü ekrana sığar.
+
+**Görünümü PDF:** Ekrandaki görünüm A3 yatay bir sayfa olarak indirilir. Sayfaya etkin mimari süzgeci, arama vurgusu ve test kapsaması katmanı dahildir; başlıkta ve antette arama ifadesi yazar. Tüm mimarileri tek PDF'te almak için **Kablaj özeti → Mimarileri PDF olarak indir…** kullanılır.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.
