@@ -1,6 +1,6 @@
-/* ================= v1.60 — Mimarilerde arama ve vurgulama, kablo görünümünde yakınlaştırma, görünüm PDF'i =================
+/* ================= v1.60 — Mimarilerde arama ve vurgulama, kablaj görünümünde yakınlaştırma, görünüm PDF'i =================
    Arama: birim, konnektör (ad, tip, parça no), pin (no, "J2-3", sinyal), etiket, hat tipi, protokol profili / fiziksel katman /
-   mesaj, ek dosya adı, kablo, tel rengi / grubu, test adı. Eşleşmeyenler soluklaşır, eşleşenler vurgulanır. */
+   mesaj, ek dosya adı, kablaj, hat rengi / grubu, test adı. Eşleşmeyenler soluklaşır, eşleşenler vurgulanır. */
 const HC7 = {q:'', ck:1, open:true};
 const hcLow = s => String(s == null ? '' : s).toLocaleLowerCase('tr');
 const HC7C = {key:'', v:null};
@@ -29,25 +29,25 @@ function hcSearch(q){
         if(m(txt)){ hit('Pin', `${u.name} ${p.name}-${x.no}${x.d.sig ? ' ' + x.d.sig : ''}${lb ? ' (' + lb.name + ')' : ''}`, {unit:u.id, port:p.id, pin:x.no}); litPin(p, x.no); } });
     });
   });
-  hcCables().forEach(c => { if(m(c.name + ' | ' + (c.note || ''))){ hit('Kablo', c.name + ' (' + c.nodes.filter(n => n.kind === 'conn').map(n => hcNodeLabel(c, n)).join(' ↔ ') + ')', {cable:c.id}); litCable(c); }
-    c.wires.forEach((w, i) => { if(w.on === false) return; if(m([hcWireName(c, i), w.color, w.grp, w.note].filter(Boolean).join(' | '))){ hit('Tel', c.name + ' · ' + hcWireName(c, i) + (w.color ? ' ' + w.color : '') + (w.grp ? ' ' + w.grp : ''), {cable:c.id}); litCable(c); [w.a, w.b].forEach(e => { const pe = hcEndPin(c, e); if(pe) litPin(pe.port, pe.no || e.pin); }); } }); });
+  hcCables().forEach(c => { if(m(c.name + ' | ' + (c.note || ''))){ hit('Kablaj', c.name + ' (' + c.nodes.filter(n => n.kind === 'conn').map(n => hcNodeLabel(c, n)).join(' ↔ ') + ')', {cable:c.id}); litCable(c); }
+    c.wires.forEach((w, i) => { if(w.on === false) return; if(m([hcWireName(c, i), w.color, w.grp, w.note].filter(Boolean).join(' | '))){ hit('Hat', c.name + ' · ' + hcWireName(c, i) + (w.color ? ' ' + w.color : '') + (w.grp ? ' ' + w.grp : ''), {cable:c.id}); litCable(c); [w.a, w.b].forEach(e => { const pe = hcEndPin(c, e); if(pe) litPin(pe.port, pe.no || e.pin); }); } }); });
   if(typeof hcHarnessTests === 'function') hcHarnessTests().forEach(t => { if(m(t.name + ' | ' + (t.doc || ''))){ hit('Test', t.name + ' · ' + t.hcPins.length + ' pin', {test:t.id}); t.hcPins.forEach(k => { const [pid, no] = k.split('|'), p = E(pid); if(p) litPin(p, no); }); } });
   HC7C.key = key; HC7C.v = R; return R;
 }
 /* çizimlerin kullandığı sonuç: opt.hl verilmişse o; dışa aktarmada (exp) verilmemişse arama yok */
 function hcSearchRes(opt){ opt = opt || {}; if(opt.hl !== undefined) return opt.hl; if(opt.exp) return null; return HC7.q ? hcSearch(HC7.q) : null; }
 /* ---------- sistem şeması: arama kutusu ve sonuç paneli ---------- */
-{ const bS = VIEWS['@hcsys'].bar; VIEWS['@hcsys'].bar = () => bS() + `<span class="vsep"></span><input data-hc7f="q" placeholder="Ara: birim, konnektör, pin (J2-3), sinyal, etiket, protokol, kablo, test" value="${esc(HC7.q)}" style="width:330px" class="noi18n">${HC7.q ? '<button class="vb" data-hc7="clr" title="Aramayı temizle">✕</button>' : ''}<button class="vb" data-hc7="pdf" title="Ekrandaki görünümü (mimari süzgeci, arama vurgusu, test kapsaması dahil) A3 PDF olarak indir">Görünümü PDF</button>`; }
+{ const bS = VIEWS['@hcsys'].bar; VIEWS['@hcsys'].bar = () => bS() + `<span class="vsep"></span><input data-hc7f="q" placeholder="Ara: birim, konnektör, pin (J2-3), sinyal, etiket, protokol, kablaj, test" value="${esc(HC7.q)}" style="width:330px" class="noi18n">${HC7.q ? '<button class="vb" data-hc7="clr" title="Aramayı temizle">✕</button>' : ''}<button class="vb" data-hc7="pdf" title="Ekrandaki görünümü (mimari süzgeci, arama vurgusu, test kapsaması dahil) A3 PDF olarak indir">Görünümü PDF</button>`; }
 { const rS = VIEWS['@hcsys'].render; VIEWS['@hcsys'].render = () => { let h = rS(); const R = HC7.q ? hcSearch(HC7.q) : null; if(!R) return h; const i = h.lastIndexOf('</div>'); return h.slice(0, i) + hcSearchPanel(R) + h.slice(i); }; }
 function hcSearchPanel(R){
   const by = {}; R.hits.forEach(x => { (by[x.t] = by[x.t] || []).push(x); });
   const cats = Object.entries(R.cats).filter(([k]) => hcCat(k));
   return `<div id="hc7Panel" style="position:absolute;right:10px;top:10px;width:330px;max-height:calc(100% - 60px);overflow:auto;background:#fffffff2;border:1px solid #e3c87a;border-radius:8px;box-shadow:0 2px 10px #0002;font-size:12px">
-    <div style="padding:6px 10px;background:#fff4d6;border-bottom:1px solid #e3c87a;display:flex;gap:6px;align-items:center;cursor:pointer" data-hc7="tog"><b>${R.hits.length >= 400 ? '400+' : R.hits.length} sonuç</b><span class="muted">"${esc(R.q)}" · ${R.units.size} birim · ${R.cables.size} kablo · ${R.lines.size} hat</span><span style="flex:1"></span>${HC7.open ? '▴' : '▾'}</div>
+    <div style="padding:6px 10px;background:#fff4d6;border-bottom:1px solid #e3c87a;display:flex;gap:6px;align-items:center;cursor:pointer" data-hc7="tog"><b>${R.hits.length >= 400 ? '400+' : R.hits.length} sonuç</b><span class="muted">"${esc(R.q)}" · ${R.units.size} birim · ${R.cables.size} kablaj · ${R.lines.size} hat</span><span style="flex:1"></span>${HC7.open ? '▴' : '▾'}</div>
     ${HC7.open ? `${cats.length ? `<div style="padding:5px 10px;border-bottom:1px solid #eee">Eşleşen hatlar mimarilerde: ${cats.map(([k, v]) => `<a href="#" data-hc7="cat" data-k="${k}" style="text-decoration:none">${hcChip({name:hcCat(k).name + ' ' + v, col:hcCat(k).col})}</a>`).join(' ')} ${HCS.catF ? '<a href="#" data-hc7="cat" data-k="">tüm hat tipleri</a>' : ''}</div>` : ''}
     ${Object.entries(by).map(([t, L]) => `<div style="padding:4px 10px 2px;font-weight:600;color:#556">${esc(t)} (${L.length})</div>${L.slice(0, 40).map(x => `<div class="hc7hit noi18n" data-hc7="go" data-u="${x.unit || ''}" data-c="${x.cable || ''}" data-p="${x.port || ''}" data-f="${x.file || ''}" data-t="${x.test || ''}" style="padding:2px 10px 2px 18px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(x.label)}">${esc(x.label)}</div>`).join('')}${L.length > 40 ? `<div class="muted" style="padding:0 18px">… ${L.length - 40} daha</div>` : ''}`).join('') || '<div class="muted" style="padding:8px 10px">Eşleşme yok.</div>'}` : ''}</div>`;
 }
-/* bir birimi / kabloyu ekranın ortasına getir ve kısa süre parlat */
+/* bir birimi / kablajı ekranın ortasına getir ve kısa süre parlat */
 function hcCenterOn(x, y){ const wr = $('#hcSysWrap'); if(!wr) return; HCS.tx = wr.clientWidth / 2 - 165 - x * HCS.k; HCS.ty = wr.clientHeight / 2 - y * HCS.k; const g = $('#hcSysG'); if(g) g.setAttribute('transform', `translate(${HCS.tx},${HCS.ty}) scale(${HCS.k})`); }
 function hcFlash(sel){ const el = document.querySelector(sel); if(!el) return; el.style.transition = 'filter .3s'; el.style.filter = 'drop-shadow(0 0 6px #f39c12) drop-shadow(0 0 6px #f39c12)'; setTimeout(() => { el.style.filter = ''; }, 1400); }
 function hcGoHit(d){
@@ -62,13 +62,13 @@ function hcGoHit(d){
 async function hcViewPdf(){
   const R = HC7.q ? hcSearch(HC7.q) : null, cat = hcCat(HCS.catF);
   const title = (cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi') + (R ? ' — arama: ' + R.q : '') + (HCS.cov ? ' — test kapsaması' : '');
-  const sub = [R ? `"${R.q}" araması: ${R.units.size} birim, ${R.cables.size} kablo, ${R.pins.size} pin vurgulu; diğerleri soluk` : '', HCS.cov ? 'kablolar test kapsamasına göre renkli (yeşil tam, turuncu kısmi, kırmızı yok)' : ''].filter(Boolean).join(' · ');
+  const sub = [R ? `"${R.q}" araması: ${R.units.size} birim, ${R.cables.size} kablaj, ${R.pins.size} pin vurgulu; diğerleri soluk` : '', HCS.cov ? 'kablajlar test kapsamasına göre renkli (yeşil tam, turuncu kısmi, kırmızı yok)' : ''].filter(Boolean).join(' · ');
   const page = hcArchPage(HCS.catF || '', 1, 1, {hl:R, cov:!!HCS.cov, title, sub});
   toast('PDF hazırlanıyor…');
   const im = await svgToFlate({str:page, w:HC_PW, h:HC_PH}, 2);
   download(buildPdf([Object.assign(im, {pw:1190.55, ph:841.89, dw:1190.55, dh:841.89, dx:0, dy:0})]), fileSafe((E(M.rootId) ? E(M.rootId).name + ' - ' : '') + title) + '.pdf');
 }
-/* ---------- kablo detayı: yakınlaştırma / kaydırma ---------- */
+/* ---------- kablaj detayı: yakınlaştırma / kaydırma ---------- */
 { const bC = VIEWS['@hccable'].bar; VIEWS['@hccable'].bar = () => bC() + `<span class="vsep"></span><button class="vb" data-hc7="cin" title="Yakınlaştır (Ctrl + tekerlek)">+</button><button class="vb" data-hc7="cout">−</button><button class="vb" data-hc7="cfit" title="Şemayı kutuya sığdır">Sığdır</button><button class="vb" data-hc7="c100">%100</button><input data-hc7f="q" placeholder="Pinleri vurgula (sinyal, etiket, J1-3…)" value="${esc(HC7.q)}" style="width:220px" class="noi18n">${HC7.q ? '<button class="vb" data-hc7="clr">✕</button>' : ''}`; }
 function hcCabZoom(k){ const sv = $('#hcCabSvg'), wr = $('#hcCabWrap'); if(!sv || !wr) { HC7.ck = k; return; } const vb = sv.viewBox.baseVal, cx = (wr.scrollLeft + wr.clientWidth / 2) / HC7.ck, cy = (wr.scrollTop + wr.clientHeight / 2) / HC7.ck;
   HC7.ck = Math.max(0.25, Math.min(4, k)); sv.setAttribute('width', Math.round(vb.width * HC7.ck)); sv.setAttribute('height', Math.round(vb.height * HC7.ck)); wr.scrollLeft = cx * HC7.ck - wr.clientWidth / 2; wr.scrollTop = cy * HC7.ck - wr.clientHeight / 2; }
@@ -95,14 +95,14 @@ function hcCabFit(){ const sv = $('#hcCabSvg'), wr = $('#hcCabWrap'); if(!sv || 
   V.addEventListener('mousedown', ev => { if(onS() && ev.target.closest && ev.target.closest('#hc7Panel')) ev.stopPropagation(); }, true);
   V.addEventListener('wheel', ev => { if(onS() && ev.target.closest && ev.target.closest('#hc7Panel')) ev.stopPropagation();
     if(onC() && ev.ctrlKey && ev.target.closest && ev.target.closest('#hcCabWrap')){ ev.preventDefault(); hcCabZoom(HC7.ck * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)); } }, {capture:true, passive:false});
-  /* kablo şemasında boş alanı sürükleyerek kaydır */
+  /* kablaj şemasında boş alanı sürükleyerek kaydır */
   let pan = null;
   V.addEventListener('mousedown', ev => { if(!onC() || ev.button !== 0) return; const wr = ev.target.closest && ev.target.closest('#hcCabWrap'); if(!wr) return; pan = {wr, x:ev.clientX, y:ev.clientY, l:wr.scrollLeft, t:wr.scrollTop}; wr.style.cursor = 'grabbing'; ev.preventDefault(); });
   window.addEventListener('mousemove', ev => { if(!pan) return; pan.wr.scrollLeft = pan.l - (ev.clientX - pan.x); pan.wr.scrollTop = pan.t - (ev.clientY - pan.y); });
   window.addEventListener('mouseup', () => { if(pan){ pan.wr.style.cursor = 'grab'; pan = null; } });
 })();
-/* Kablo tablosu satırlarını da vurgula */
+/* Kablaj tablosu satırlarını da vurgula */
 { const rC = VIEWS['@hccable'].render; VIEWS['@hccable'].render = () => { let h = rC(); const R = HC7.q ? hcSearch(HC7.q) : null, c = HCS.cab && hcR().cables[HCS.cab]; if(!R || !c) return h;
   const lit = new Set(c.wires.filter(w => [w.a, w.b].some(e => { const pe = hcEndPin(c, e); return pe && R.pins.has(pe.port.id + '|' + (pe.no || e.pin)); })).map(w => w.id));
   lit.forEach(id => { h = h.replace(new RegExp(`<tr class="([^"]*)"(><td><b>[^<]*</b></td><td><select data-hcwf="${id}\\|a")`), '<tr class="$1" style="background:#fff2c4"$2'); });
-  return h.replace('<div class="hcsec">Teller', `<div class="muted" style="font-size:12px;margin:4px 0">"${esc(R.q)}": bu kabloda ${lit.size} tel vurgulu</div><div class="hcsec">Teller`); }; }
+  return h.replace('<div class="hcsec">Hatlar', `<div class="muted" style="font-size:12px;margin:4px 0">"${esc(R.q)}": bu kablajda ${lit.size} hat vurgulu</div><div class="hcsec">Hatlar`); }; }

@@ -1215,7 +1215,7 @@ Araç çubuğundaki **Kablaj ▾** menüsünden (veya **İş akışı → 3. Ara
 - Tip alanları: ad, aile, standart, üretici, parça no, eşleşen konnektör PN, kabuk boyutu, insert düzeni, kontak cinsiyeti (erkek/dişi), gövde tipi (plug / receptacle), keying, kilit tipi, kontak sonlandırma, maks. gerilim, sıcaklık aralığı, IP, kaplama, backshell, ağırlık, gövde şekli, pin numaralarının hangi yüzden görüldüğü ve numaralandırmanın başladığı köşe (teknik resimde kullanılır), resim ve istenen kadar **ek özellik**.
 - **Kontaklar:** pin numarası ve kontak boyutu (#22D, #20, #16, #12…). Pin sayısı, sayısal veya harf (I/O/Q hariç) numaralandırma ve kontak boyutuyla liste tek düğmeyle oluşturulur; tek tek pin eklenip numarası değiştirilebilir (arayüzlerdeki pinout yeni numaraya taşınır).
 - **Hat tipleri ve etiketler:** hat tipleri (Haberleşme, Güç, Ayrık, Analog, RF, Video, Şasi / Ekran — düzenlenebilir başlangıç seti) arayüzlerin ve pinlerin sınıfıdır. Etiketler (RS422_TX+, 28V, DISC_IN…) hat tipine bağlıdır ve varsayılan yön ile gerilim aralığı taşır. **Eşleşme kuralları** farklı etiketli uçların doğru bağlantı sayılmasını sağlar (ör. RS422_TX+ ↔ RS422_RX+).
-- **Kontak boyutları:** maks. akım ve kabul edilen AWG aralığı (kablaj tel önerisinde üst/alt sınır). Değerler örnektir, kendi kontak kataloğunuzla güncelleyin.
+- **Kontak boyutları:** maks. akım ve kabul edilen AWG aralığı (kablaj hat önerisinde üst/alt sınır). Değerler örnektir, kendi kontak kataloğunuzla güncelleyin.
 
 **Birim arayüzleri ve pinout** (`@hcunits`)
 - **+ Yeni birim** bir blok oluşturur; mevcut bloklar da birim olarak seçilebilir.
@@ -1226,50 +1226,50 @@ Araç çubuğundaki **Kablaj ▾** menüsünden (veya **İş akışı → 3. Ara
 
 Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları: farklı hat tipi **hata**, örtüşmeyen gerilim aralıkları (ör. 10–15 V ↔ 20–25 V) **hata**, iki çıkış / iki güç kaynağı **hata**, eşleşmeyen etiket ve iki giriş **uyarı**.
 
-## 5ar. Kablaj şeması: sistem şeması, kablo detayı, dallanma ve splice
+## 5ar. Kablaj şeması: sistem şeması, kablaj detayı, dallanma ve splice
 
-**Kablaj ▾ → Kablaj şeması** (`@hcsys`) tüm birimleri, konnektörlerini ve kabloları tek şemada gösterir.
-- **Kablo oluşturma:** bir konnektörün yanındaki **●** noktasından başka bir konnektöre sürükleyin. Kablo W1, W2… adıyla oluşur (adı sonra değiştirilebilir); dolu pinler etiket ve eşleşme kurallarına göre otomatik tellenir (ör. RS422_TX+ → RS422_RX+).
-- **Dallanma:** zaten bir kabloya takılı konnektöre sürüklerseniz yeni konnektör o kabloya **dal** olarak eklenir. Eşleşen pin zaten bağlıysa tel otomatik olarak bir **splice**'a bölünür (A—B → A—SP1, SP1—B, SP1—C). Bir birim konnektörü yalnız bir kabloya takılabilir.
-- **Basit / Detaylı görünüm:** basit görünümde her kablo tek çizgi ve adıdır; detaylı görünümde tel sayısı, hat tiplerine göre dağılım, splice sayısı ve ✖ hata / ⚠ uyarı sayıları görünür. Kablo rengi baskın hat tipinin rengidir; hatalı kablonun etiketi kırmızı, uyarılı kablonunki turuncudur.
+**Kablaj ▾ → Kablaj şeması** (`@hcsys`) tüm birimleri, konnektörlerini ve kablajları tek şemada gösterir.
+- **Kablaj oluşturma:** bir konnektörün yanındaki **●** noktasından başka bir konnektöre sürükleyin. Kablaj W1, W2… adıyla oluşur (adı sonra değiştirilebilir); dolu pinler etiket ve eşleşme kurallarına göre otomatik tellenir (ör. RS422_TX+ → RS422_RX+).
+- **Dallanma:** zaten bir kablaja takılı konnektöre sürüklerseniz yeni konnektör o kablaja **dal** olarak eklenir. Eşleşen pin zaten bağlıysa hat otomatik olarak bir **splice**'a bölünür (A—B → A—SP1, SP1—B, SP1—C). Bir birim konnektörü yalnız bir kablaja takılabilir.
+- **Basit / Detaylı görünüm:** basit görünümde her kablaj tek çizgi ve adıdır; detaylı görünümde hat sayısı, hat tiplerine göre dağılım, splice sayısı ve ✖ hata / ⚠ uyarı sayıları görünür. Kablaj rengi baskın hat tipinin rengidir; hatalı kablajın etiketi kırmızı, uyarılı kablonunki turuncudur.
 - Birimleri başlığından sürükleyerek taşıyın (konum modele kaydedilir); tekerlekle yakınlaştırın, boş alanı sürükleyerek kaydırın, **Sığdır** ve **Yerleşimi sıfırla** düğmelerini kullanın. Konnektöre çift tıklamak pinout'unu açar.
-- **Bağlantıyı sil:** üstten veya tıklayarak seçilen kabloyu ve tellerini siler.
+- **Bağlantıyı sil:** üstten veya tıklayarak seçilen kablajı ve hatlarını siler.
 
-**Kablo detayı** (`@hccable`) — kabloya çift tıklayınca yalnız o kablo açılır:
-- Pin pin bağlantı şeması: her uçta birim ve konnektör adı, konnektör PN ve kablo ucundaki eşleşen konnektör PN; ortada splice'lar; teller hat tipi rengiyle, hatalı teller kırmızı, bağlı olmayanlar kesikli.
-- Kablo adı, maks. uzunluk (AWG önerisinde gerilim düşümü için) ve not; **Dal ekle**, **+ Splice**, **Etiketlere göre eşle**, **Tümüne AWG**.
-- Tel tablosu: uçlar (pin veya splice), **Durum** (Bağlı / Bağlı değil — "bağlı değil" tel tanımlı kalır ama denetime ve sayımlara girmez), AWG, renk, bükümlü grup (aynı grup adı = bükümlü çift/üçlü), ekranlı, hesaplanan akım ve denetim.
+**Kablaj detayı** (`@hccable`) — kablaja çift tıklayınca yalnız o kablaj açılır:
+- Pin pin bağlantı şeması: her uçta birim ve konnektör adı, konnektör PN ve kablaj ucundaki eşleşen konnektör PN; ortada splice'lar; hatlar hat tipi rengiyle, hatalı hatlar kırmızı, bağlı olmayanlar kesikli.
+- Kablaj adı, maks. uzunluk (AWG önerisinde gerilim düşümü için) ve not; **Dal ekle**, **+ Splice**, **Etiketlere göre eşle**, **Tümüne AWG**.
+- Hat tablosu: uçlar (pin veya splice), **Durum** (Bağlı / Bağlı değil — "bağlı değil" hat tanımlı kalır ama denetime ve sayımlara girmez), AWG, renk, bükümlü grup (aynı grup adı = bükümlü çift/üçlü), ekranlı, hesaplanan akım ve denetim.
 
-**Eşleştirme denetimi** (kabloda ve Model doğrulamada, kural adı "Kablaj eşleştirme"): aynı netteki tüm pin çiftleri için farklı hat tipi (hata), eşleşmeyen etiket (uyarı), örtüşmeyen gerilim aralıkları (hata), iki çıkış / iki kaynak (hata), iki giriş (uyarı); bir pine birden çok tel (uyarı — splice kullanın), tel akımı AWG kapasitesini aşıyor (demet / tek tel), AWG kontağın kabul aralığı dışında, splice'a tek pin bağlı.
-- **Tel akımı:** iki pin uçlu telde büyük olan pin akımı; splice'a giden telde düğüm akımı — pin akımı ile netteki diğer pinlerin toplamından küçük olanı (kaynak teli yüklerin toplamını, yük teli kendi akımını taşır).
-- **Splice üzerinde AWG geçişi** engellenmez: tüm teller akım sınırı içindeyse "uygun ✓" bilgisi, aşan varsa uyarı verilir.
-- Tel kapasite tablosu (AWG 30–4, tek tel ve demet içinde, yaklaşık AS50881 değerleri) modelde düzenlenebilir.
+**Eşleştirme denetimi** (kablajda ve Model doğrulamada, kural adı "Kablaj eşleştirme"): aynı netteki tüm pin çiftleri için farklı hat tipi (hata), eşleşmeyen etiket (uyarı), örtüşmeyen gerilim aralıkları (hata), iki çıkış / iki kaynak (hata), iki giriş (uyarı); bir pine birden çok hat (uyarı — splice kullanın), hat akımı AWG kapasitesini aşıyor (demet / tek hat), AWG kontağın kabul aralığı dışında, splice'a tek pin bağlı.
+- **Hat akımı:** iki pin uçlu hatta büyük olan pin akımı; splice'a giden hatta düğüm akımı — pin akımı ile netteki diğer pinlerin toplamından küçük olanı (kaynak hattı yüklerin toplamını, yük hattı kendi akımını taşır).
+- **Splice üzerinde AWG geçişi** engellenmez: tüm hatlar akım sınırı içindeyse "uygun ✓" bilgisi, aşan varsa uyarı verilir.
+- Hat kapasite tablosu (AWG 30–4, tek hat ve demet içinde, yaklaşık AS50881 değerleri) modelde düzenlenebilir.
 
 ## 5as. Kablaj: AWG ve bükümlü çift önerisi, teknik resim (PDF) ve BOM
 
-**AWG ve bükümlü çift öner…** (Kablo detayı üst çubuğu) her bağlı tel için önerir:
-- **Akım:** telden geçen akım (splice'ta KCL dağılımı) ≤ tel kapasitesi — kabloda birden çok tel varsa demet değeri, yoksa tek tel değeri.
-- **Gerilim düşümü:** kablo **maks. uzunluğu** girilmişse güç hatlarında gidiş + dönüş için tel başına izin = V × %düşüm / 2 (V: hattın gerilim aralığının ortası; dönüş hattında kablodaki besleme gerilimi). Uzunluk girilmezse yalnız akım kapasitesine bakılır. İzin verilen düşüm (% 5) ve akımsız hatlarda pratik alt sınır (24 AWG) pencerede değiştirilebilir.
+**AWG ve bükümlü çift öner…** (Kablaj detayı üst çubuğu) her bağlı hat için önerir:
+- **Akım:** hattan geçen akım (splice'ta KCL dağılımı) ≤ hat kapasitesi — kablajda birden çok hat varsa demet değeri, yoksa tek hat değeri.
+- **Gerilim düşümü:** kablaj **maks. uzunluğu** girilmişse güç hatlarında gidiş + dönüş için hat başına izin = V × %düşüm / 2 (V: hattın gerilim aralığının ortası; dönüş hattında kablajdaki besleme gerilimi). Uzunluk girilmezse yalnız akım kapasitesine bakılır. İzin verilen düşüm (% 5) ve akımsız hatlarda pratik alt sınır (24 AWG) pencerede değiştirilebilir.
 - **Kontak:** iki uçtaki kontakların kabul ettiği AWG aralığının kesişimi.
-- Sonuç: **önerilen** (koşulları sağlayan en ince tel) ve **en kalın** (kontak sınırı). Hiçbir tel uymuyorsa "uygun yok" ve gereken AWG ile "daha büyük kontak veya paralel pin" önerisi; Model doğrulamada "Kablaj AWG" kuralı önerilenden ince telleri de bildirir.
-- **Bükümlü çift:** pinout'taki çift eşi veya etiket adı (+/-, _H/_L) ile; RS-422/485 ve CAN için 120 Ω, MIL-STD-1553 için 78 Ω twinax, Ethernet / LVDS için 100 Ω **ekranlı** bükümlü çift (TSP); güç beslemesi ile dönüşü bükümlü güç çifti (TP). Uygulanınca teller TP1 / TSP1… grubuna alınır, TSP'lerde ekran işaretlenir.
+- Sonuç: **önerilen** (koşulları sağlayan en ince hat) ve **en kalın** (kontak sınırı). Hiçbir hat uymuyorsa "uygun yok" ve gereken AWG ile "daha büyük kontak veya paralel pin" önerisi; Model doğrulamada "Kablaj AWG" kuralı önerilenden ince hatları de bildirir.
+- **Bükümlü çift:** pinout'taki çift eşi veya etiket adı (+/-, _H/_L) ile; RS-422/485 ve CAN için 120 Ω, MIL-STD-1553 için 78 Ω twinax, Ethernet / LVDS için 100 Ω **ekranlı** bükümlü çift (TSP); güç beslemesi ile dönüşü bükümlü güç çifti (TP). Uygulanınca hatlar TP1 / TSP1… grubuna alınır, TSP'lerde ekran işaretlenir.
 
-**Teknik resim** — Kablo detayında **Teknik resim oluştur** (açık kablo) veya sistem şemasında / Kablaj ▾ menüsünde **Teknik resim oluştur…** (kablo seçim penceresi: **Tek PDF**, **Her kablo ayrı PDF**, **Excel (BOM + teller)**). Her kablo A3 yatay:
-1. **Bağlantı şeması sayfası:** ortada pin pin bağlantı şeması (uçlarda birim · konnektör adı, birim konnektörü ve kablo ucu PN'leri, splice'lar), sağ üstte tel listesi (tel, uçlar, sinyal, AWG, renk, bükümlü grup, ekran), sağ altta **BOM** ve **antet**. Tel listesi sığmazsa devam sayfası eklenir.
-2. **Konnektör görünümleri sayfası:** her uç konnektör dikdörtgen olarak çizilir; pinler konnektör tipindeki "pin numaraları hangi yüzden" (ön / arka) ve "numaralandırma başlangıcı" (sol üst, sağ üst…) ayarına göre yerleşir, ilk pin okla gösterilir, dolu pinler hat tipi rengiyle, kabloda bağlı olmayanlar kesikli çizilir. Satır sayısı konnektör tipindeki "pin satır sayısı" alanından alınır.
-- **BOM:** kablo ucu konnektörü (tipteki "eşleşen konnektör PN"), backshell, kontaklar (boyut ve cinsiyete göre adet), teller (AWG'ye göre, uzunluk girilmişse metre), bükümlü / ekranlı kablolar, splice, kimlik etiketi, makaron. Tel ve splice parça numaraları örnektir.
-- **Antet:** başlık, çizim no (varsayılan kablo adı), revizyon, hazırlayan, kontrol, onay, tarih (Kablo detayında "Teknik resim anteti"), proje adı, sayfa no ve modelin gizlilik derecesi.
+**Teknik resim** — Kablaj detayında **Teknik resim oluştur** (açık kablaj) veya sistem şemasında / Kablaj ▾ menüsünde **Teknik resim oluştur…** (kablaj seçim penceresi: **Tek PDF**, **Her kablaj ayrı PDF**, **Excel (BOM + hatlar)**). Her kablaj A3 yatay:
+1. **Bağlantı şeması sayfası:** ortada pin pin bağlantı şeması (uçlarda birim · konnektör adı, birim konnektörü ve kablaj ucu PN'leri, splice'lar), sağ üstte hat listesi (hat, uçlar, sinyal, AWG, renk, bükümlü grup, ekran), sağ altta **BOM** ve **antet**. Hat listesi sığmazsa devam sayfası eklenir.
+2. **Konnektör görünümleri sayfası:** her uç konnektör dikdörtgen olarak çizilir; pinler konnektör tipindeki "pin numaraları hangi yüzden" (ön / arka) ve "numaralandırma başlangıcı" (sol üst, sağ üst…) ayarına göre yerleşir, ilk pin okla gösterilir, dolu pinler hat tipi rengiyle, kablajda bağlı olmayanlar kesikli çizilir. Satır sayısı konnektör tipindeki "pin satır sayısı" alanından alınır.
+- **BOM:** kablaj ucu konnektörü (tipteki "eşleşen konnektör PN"), backshell, kontaklar (boyut ve cinsiyete göre adet), hatlar (AWG'ye göre, uzunluk girilmişse metre), bükümlü / ekranlı kablajlar, splice, kimlik etiketi, makaron. Hat ve splice parça numaraları örnektir.
+- **Antet:** başlık, çizim no (varsayılan kablaj adı), revizyon, hazırlayan, kontrol, onay, tarih (Kablaj detayında "Teknik resim anteti"), proje adı, sayfa no ve modelin gizlilik derecesi.
 
 ## 5at. Kablaj özeti ve hat tipine göre mimariler
 
 **Kablaj ▾ → Kablaj özeti ve mimariler** (`@hcsum`):
-- Üstte sayaçlar: birim, arayüz, kablo, **hat** (uçtan uca), bağlı tel, bağlı olmayan tel, splice, eşleştirme hatası ve uyarı.
-- **Hat tiplerine göre:** her hat tipi (Güç, Haberleşme, Ayrık…) için arayüz, dolu pin, hat, tel ve kablo sayıları. **Hat**, bir kablodaki tellerle uçtan uca bağlanan pinlerdir; splice üzerinden dallanan besleme hattı tek hat sayılır.
-- **Birimlere göre:** arayüz, dolu pin, kabloya bağlı ve bağlanmamış pin, kablo sayısı ve hat tipine göre pin dağılımı (birim adına tıklayınca pinout açılır).
-- **Kablolara göre:** uçlar, hat, tel, splice, uzunluk, kullanılan AWG'ler, hat tipine göre tel sayısı, denetim (kablo adına tıklayınca kablo detayı açılır).
-- **Özet Excel:** hat tipleri, birimler, kablolar ve hat listesi sayfaları.
+- Üstte sayaçlar: birim, arayüz, kablaj, **hat** (uçtan uca), bağlı hat, bağlı olmayan hat, splice, eşleştirme hatası ve uyarı.
+- **Hat tiplerine göre:** her hat tipi (Güç, Haberleşme, Ayrık…) için arayüz, dolu pin, uçtan uca hat, pin-pin hat ve kablaj sayıları. **Uçtan uca hat**, bir kablajdaki pin-pin hatlarla uçtan uca bağlanan pinlerdir; splice üzerinden dallanan besleme hattı tek hat sayılır.
+- **Birimlere göre:** arayüz, dolu pin, kablaja bağlı ve bağlanmamış pin, kablaj sayısı ve hat tipine göre pin dağılımı (birim adına tıklayınca pinout açılır).
+- **Kablajlara göre:** uçlar, uçtan uca hat, pin-pin hat, splice, uzunluk, kullanılan AWG'ler, hat tipine göre hat sayısı, denetim (kablaj adına tıklayınca kablaj detayı açılır).
+- **Özet Excel:** hat tipleri, birimler, kablajlar ve hat listesi sayfaları.
 
-**Mimari görünümleri:** özet tablosunda bir hat tipinin **Görüntüle** düğmesi ya da sistem şeması çubuğundaki **Mimari** seçimi şemayı o tipe süzer (ör. güç mimarisi): o tipte teli olmayan kablolar ve ilgisiz birimler gizlenir, diğer konnektörler soluklaşır, detaylı görünümde kablo etiketinde o tipteki tel sayısı gösterilir.
+**Mimari görünümleri:** özet tablosunda bir hat tipinin **Görüntüle** düğmesi ya da sistem şeması çubuğundaki **Mimari** seçimi şemayı o tipe süzer (ör. güç mimarisi): o tipte hattı olmayan kablajlar ve ilgisiz birimler gizlenir, diğer konnektörler soluklaşır, detaylı görünümde kablaj etiketinde o tipteki hat sayısı gösterilir.
 
 **Mimarileri PDF olarak indir…** — tüm sistem ve seçilen hat tipleri, her biri A3 yatay bir sayfa (süzülmüş detaylı şema, lejant, MIM-… çizim numaralı antet); tablodaki **PDF** düğmesi tek bir mimariyi indirir.
 
@@ -1280,15 +1280,15 @@ Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları:
 **Test tanımı sekmesi:**
 - **+ Yeni test** ile test oluşturun (ya da mevcut bir testi seçin / **Çoğalt**). Test adı, açıklama / prosedür özeti ve sonuç (Planlandı, Geçti, Kaldı, Kısmen) düzenlenebilir.
 - Her birim için konnektörler ve dolu pinler listelenir; testte doğrulanan pinleri tek tek işaretleyin. Konnektör başlığındaki kutu o konnektörün tüm pinlerini, birim başlığındaki **Tümünü seç / Temizle** o birimin tüm pinlerini seçer veya bırakır.
-- Her pin satırında bağlı olduğu hat (kablo ve karşı uçlar) ve o hattı doğrulayan diğer testler görünür. **Yalnız kabloya bağlı pinler** ve arama kutusu (birim, konnektör, pin, sinyal, etiket) listeyi daraltır.
-- Üstteki çubuk testin kablo hatlarının yüzde kaçını doğruladığını gösterir.
+- Her pin satırında bağlı olduğu hat (kablaj ve karşı uçlar) ve o hattı doğrulayan diğer testler görünür. **Yalnız kablaja bağlı pinler** ve arama kutusu (birim, konnektör, pin, sinyal, etiket) listeyi daraltır.
+- Üstteki çubuk testin kablaj hatlarının yüzde kaçını doğruladığını gösterir.
 
 **Kapsama sekmesi:**
-- Sayaçlar: kablo hattı, testlerde doğrulanan, açıkta kalan, toplam kapsama %, kablaj testi sayısı.
+- Sayaçlar: kablaj hattı, testlerde doğrulanan, açıkta kalan, toplam kapsama %, kablaj testi sayısı.
 - **Testlere göre** (her testin pin, hat ve kapsama %) ve **hat tiplerine göre** kapsama tabloları.
 - Hat listesi **Tüm hatlar / Açıkta kalan hatlar / Testlerde kullanılan hatlar** süzgeciyle; her test bir sütun (hat × test matrisi).
 - **Hat doğrulanmış sayılır:** "uçlarından biri testteyse" (varsayılan) ya da "tüm uçları testteyse".
-- **Şemada göster** / sistem şemasındaki **Test kapsaması** düğmesi kabloları kapsama oranına göre renklendirir (yeşil tam, turuncu kısmi, kırmızı test yok) ve kablo etiketinde "test %x (k/n)" yazar.
+- **Şemada göster** / sistem şemasındaki **Test kapsaması** düğmesi kablajları kapsama oranına göre renklendirir (yeşil tam, turuncu kısmi, kırmızı test yok) ve kablaj etiketinde "test %x (k/n)" yazar.
 - **Excel:** testler, hat kapsaması matrisi ve test pinleri sayfaları.
 
 Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinlerini düzenle** düğmesi bulunur. Bir konnektör silinince testlerdeki pinleri de temizlenir.
@@ -1321,7 +1321,7 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Geçersiz kıl…** düğmesi bu porta özel hız, adres, eşlik, endian, CRC ve periyot değerleri girmenizi sağlar. Boş bırakılan alan profildeki değeri kullanır.
 - **+ Yeni profil oluştur ve ata** yeni bir profil oluşturup bu konnektöre atar.
 
-**Uyumsuzluk uyarıları:** Kabloyla birbirine bağlanan pinlerin arayüzleri karşılaştırılır.
+**Uyumsuzluk uyarıları:** Kablajla birbirine bağlanan pinlerin arayüzleri karşılaştırılır.
 - **Hata** sayılan farklar:
   - fiziksel katman
   - hız, veri, eşlik veya dur biti
@@ -1332,7 +1332,7 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
   - farklı profillerde aynı ID'li mesajın farklı uzunlukta olması
 - **Uyarı** sayılanlar: iki ucun da aynı rolde (ör. ikisi de ana) olması ve bir profildeki mesajın karşı profilde bulunmaması.
 - **Bilgi** olarak gösterilen: karşı uçta hiç haberleşme arayüzü tanımlanmamış olması.
-- Bulgular konnektör ekranında, profil ekranında, kablo denetiminde (şemada kablo rengi) ve model doğrulamada ("Haberleşme protokolü") görünür.
+- Bulgular konnektör ekranında, profil ekranında, kablaj denetiminde (şemada kablaj rengi) ve model doğrulamada ("Haberleşme protokolü") görünür.
 - Ayrık ve güç hatlarında örtüşmeyen gerilim aralıkları (ör. 10–15 V ↔ 20–25 V) pin eşleştirme denetiminde zaten **hata** olarak raporlanır.
 
 **Doküman ekleri (Word, Excel, PDF…):** Konnektöre veya profile **+ Doküman ekle** ile eklenir.
@@ -1354,6 +1354,8 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Excel:** profiller, mesajlar, alanlar, arayüzler ve uyumluluk sayfaları.
 - Bir profil seçiliyse yalnız o profil, seçili değilse tüm profiller dışa aktarılır.
 
+**Çizim kuralı (v1.61):** Kablaj detayı, teknik resim ve sistem kablaj şemasında hatlar yalnız yatay ve dikey doğrularla, keskin köşelerle çizilir. Splice'a giden hatlar ortak bir dikey baraya bağlanır. Çok uçlu kablajlar birimlerin altındaki ortak yatay baradan dallanır. Gerçek birleşimler (splice ve bara T-birleşimleri) **kalın siyah nokta** ile gösterilir; noktası olmayan kesişimler bağlantı değildir.
+
 ## 5aw. Kablaj mimarilerinde arama, yakınlaştırma ve görünüm PDF'i
 
 **Arama:** Sistem kablaj şeması çubuğundaki arama kutusuna yazın.
@@ -1363,26 +1365,26 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
   - pin: `J2-3` / `J2.3` biçiminde numara, sinyal adı, etiket, hat tipi ve not
   - protokol: profil adı, fiziksel katman, adres, endian, CRC, mesaj ID'si ve mesaj adı
   - ek dosya adı
-  - kablo adı ve notu
-  - tel adı, rengi, bükümlü grubu
+  - kablaj adı ve notu
+  - hat adı, rengi, bükümlü grubu
   - kablaj testi adı
 - **Kurallar:**
   - Büyük-küçük harf fark etmez.
   - Boşlukla ayrılan kelimelerin hepsi aynı öğede geçmelidir.
 - **Şemadaki görünüm:**
-  - Eşleşen konnektörler turuncu çerçeveyle, eşleşen kablolar sarı gölgeyle vurgulanır; diğer birimler, konnektörler ve kablolar soluklaşır.
-  - Bir pin eşleşince o pinin hattı izlenir: hattın kablosu ve karşı uçtaki konnektörler de vurgulanır.
+  - Eşleşen konnektörler turuncu çerçeveyle, eşleşen kablajlar sarı gölgeyle vurgulanır; diğer birimler, konnektörler ve kablajlar soluklaşır.
+  - Bir pin eşleşince o pinin hattı izlenir: hattın kablajı ve karşı uçtaki konnektörler de vurgulanır.
 - **Sonuç paneli** (sağ üst):
-  - Sonuçlar türe göre gruplanır (Birim, Konnektör, Pin, Protokol, Ek, Kablo, Tel, Test).
-  - Sonuca tıklayınca şema o birime veya kabloya kayar ve öğe kısa süre parlar. Test sonucu test tanımını açar.
+  - Sonuçlar türe göre gruplanır (Birim, Konnektör, Pin, Protokol, Ek, Kablaj, Hat, Test).
+  - Sonuca tıklayınca şema o birime veya kablaja kayar ve öğe kısa süre parlar. Test sonucu test tanımını açar.
   - **Enter** ilk sonuca gider, **Esc** aramayı temizler.
 - **Tüm mimarilerde arama:**
   - Panelin üstünde eşleşen hatların hangi mimarilerde (Güç, Haberleşme, Ayrık…) olduğu sayılarla gösterilir.
   - Bir mimariye tıklayınca şema o mimariye süzülür ve arama vurgusu korunur.
   - Mimari süzgecinde gizli kalan bir sonuca gidilirse süzgeç kaldırılır.
 
-**Kablo detayında:**
-- Aynı arama kutusu eşleşen pin satırlarını şemada ve tel tablosunda sarıyla vurgular.
+**Kablaj detayında:**
+- Aynı arama kutusu eşleşen pin satırlarını şemada ve hat tablosunda sarıyla vurgular.
 - **+ / − / Sığdır / %100** düğmeleri ve **Ctrl + tekerlek** yakınlaştırır.
 - Şemayı fareyle sürükleyerek kaydırabilirsiniz.
 

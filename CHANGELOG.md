@@ -1,10 +1,17 @@
 # Değişiklik Günlüğü
 
+## v1.61.0 — 2026-11-23
+
+- **Bağlantı şemaları dik köşeli:** kablaj detayı, teknik resim ve sistem kablaj şemasında hatlar eğri yerine yatay / dikey doğrularla çizilir; splice'a giden hatlar ortak dikey baraya bağlanır, çok uçlu kablajlar birimlerin altındaki ortak yatay baradan dallanır, aynı birim yanından çıkan kablajlar ayrı kanallardan iner
+- **Birleşim noktaları** (splice, bara T-birleşimleri) kalın siyah nokta; noktasız kesişimler bağlantı değildir
+- **Terimler:** arayüzde, çıktılarda ve dokümantasyonda "tel" yerine **hat**, "kablo" yerine **kablaj**; özette uçtan uca hat ile pin-pin hat ayrılır
+- Birim testleri 192, regresyon testi 64 adım
+
 ## v1.60.0 — 2026-11-23
 
-- **Mimarilerde arama:** birim, konnektör (tip, parça no), pin (`J2-3`, sinyal), etiket, hat tipi, protokol (profil, fiziksel katman, mesaj), ek, kablo, tel (renk, grup) ve test adında arama; eşleşmeyenler soluk, eşleşenler vurgulu; pin eşleşmesinde hat karşı uca kadar izlenir
+- **Mimarilerde arama:** birim, konnektör (tip, parça no), pin (`J2-3`, sinyal), etiket, hat tipi, protokol (profil, fiziksel katman, mesaj), ek, kablaj, hat (renk, grup) ve test adında arama; eşleşmeyenler soluk, eşleşenler vurgulu; pin eşleşmesinde hat karşı uca kadar izlenir
 - Sonuç paneli: türe göre gruplu sonuçlar, sonuca git (kaydır + parlat), eşleşen hatların mimarilere göre dağılımı ve tek tıkla mimariye süzme
-- **Kablo detayında** yakınlaştırma (+ / − / sığdır / %100, Ctrl + tekerlek), sürükleyerek kaydırma, eşleşen pin ve tel satırlarının vurgusu
+- **Kablaj detayında** yakınlaştırma (+ / − / sığdır / %100, Ctrl + tekerlek), sürükleyerek kaydırma, eşleşen pin ve hat satırlarının vurgusu
 - **Görünümü PDF:** ekrandaki görünüm (mimari süzgeci, arama vurgusu, test kapsaması) A3 sayfa
 - Birim testleri 191, regresyon testi 64 adım
 
@@ -12,7 +19,7 @@
 
 - **Haberleşme protokol profilleri:** fiziksel katman, hız / veri / eşlik / dur biti, adres, endian, başlık baytları, komut ID ve uzunluk alanı (ofset, boy), CRC (hazır tipler + özel polinom / başlangıç, kapsam), periyot / zaman aşımı; otomatik çerçeve düzeni; mesaj listesi ve mesaj alanları (tip, boy, birim, LSB, aralık; ofset ve boy otomatik)
 - **Port arayüzleri:** konnektöre bir veya birden çok profil (pin alt kümesi, rol); port başına geçersiz kılma (hız, adres, endian, CRC…)
-- **Protokol uyumsuzluk uyarıları:** kabloyla bağlanan uçlarda fiziksel katman, hız, çerçeve, endian, CRC, mesaj uzunluğu farkı hata; aynı rol ve eksik mesaj uyarı; karşı uçta tanım yok bilgi. Kablo denetiminde, konnektör ve profil ekranlarında, model doğrulamada
+- **Protokol uyumsuzluk uyarıları:** kablajla bağlanan uçlarda fiziksel katman, hız, çerçeve, endian, CRC, mesaj uzunluğu farkı hata; aynı rol ve eksik mesaj uyarı; karşı uçta tanım yok bilgi. Kablaj denetiminde, konnektör ve profil ekranlarında, model doğrulamada
 - **Doküman ekleri:** konnektöre ve profile Word / Excel / PDF eki; masaüstünde `<model>_ekler` klasörüne kopyalama, varsayılan uygulamayla açma (düzenle-kaydet), güncelleme, değişiklik yenileme; tarayıcıda modele gömme
 - Masaüstü uygulamasına `nativeAttach`, `nativeOpenFile`, `nativeFileInfo` bağlantıları
 - Sistem şemasında konnektör rozeti (protokol, ek sayısı) ve tıklayınca profil / ek menüsü
@@ -21,36 +28,36 @@
 
 ## v1.58.0 — 2026-11-23
 
-- **Kablaj test tanımı:** testler (Test Durumu elemanı) için her birimin test edilen pinleri tek tek seçilir; konnektör ve birim bazında toplu seçim, arama, yalnız kabloya bağlı pinler; pin satırında hat ve onu doğrulayan diğer testler
-- **Hat kapsaması:** her testin ve tüm testlerin kablo hatlarının yüzde kaçını doğruladığı; açıkta kalan ve testlerde kullanılan hatlar; hat tipine göre kapsama; hat × test matrisi; "uçlardan biri / tüm uçlar" kuralı; kapsama Excel
-- Sistem kablaj şemasında **Test kapsaması** katmanı (kablolar yeşil / turuncu / kırmızı, "test %x")
+- **Kablaj test tanımı:** testler (Test Durumu elemanı) için her birimin test edilen pinleri tek tek seçilir; konnektör ve birim bazında toplu seçim, arama, yalnız kablaja bağlı pinler; pin satırında hat ve onu doğrulayan diğer testler
+- **Hat kapsaması:** her testin ve tüm testlerin kablaj hatlarının yüzde kaçını doğruladığı; açıkta kalan ve testlerde kullanılan hatlar; hat tipine göre kapsama; hat × test matrisi; "uçlardan biri / tüm uçlar" kuralı; kapsama Excel
+- Sistem kablaj şemasında **Test kapsaması** katmanı (kablajlar yeşil / turuncu / kırmızı, "test %x")
 - Test Durumu özellik panelinde kablaj kapsamı; silinen konnektörün pinleri testlerden temizlenir
 - Birim testleri 185, regresyon testi 62 adım
 
 ## v1.57.0 — 2026-11-23
 
-- **Kablaj özeti:** birim, arayüz, kablo, hat (uçtan uca), tel, splice, hata / uyarı sayaçları; hat tiplerine, birimlere ve kablolara göre tablolar; özet Excel (hat listesi dahil)
-- **Hat tipine göre mimariler:** sistem şeması güç / haberleşme / ayrık… mimarisine süzülür (ilgisiz kablolar ve birimler gizli, konnektörler soluk); şema çubuğunda "Mimari" seçimi
+- **Kablaj özeti:** birim, arayüz, kablaj, hat (uçtan uca), hat, splice, hata / uyarı sayaçları; hat tiplerine, birimlere ve kablajlara göre tablolar; özet Excel (hat listesi dahil)
+- **Hat tipine göre mimariler:** sistem şeması güç / haberleşme / ayrık… mimarisine süzülür (ilgisiz kablajlar ve birimler gizli, konnektörler soluk); şema çubuğunda "Mimari" seçimi
 - **Mimari PDF:** tüm sistem ve seçilen hat tipleri, her biri A3 sayfa (süzülmüş şema, lejant, antet)
 - Hat kimliği pin uçlarından türetilir (test kapsamı için kararlı)
 - Birim testleri 182, regresyon testi 61 adım
 
 ## v1.56.0 — 2026-11-23
 
-- **AWG önerisi:** tel akımı (demet / tek tel kapasitesi), kablo maks. uzunluğundan gerilim düşümü (gidiş + dönüş, % ayarlanabilir; dönüş hattı besleme gerilimini kullanır) ve uç kontakların AWG aralığından önerilen (en ince uygun) ve en kalın AWG; uygun tel yoksa gerekçe ve gereken AWG; model doğrulamada "Kablaj AWG"
+- **AWG önerisi:** hat akımı (demet / tek hat kapasitesi), kablaj maks. uzunluğundan gerilim düşümü (gidiş + dönüş, % ayarlanabilir; dönüş hattı besleme gerilimini kullanır) ve uç kontakların AWG aralığından önerilen (en ince uygun) ve en kalın AWG; uygun hat yoksa gerekçe ve gereken AWG; model doğrulamada "Kablaj AWG"
 - **Bükümlü çift önerisi:** çift eşi / etiket adına göre; RS-422/485, CAN 120 Ω, 1553 78 Ω, Ethernet / LVDS 100 Ω ekranlı çift; güç besleme + dönüş çifti; tek tıkla uygulama (TP / TSP grupları, ekran)
-- **Teknik resim (A3 yatay PDF):** pin pin bağlantı şeması, tel listesi (sığmazsa devam sayfası), sağ altta BOM ve antet; ayrı sayfada dikdörtgen konnektör görünümleri (ön / arka yüz, numaralandırma başlangıç köşesi, ilk pin oku, hat tipi renkleri)
-- Tek kablo, seçili kablolar tek PDF veya her kablo ayrı PDF; BOM + tel listesi Excel
-- Kablo antet alanları (başlık, çizim no, revizyon, hazırlayan, kontrol, onay, tarih)
+- **Teknik resim (A3 yatay PDF):** pin pin bağlantı şeması, hat listesi (sığmazsa devam sayfası), sağ altta BOM ve antet; ayrı sayfada dikdörtgen konnektör görünümleri (ön / arka yüz, numaralandırma başlangıç köşesi, ilk pin oku, hat tipi renkleri)
+- Tek kablaj, seçili kablajlar tek PDF veya her kablaj ayrı PDF; BOM + hat listesi Excel
+- Kablaj antet alanları (başlık, çizim no, revizyon, hazırlayan, kontrol, onay, tarih)
 - Birim testleri 179, regresyon testi 60 adım
 
 ## v1.55.0 — 2026-11-23
 
-- **Kablaj şeması (sistem seviyesi):** tüm birimler, konnektörler ve kablolar tek şemada; konnektörden konnektöre sürükleyerek kablo (W1, W2…), etiket ve eşleşme kurallarıyla otomatik tel; taşınabilir birimler, tekerlekle yakınlaştırma, kaydırma, sığdır; basit / detaylı görünüm düğmesi
-- **Dallanma ve splice:** takılı konnektöre sürükleyince dal; bağlı pin eşleşirse tel otomatik splice'a bölünür; elle splice ve tel ekleme
-- **Kablo detayı:** çift tıklayınca yalnız o kablo — uçlarda birim / konnektör adları ve PN'ler, pin pin bağlantı şeması, tel tablosu (uçlar, Bağlı / Bağlı değil, AWG, renk, bükümlü grup, ekran, akım, denetim)
-- **Eşleştirme denetimi:** net içindeki tüm pin çiftleri için hat tipi, etiket / kural, gerilim aralığı, yön; pin başına tek tel; tel akımı (KCL ile splice dağılımı) AWG kapasitesine ve AWG kontak aralığına göre; splice'ta AWG geçişi uyarır ama engellemez, sınır içindeyse "uygun"; model doğrulamaya "Kablaj eşleştirme" kuralı
-- Tel kapasite tablosu (AWG 30–4, tek tel / demet, direnç) modelde
+- **Kablaj şeması (sistem seviyesi):** tüm birimler, konnektörler ve kablajlar tek şemada; konnektörden konnektöre sürükleyerek kablaj (W1, W2…), etiket ve eşleşme kurallarıyla otomatik hat; taşınabilir birimler, tekerlekle yakınlaştırma, kaydırma, sığdır; basit / detaylı görünüm düğmesi
+- **Dallanma ve splice:** takılı konnektöre sürükleyince dal; bağlı pin eşleşirse hat otomatik splice'a bölünür; elle splice ve hat ekleme
+- **Kablaj detayı:** çift tıklayınca yalnız o kablaj — uçlarda birim / konnektör adları ve PN'ler, pin pin bağlantı şeması, hat tablosu (uçlar, Bağlı / Bağlı değil, AWG, renk, bükümlü grup, ekran, akım, denetim)
+- **Eşleştirme denetimi:** net içindeki tüm pin çiftleri için hat tipi, etiket / kural, gerilim aralığı, yön; pin başına tek hat; hat akımı (KCL ile splice dağılımı) AWG kapasitesine ve AWG kontak aralığına göre; splice'ta AWG geçişi uyarır ama engellemez, sınır içindeyse "uygun"; model doğrulamaya "Kablaj eşleştirme" kuralı
+- Hat kapasite tablosu (AWG 30–4, tek hat / demet, direnç) modelde
 - Birim testleri 171, regresyon testi 59 adım
 
 ## v1.54.0 — 2026-11-23
@@ -60,7 +67,7 @@
 - **Birim arayüzleri ve pinout:** birim (blok) başına konnektör arayüzleri (port), pin pin sinyal / etiket / hat tipi / yön / gerilim / akım / çift eşi / ekran; pin denetimleri (kontak akım sınırı, gerilim, çift eşi) tabloda ve model doğrulamada; pinout Excel
 - **Pin uyumluluk motoru** (kablaj şeması için): hat tipi, etiket / kural, gerilim aralığı örtüşmesi ve yön denetimi
 - Araç çubuğunda **Kablaj ▾** menüsü; iş akışına "Arayüzleri ve kablajı tasarla" adımı
-- Model biçimi: `M.hrn` (ilk kullanımda oluşur), konnektör portlarında `hc`; dallanma ve splice için kablo yapısı ayrıldı (v1.55)
+- Model biçimi: `M.hrn` (ilk kullanımda oluşur), konnektör portlarında `hc`; dallanma ve splice için kablaj yapısı ayrıldı (v1.55)
 - Birim testleri 165, regresyon testi 58 adım
 
 ## v1.53.0 — 2026-10-17
