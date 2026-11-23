@@ -88,7 +88,7 @@ function hcBOM(c){
     if(t && t.backshell) add('Backshell', '', t.backshell, 1, 'adet');
     const cnt = {}; on.forEach(w => [w.a, w.b].forEach(e => { if(e.n !== n.id) return; const pt = t && (t.pins || []).find(x => x.no === e.pin); const sz = pt ? pt.size : '?'; cnt[sz] = (cnt[sz] || 0) + 1; }));
     const g = t && /Dişi/.test(t.gender || '') ? 'pin (erkek)' : t && /Erkek/.test(t.gender || '') ? 'soket (dişi)' : '';
-    if(t && !/Hat uçlu|PCB|Lehim/.test(t.term || '')) Object.entries(cnt).forEach(([sz, q]) => add('Kontak', '', `${sz} ${g} — kablaj ucu konnektörüne`, q, 'adet'));
+    if(t && !/(Hat|Tel) uçlu|PCB|Lehim/.test(t.term || '')) Object.entries(cnt).forEach(([sz, q]) => add('Kontak', '', `${sz} ${g} — kablaj ucu konnektörüne`, q, 'adet'));
   });
   const grpDone = new Set();
   on.forEach(w => { if(w.grp && on.filter(x => x.grp === w.grp).length > 1){ if(grpDone.has(w.grp)) return; grpDone.add(w.grp); const ws = on.filter(x => x.grp === w.grp), awg = ws[0].awg || '?', sh = ws.some(x => x.shield);
