@@ -748,7 +748,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   const ux = {};
   Object.assign(ux, await run(() => { const h = r => r.filter(x => x && x.h).map(x => x.h); const t = h(toolsMenuItems()), a = h(analysisMenuItems()), q = h(reqMenuItems()); return { groups: t.includes('Modelleme yardımcıları') && t.includes('Değişim formatları (ReqIF, XMI, SysML v2)') && !t.includes('Diğer') && a.includes('Güvenilirlik ve risk') && !a.includes('Diğer') && q[0] === 'Gereksinimler' && q.includes('Doğrulama ve test') && !q.includes('Diğer'), same: toolsMenuItems().filter(x => x && x.t).length >= 34 }; }));
   await page.click('[data-act="workflow"]'); await page.waitForTimeout(100);
-  Object.assign(ux, await run(() => ({ wf: document.querySelectorAll('#modalBox .wfcard').length === 6 && !document.querySelector('#modalBox [data-wf][disabled]'), focusIn: document.querySelector('#modalBox').contains(document.activeElement) })));
+  Object.assign(ux, await run(() => ({ wf: document.querySelectorAll('#modalBox .wfcard').length === 7 && !document.querySelector('#modalBox [data-wf][disabled]'), focusIn: document.querySelector('#modalBox').contains(document.activeElement) })));
   for (let i = 0; i < 30; i++) await page.keyboard.press('Tab');
   ux.trap = await run(() => document.querySelector('#modalBox').contains(document.activeElement));
   await page.click('#modalBox [data-wf="1|0"]'); await page.waitForTimeout(100);
@@ -1014,6 +1014,31 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
     return o;
   });
   ok('Word/Excel deflate ile sıkıştırılır ve geri okunur; PDF kayıpsız Flate; ReqIF hiyerarşisi: belge sırası, bölüm → alt paket, hiyerarşi üstü (varsayılan yok say), kendi ReqIF\'imizde bölüm yok', Object.values(v53).every(v => v === true), v53);
+
+  console.log('8h2) v1.54 kablaj: konnektör kütüphanesi ve pinout');
+  await page.evaluate(() => { const m = document.querySelector('#modal'); if (m) m.style.display = 'none'; });
+  await page.click('[data-act="harnessMenu"]'); await page.waitForTimeout(150);
+  await page.click('#ctx .mi:has-text("Birim arayüzleri")'); await page.waitForTimeout(200);
+  await page.click('[data-hca="unew"]'); await page.waitForTimeout(100);
+  await page.fill('[data-qf="name"]', 'Kablaj Test Birimi'); await page.click('#qfO'); await page.waitForTimeout(200);
+  await page.click('[data-hca="padd2"]'); await page.waitForTimeout(100);
+  await page.selectOption('[data-qf="cat"]', 'c_pwr'); await page.selectOption('[data-qf="ct"]', 'lib:38999-20-15-5P'); await page.click('#qfO'); await page.waitForTimeout(200);
+  await page.selectOption('[data-hcp="A|lbl"]', 'l_28v'); await page.waitForTimeout(100);
+  await page.fill('[data-hcp="A|ipk"]', '20'); await page.press('[data-hcp="A|ipk"]', 'Enter'); await page.waitForTimeout(150);
+  const v54 = await page.evaluate(() => {
+    const o = {}, p = E(HC.port), u = E(HC.unit);
+    o.unit = !!u && u.kind === 'Block' && u.hcUnit === true; o.port = !!p && p.kind === 'Port' && p.owner === u.id && p.hc.ct === 'lib:38999-20-15-5P';
+    o.labelDefaults = p.hc.pins.A.vmin === 22 && p.hc.pins.A.sig === '28V';
+    o.overCurrent = hcConnStats(p).iss.some(x => x[0] === 'hata' && /#16/.test(x[1]));
+    o.rowsShown = document.querySelectorAll('#view table.hcpt tbody tr').length === 5;
+    o.validator = validateModel().some(x => x.rule === 'Konnektör pinout' && x.id === p.id && /#16/.test(x.msg));
+    o.excel = hcPinoutRows([u]).length === 6;
+    HC.tab = 'types'; HC.sel = 'lib:md-9S'; openD('@hclib'); o.libView = /Micro-D 9 soket/.test(document.querySelector('#view').textContent) && document.querySelector('[data-hct="name"]').disabled;
+    o.wf = WF_STEPS.some(s => /kablaj/i.test(s.t));
+    o.undo = (() => { undo(); return !E(HC.port) || !(E(HC.port).hc.pins.A || {}).ipk; })();
+    return o;
+  });
+  ok('Kablaj: birim ve konnektör arayüzü ekleme, etiketten varsayılanlar, kontak akım sınırı, pinout Excel, yerleşik tip salt okunur, iş akışı adımı, geri al', Object.values(v54).every(v => v === true), v54);
 
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });

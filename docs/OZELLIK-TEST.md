@@ -2,8 +2,8 @@
 
 _Bu dosya `node tools/ozellik-test.js` ile üretilir; elle düzenlemeyin._
 
-- Özellik: **53**, testle kapsanan: **53**
-- Birim testi adı: 121 (döngüyle üretilenler dahil olmayabilir), uçtan uca test: 57
+- Özellik: **54**, testle kapsanan: **54**
+- Birim testi adı: 129 (döngüyle üretilenler dahil olmayabilir), uçtan uca test: 58
 
 | No | Özellik | Sürüm | Birim testleri | Uçtan uca testler | Durum |
 |---|---|---|---|---|---|
@@ -58,5 +58,6 @@ _Bu dosya `node tools/ozellik-test.js` ile üretilir; elle düzenlemeyin._
 | F51 | Akustik profil, zaman verisinden SRS, AECTP-400 şablonu, test prosedürü taslağı | 1.51 | 8: akustik: OASPL = 1/3 oktav enerji toplamı; düz 100 dB, 10 bant → 110 dB; akustik: dB ara değer log-frekansta doğrusal; tolerans toplamsal; akustik ölçüm: bant sapması ve OASPL sapması karara yazılır; SRS: uzun sinüs f0 → SRS(f0) ≈ Q·A; yüksek fn → A; SRS: yarım sinüs darbe — pozitif/negatif ayrımı, düşük örnekleme uyarısı; AECTP-400 şablonu: 3 gereksinim + taslak profil (Refine) + test; seviyeler TBD, çevre kuralı taslağı atlar; test prosedürü taslağı: adımlar eksen başına, hazırlık/kabul doldurulur, dolu alan korunur; çevre cümlesi: akustik profil OASPL ile | Akustik profil (OASPL, dB ekseni); AECTP-400 şablonu (TBD, baskı), taslak uyarısı ve kaldırma; çevresel gereksinimden test prosedürü taslağı (liste, Özellikler düğmesi); ölçümde SRS düğmesi | ✓ |
 | F52 | Çizim boru hattı ve sürüklemede kısmi yeniden çizim | 1.52 | — | Çizim kancaları kayıtlı; büyük diyagramda sürüklerken yalnız taşınan şekil ve kenarları yenilenir, bırakınca tam çizimle aynı, geri al çalışır | ✓ |
 | F53 | Sıkıştırılmış Word/Excel, kayıpsız PDF, ReqIF hiyerarşisi içe aktarma | 1.53 | — | Word/Excel deflate ile sıkıştırılır ve geri okunur; PDF kayıpsız Flate; ReqIF hiyerarşisi: belge sırası, bölüm → alt paket, hiyerarşi üstü (varsayılan yok say), kendi ReqIF'imizde bölüm yok | ✓ |
+| F54 | Kablaj: konnektör kütüphanesi, hat etiketleri, birim arayüzleri ve pinout | 1.54 | 8: kablaj: yerleşik kütüphane — 38999 PN ve pin sayıları; kablaj: okuma modeli değiştirmez (M.hrn yalnız yazınca oluşur); kablaj pin uyumu: aynı etiket / eşleşme kuralı uyumlu; kablaj pin uyumu: farklı hat tipi hata; kablaj pin uyumu: örtüşmeyen gerilim aralığı (10–15 V ↔ 20–25 V) hata; kablaj pin uyumu: iki çıkış hata, boş uç uyarı; kablaj pinout: etiket varsayılanları, çift eşi karşılığı, kontak akım sınırı; kablaj pinout: boş pin kaydı silinir, tip pin adı değişince pinout taşınır | Kablaj: birim ve konnektör arayüzü ekleme, etiketten varsayılanlar, kontak akım sınırı, pinout Excel, yerleşik tip salt okunur, iş akışı adımı, geri al | ✓ |
 | F41 | Performans (~6000 eleman) | 1.17 | — | ~6000 elemanlı modelde işlemler 2 sn altında | ✓ |
 | F42 | Kararlılık: tüm senaryolarda JavaScript hatası yok | tümü | — | çalışma sırasında JavaScript hatası yok | ✓ |
