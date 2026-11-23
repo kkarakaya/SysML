@@ -1,0 +1,494 @@
+# Değişiklik Günlüğü
+
+## v1.53.0 — 2026-10-17
+
+- **Sıkıştırılmış Word ve Excel:** .docx / .xlsx içindeki XML parçaları DEFLATE ile sıkıştırılır (uygulama içinde, eşzamanlı; görseller olduğu gibi saklanır). Örnek: gereksinim Excel'i 77 KB → 17 KB, VCRM 28 KB → 7 KB. LibreOffice, python-docx / openpyxl ve uygulamanın kendi okuyucusuyla doğrulandı
+- **Kayıpsız PDF:** diyagram sayfaları JPEG yerine FlateDecode (PNG "Up" ön kestirimi) ile gömülür; çizgi ve yazılarda JPEG bozulması yok, örnek modelin 13 diyagramı 2,5 MB → 2,1 MB. Metin hâlâ seçilemez (Türkçe karakterler için font gömme gerekir)
+- **ReqIF belge ağacı içe aktarma:** `SPEC-HIERARCHY` okunur — belge sırası korunur, başlıklar "Bölüm" yolu olur ve gereksinimler iç içe paketlere yerleşir; hiyerarşideki üst gereksinim ayrı sütunda (varsayılan yok say, istenirse Derive)
+- Stres modelinde tam Word raporu ~7,8 sn
+- Regresyon testi 57 adım
+
+## v1.52.0 — 2026-10-17
+
+- **Sürüklemede kısmi yeniden çizim:** büyük diyagramlarda (≥ 25 şekil) taşıma ve boyutlandırma sırasında yalnız hareket eden şekiller, bağlı kenarları ve seçim çerçevesi yenilenir; bırakınca tam çizim. Ölçüm (hareket başına): 100 şekil 40 → 5 ms, 200 şekil 70–78 → 5 ms
+- Sürükleme sırasında tuval konumu bir kez okunur (her harekette yerleşim hesabı zorlanmaz); sürükleme sırasında kenarlar kaba rota aramasıyla, bırakınca tam aramayla yönlendirilir
+- **Çizim boru hattı** (`DRAW`): katman / varyant gizleme, bölme elemanı gizleme, varyant soluklaştırma, atlama çizgileri ve şüpheli bağlantı işareti artık çekirdek çizim fonksiyonlarını sarmalamıyor, kancalara kayıtlı; çıktılar değişmedi (altın test 31/31)
+- Düzeltme: tarayıcıda art arda hızlı iki kayıtta aynı içerik iki kez yedeklenebiliyordu
+- Regresyon testi 56 adım
+
+## v1.51.0 — 2026-10-16
+
+- **Akustik gürültü profili:** 1/3 oktav SPL (dB, ref 20 µPa); frekans log / seviye doğrusal eksen, toplamsal ±dB bant toleransı, OASPL (standart 1/3 oktav bantlarının enerji toplamı) ve ±dB OASPL toleransı; karşılaştırma, zarf, ±dB ölçekleme, rapor ve test dokümanları
+- **Akustik ölçüm değerlendirmesi:** bant sapmasına ek olarak OASPL sapması karara, test sonucuna, VCRM'e ve kapanış raporuna yansır
+- **Zaman verisinden SRS** (Ölçüm Değerlendirme → "Zaman verisinden SRS…"): ivme–zaman CSV / Excel'den Smallwood ramp-invariant süzgeciyle mutlak ivme SRS'i; Q ayarlı, 1/6 oktav, maximax / pozitif / negatif; örnekleme hızı uyarısı; sonuç SRS profiline ±dB toleransla karşılaştırılır
+- **STANAG 4370 / AECTP-400 şablonu** (Araçlar → Şablon ekle): titreşim, akustik gürültü ve şok için gereksinim + taslak profil (Refine) + kalifikasyon testi. Yöntem numaraları ve seviyeler doğrulanmadığı için **[TBD]** gelir; profiller TASLAK işaretlidir (uyarı, doğrulama kuralı, çevre türetme kuralı taslağı atlar)
+- **Çevresel gereksinimden test prosedürü taslağı** (Gereksinimler ▾ veya gereksinimin Özellikler paneli): profil türüne göre düzenek, eksen / yön başına uygulama, ara ve son fonksiyonel kontrol adımları, hazırlık ve kabul ölçütleri doldurulur (dolu alanlar korunur) ve Word test prosedürü açılır
+- Çevre türetme kuralı akustik profilden OASPL'li gereksinim cümlesi üretir
+- Birim testi 157, regresyon testi 55 adım
+
+## v1.50.0 — 2026-10-16
+
+- **Temel / Uzman görünüm** (araç çubuğu düğmesi, kullanıcı başına hatırlanır; yeni kullanıcı için Temel): kısa menüler (Araçlar 36 → 20, Analiz 18 → 10, Gereksinimler 29 → 20), sade palet, Özellikler panelinde "Gelişmiş" katlaması, sade araç çubuğu
+- Komut paleti ve İş akışı merkezi her iki görünümde tüm komutları bulur
+- **Menü denetimi:** yinelenen girişler kaldırıldı; düzeltme: v1.44 sonrası eklenen komutlar (yedekten geri yükleme, ARES, kapsama haritası, ister bölme, karşılaştırma raporu) yanlış başlık altında görünüyordu
+- Tanıtım turuna görünüm adımı
+- Birim testi 149, regresyon testi 54 adım
+
+## v1.49.0 — 2026-10-16
+
+- **Altın çıktı testi** (`tests/cikti.js`): 31 çıktı (13 diyagram SVG, XMI, ReqIF, SysML v2, 9 Excel içeriği, rapor, doğrulama, türetme, parametrik, bütçe, kapsama) deterministik karşılaştırılır; yeniden düzenleme sonrası 31/31 aynı
+- **Kanca listeleri:** durum çubuğu (`STATUS_HOOKS`), simülasyon çubuğu (`SIMBAR_HOOKS`) ve türetme (`DERIVE_HOOKS`) sarmalamaları kaldırıldı; türetme kabulü arayüzü 3 yerine 1 kez yeniden çizer
+- Düzeltme: varyant konfigürasyonu kapatılınca durum çubuğundaki "◆ konfigürasyon" rozeti kalıyordu
+- Düzeltme: tarayıcıda model yerel depoya sığmazsa kayıt sessizce başarısız oluyordu; artık bir kez uyarılır
+- Ölü kod temizliği; `tests/hepsi.js` ile tüm denetimler tek komutla
+- Ölçüm: açılış ~0,45 sn; derinliği 3 olan tek sarmalama kalmadı
+- Birim testi 149, regresyon testi 53 adım
+
+## v1.48.0 — 2026-10-16
+
+- **Otomatik dönen yedekler:** masaüstünde dosyanın yanındaki `.yedek` klasörü (yazılamazsa yerel uygulama klasörü), tarayıcıda yerel veritabanı; son 10, içerik değişmediyse yinelenmez
+- **Yedekten geri yükle:** fark özeti, geri yükleme öncesi otomatik yedek, geri al, indir, ayarlar
+- **Kurtarma bildirimi:** kaydedilmemiş oturum kurtarıldığında açık bildirim ve diskteki sürüme dönüş; başka dosya açılırken kaydedilmemiş değişiklikler yedeklenir
+- **Gerçek ölçek (12 900 eleman / 3000 gereksinim / 60 diyagram) performansı:** VCRM 29 → 1,5 sn, izlenebilirlik matrisi 14,8 → 0,8 sn (sayfalı), N² 12,7 → 0,8 sn, ICD 7,5 → 0,7 sn, tam Word raporu 28 → ~10 sn, diyagram açılışı ortalama 550 → 430 ms
+- İlişki indeksi, değer tipi, NCR listesi önbellekleri; indeksli izlenebilirlik; benzerlik listesi gereksinim başına 3 ile sınırlı; rapor görüntüleri en çok 2400 px; tarayıcıda yerel kayıt birleştirilerek yazılır
+- Gereksinim tablosu ilk sayfası 150 satır; türetme sihirbazı ilk 200 öneri
+- `tests/stres.js` stres testi; birim testi 146, regresyon testi 52 adım
+
+## v1.47.0 — 2026-10-16
+
+- **Gereksinim kapsama haritası:** blok × 9 kategori; boş hücreden şablon gereksinim veya "uygulanamaz"; Excel
+- **Çoklu ister bölme:** zorunluluk fiillerinden otomatik bölme önerisi, düzenlenebilir parçalar, ilişki kopyalama
+- **ARES köprüsü:** bağlam paketi dışa aktarma, ARES önerilerini içe aktarma (ayrı kural olarak), belgelenmiş JSON şeması ve örnek çıktı
+- **Türetme karşılaştırma raporu:** kurallı türetme ile ARES'in kabul oranı, kalite ve düzenleme ölçütleri (Excel)
+- Birim testi 146, regresyon testi 49 adım
+
+## v1.46.0 — 2026-10-16
+
+- **Fonksiyon kuralı:** tahsisli aksiyonlardan fonksiyonel gereksinim; kullanım durumlarından paydaş gereksinimi
+- **Türkçe çekim:** eylem adlarının gelecek zamana çekimi (ünlü uyumu, kaynaştırma, "et" birleşikleri ve yumuşama, fiil sözlüğü); fiil değilse işlev kalıbı
+- **Mod ve geçiş kuralı:** olay, koruma koşulu, seçim düğümü, after() zamanlaması, başlangıç ve alt durum
+- **Performans kuralı:** kısıt eşitsizliklerinden bağlı değerin adı ve birimiyle sınır gereksinimi; tolerans aralığı
+- **Güvenilirlik kuralı:** FMEA önlemlerinden (RPN / şiddet eşiği) ve isteğe bağlı yüksek risklerden gereksinim; FMEA satırına bağlantı
+- Kaynağın varyant koşulu gereksinime aktarılır; kalite denetimi tırnak / köşeli parantez içini başvuru sayar
+- Performans: türetme önbellekleri (en üst blok, part tipleri, bağlamalar, ilişki indeksi); 6000+ elemanlı modelde < 1,5 sn
+- Birim testi 139, regresyon testi 48 adım
+
+## v1.45.0 — 2026-10-16
+
+- **Çevresel profil kuralı:** PSD / sinüs / SRS / termal profillerden sayısal değerli çevresel gereksinim; seviyeye göre ifade (kalifikasyon / kabul / ESS / fonksiyonel), standart ve yöntem numarası
+- Profil → Refine, profili kullanan test → Verify, üst gereksinimden Derive; test yoksa profilli test iskeleti; alt sistem seviyesi seçeneği
+- **Doğrulama iskeleti:** Verify'sız gereksinimler için yöntem önerisi ve doğrulama faaliyeti; kabulde otomatik faaliyet seçeneği
+- Kalite denetimi: "oktav" birimi tanınır; sayılarda binlik ayırıcı yalnız 10 000 ve üstünde
+- Birim testi 117, regresyon testi 47 adım
+
+## v1.44.0 — 2026-10-16
+
+- **Gereksinim türetme sihirbazı:** modelden öneri → inceleme → kabul; yeni / güncelle / mevcut / kaynak yok durumları, tekrar çalıştırmada yinelenmez, elle düzenlenen metin korunur
+- **Arayüz kuralı:** bağlantı ve ICD alanlarından çıkış, giriş ve protokol uyum gereksinimleri
+- **Bütçe dağıtımı:** sayısal üst sınırın orantılı/eşit ve marjlı olarak alt sistemlere paylaştırılması, Derive/Satisfy ilişkileri
+- Doğrulama: bütçe payı aşımı, tutarsız dağıtım, silinmiş türetme kaynağı
+- Performans: benzer gereksinim tespiti ters indeksle (2000 gereksinimde ~3 kat hızlı); türetme büyük modelde < 1 sn
+- Birim testi 111, regresyon testi 46 adım
+
+## v1.43.0 — 2026-10-16
+
+- **İş akışı merkezi:** MBSE adımlarına göre görevler ve modeldeki ilerleme
+- **Görev odaklı menüler:** Araçlar / Analiz / Gereksinimler menüleri iş akışı başlıkları altında
+- **Tanıtım turu** (ilk açılışta önerilir), **klavye kısayolları** penceresi (?)
+- **Erişilebilirlik:** menülerde klavye gezinmesi, pencere odak tuzağı ve odak geri dönüşü, ARIA rolleri/etiketleri, yüksek kontrast teması
+- İngilizce arayüz taraması (`tools/en-tarama.js`) ve eksik çevirilerin tamamlanması
+- **Özellik ↔ test izlenebilirlik tablosu** (`docs/OZELLIK-TEST.md`, 42 özellik, tümü testli)
+- Örnek model: v1.37–v1.43 özellikleri için rehber notları, gizlilik işareti, şüpheli bağlantı; tasarım notu metni düzeltildi
+- Birim testi 100, regresyon testi 45 adım
+
+## v1.42.0 — 2026-10-16
+
+- **Varyant / konfigürasyon yönetimi:** özellikler (feature), konfigürasyon matrisi, etkin konfigürasyon; elemanlarda varyant koşulu (kalıtımlı)
+- Etkin konfigürasyona göre diyagramda soluk/gizli gösterim, bütçe ve trade study; konfigürasyon karşılaştırma tablosu, Excel
+- Doğrulama: geçersiz varyant koşulu
+- **SysML v2 metin dışa aktarma (alt küme):** paket, part/port/attribute/enum/item def, kısıt, gereksinim, doğrulama, satisfy/allocate/derive, connect, aktivite ve durum makinesi
+- Birim testi 97, regresyon testi 44 adım
+
+## v1.41.0 — 2026-10-16
+
+- **Ölçüm verisi:** CSV/Excel'den çok eksenli ölçüm aktarma; test durumu altında Ölçüm elemanı
+- **Tolerans değerlendirmesi:** ±dB / ±°C bandı, tolerans dışı bant yüzdesi ve izin, kapsam, Grms sapması; grafik
+- **Sonucu teste yaz:** ölçüm kararı test sonucuna ve VCRM'e; çelişki doğrulama bulgusu
+- **Doğrulama kapanış raporu (Word)** ve ölçüm Excel'i
+- Birim testi 91, regresyon testi 43 adım
+
+## v1.40.0 — 2026-10-16
+
+- **Denklem takımı:** bağlı bilinmeyenli parametrik denklemler Gauss-Newton ile birlikte çözülür
+- **Parametrik eşitsizlikler:** kısıt bloklarında `<, <=, >, >=, !=` satırları denetim olarak; pencere ve doğrulama bulgusu
+- **Sürekli zaman simülasyonu:** `der(x) = …` denklemleri (blok ve durum düzeyinde) RK4 ile; +Δt düğmesi, ara örnekler, senaryo kaydında Δt
+- Birim analizinde birimsiz katsayılar yanlış alarm vermez
+- Birim testi 84, regresyon testi 42 adım
+
+## v1.39.0 — 2026-10-16
+
+- **Şüpheli bağlantılar:** gereksinim değişince bağlı izlenebilirlik ilişkileri işaretlenir; görünüm, gözden geçirme onayı ve kaydı, matris/diyagram/panel işaretleri, doğrulama bulgusu, Excel
+- **Birim/boyut analizi (SI):** kısıt denklemleri, bağlamalar ve bağlantı akış özelliklerinde boyut uyumsuzluğu; ölçek farkı bilgisi
+- **Arayüz kuralları:** taşınan öğe ↔ akış özelliği, eşlenik port eksikliği, tahsisli nesne akışı ↔ connector; iki kural için otomatik onarım
+- Örnek modelde veri bağlantısının taşınan öğesi düzeltildi
+- Derleyici aynı adlı üst düzey tanımları (çakışma) yakalar
+- Birim testi 76, regresyon testi 41 adım
+
+## v1.38.0 — 2026-10-16
+
+- **Gizlilik derecesi:** model düzeyinde derece ve ek ibare; Word/Excel üst-alt bilgi, diyagram ve grafik görüntülerinde bant, HTML çıktılarında şerit, XMI açıklaması; araç çubuğu rozeti
+- **Kapsamlı ve temizlenmiş dışa aktarma:** inceleme paketi, XMI ve model kopyası için paket kapsamı; notları, kullanıcı adlarını, günlükleri ve açıklamaları temizleme
+- **Doküman kontrolü:** inceleme paketi ve View dokümanında doküman no, revizyon, dağıtım
+- Birim testi 67, regresyon testi 40 adım
+
+## v1.37.0 — 2026-10-16
+
+- **Birim testleri (tarayıcısız):** `node tests/unit.js` — ifade, parametrik, bütçe, metachain, trade study, Monte Carlo, dosya bütünlüğü, onarım, geri al, otomatik onarım, tablo içe aktarma, MagicGrid; olumsuz durumlar dahil 61 test
+- **Hata günlüğü:** yakalanmamış ve önceden sessizce yutulan hatalar kayda geçer; Araçlar ▾ → Hata günlüğü…
+- **Dosya bütünlüğü:** kayıtta sağlama toplamı, açılışta şema ve bütünlük denetimi, Dosya denetimi penceresi, kalıcı onarım geçmişi
+- **Verimli geri al:** değişmeyen elemanlar paylaşılır (bellek kullanımı büyük ölçüde azaldı)
+- Regresyon testi 39 adım
+
+## v1.36.0 — 2026-10-16
+
+- **Kaynak düzeni:** tek dosya `src/` altında 29 modüle bölündü; `tools/build.py` ile birebir aynı tek HTML üretilir (kullanıcı tarafı değişmedi)
+- **Genişletme noktaları (HOOKS):** özellik paneli ve menü eklentileri zincirleme sarmalama yerine kayıtla çalışır; her eklenti hata yalıtımlı
+- **Özellik paneli genel dağıtım:** eklenti türlerinin (akıllı paket dahil) özellik bölümü artık her zaman görünür
+- **Hata günlüğü altyapısı** (`appErr`)
+- Geliştirici notları: `docs/GELISTIRME.md`
+- Regresyon testi 38 adım
+
+## v1.35.0 — 2026-10-16
+
+- **View & Viewpoint:** pkg/bdd paletinde Görünüm ve Bakış Açısı; paydaş, kaygı, amaç, dil, yöntem alanları
+- **«conform» ve «expose» ilişkileri:** diyagramda çizim veya Özellikler panelinden paket/diyagram sergileme
+- **View dokümanı (HTML):** yalnız sergilenen paket ve diyagramlarla paydaş raporu, iç içe görünümler bölüm olarak
+- Trade study özellik paneli artık Özellikler'de görünür
+- Regresyon testi 37 adım
+
+## v1.34.0 — 2026-10-16
+
+- **Canlı kısıt denetimi:** gereksinim "Simülasyon kısıtı", eşitsizlikli kısıt blokları, durum değişmezleri, toleranslı değerler ve diyagram kısıtları her simülasyon adımında denetlenir
+- **Senaryolar:** kayıt, tohumlu birebir tekrar, tümünü koşturma ve sonuç özeti
+- **Zaman diyagramı (@timing):** durum/aksiyon geçişleri ve değişken dalga biçimleri, ihlal işaretleri, PNG/Excel
+- Regresyon testi 36 adım
+
+## v1.33.0 — 2026-10-16
+
+- **Hızlı arayüz sihirbazı:** iki blok/part arasında InterfaceBlock + FlowProperty, normal ve eşlenik (~) proxy port, Connector (IBD'de çizili veya bağlam bloğunda) tek adımda
+- **IBD derin part'lar:** part kutusunun içinde alt part hiyerarşisi (1–3 seviye), portlarıyla
+- Regresyon testi 35 adım
+
+## v1.32.0 — 2026-10-16
+
+- **MagicGrid mimari panosu:** Kara Kutu / Beyaz Kutu / Çözüm / Doğrulama × Gereksinim / Davranış / Yapı / Parametre hücrelerinde kanıta dayalı tamamlanma yüzdeleri, öneriler, Excel
+- **MagicGrid paket iskeleti kur:** standart paket yapısı (mevcut paketler korunur)
+- **Otomatik onarım (Quick Fix):** bulgu başına Düzelt ve Tümünü otomatik düzelt — kopuk ilişki, tipsiz part/port/değer, eksik başlangıç/bitiş, port yönü, isimsiz/sahipsiz eleman, kopuk çağrı
+- Regresyon testi 34 adım
+
+## v1.31.0 — 2026-10-16
+
+- **Etkileşimli inceleme paketi (tek HTML):** diyagram gezintisi, eleman özellikleri ve izlenebilirlik, Yorum/Onay/Ret notları, diyagram onayı, notları JSON olarak dışa aktarma
+- **İnceleme notlarını içe aktarma:** JSON notlar modeldeki elemanlara inceleme notu olarak eklenir
+- **Koordinatlı XMI:** UML DI ile diyagram yerleşimi dışa aktarılır ve içe aktarımda yeniden kurulur
+- **Genel tablodan Excel/CSV toplu aktarma:** Kimlik veya Ad+Sahibi eşleşmesi, önizlemeli ekleme/güncelleme; tablo Excel'ine Kimlik sütunu
+- Regresyon testi 33 adım
+
+## v1.30.0 — 2026-10-16
+
+- **Çizgi atlamaları:** kesişen bağlantılarda köprü (diyagram bazında aç/kapa; dışa aktarımda da)
+- **Ağaç stili yönlendirme:** genelleme ve kompozisyon/aggregation bağlantıları ortak gövdede birleşir
+- **Diyagram katmanları:** adlandırılmış katmanlar, görünürlük, seçimi taşıma; gizli katmanlar dışa aktarılmaz
+- **Seçmeli bölme elemanları:** blok şeklinde gösterilecek part/value/port/flow property'leri tek tek seçme
+- Örnek modeldeki "Sistem Yapısı" diyagramında üst üste binen bloklar düzeltildi
+- Regresyon testi 32 adım
+
+## v1.29.0 — 2026-10-16
+
+- **Metachain:** ilişki adımlarından (Satisfy/Verify/Derive/Refine/Trace/Allocate/Generalization, connector, kompozisyon, tip, kullanım, sahiplik) oluşan, tekrarlı (geçişli) adım destekli dolaylı ilişki zincirleri; hazır şablonlar ve önizlemeli düzenleyici
+- **Genel tabloda metachain sütunları** (ad listesi, sayı, sonuç/durum, Σ değer); arama ve Excel dahil
+- **İzlenebilirlik matrisinde dolaylı hücreler (◆)** ve yol ipucu; kapsama toplamları dolaylı bağlantıları sayar
+- "+ …" düğmelerinde artı simgesi
+- Regresyon testi 31 adım
+
+## v1.28.0 — 2026-10-16
+
+- **Trade Study görünümü:** blok veya örnek alternatifleri ağırlıklı MOE/MOP kriterleriyle puanlama; değerler bütçe motoru, parametrik çözücü ve örnek slotlarından; eleme sınırı
+- **Radar ve Pareto grafikleri**, ağırlık duyarlılığı (kazananın korunduğu ağırlık aralığı)
+- **Duyarlılık süpürmesi:** girdi aralığı → çıktı eğrisi, eğim ve esneklik; **tornado** (±%)
+- **Monte Carlo:** min/maks toleranslı girdiler (düzgün, normal, üçgen), tekrarlanabilir tohum, histogram, yüzdelikler, sınır ihlal olasılığı, varyans katkısı
+- Excel/PNG çıktıları, rapor bölümü, doğrulama kuralları
+- Regresyon testi 30 adım
+
+## v1.27.0 — 2026-10-16
+
+- **İfade motoru:** aritmetik, karşılaştırma, mantıksal işleçler ve fonksiyonlar (eval kullanmadan)
+- **Canlı değişkenler:** bağlam bloğunun ve part'larının value property'leri; panelde izleme ve değiştirme
+- **Guard ve efekt hesabı:** geçiş/karar koşulları otomatik değerlendirilir; entry/do/exit/effect ve aksiyon davranış kodu atamaları çalışır
+- **Simülasyon saati ve zaman olayları:** `after(…)` geçişleri, zaman olayı düğümü, aksiyon süresi
+- **Zaman serisi grafiği** ve değişken geçmişi Excel'i
+- **Yürütme izinden sequence diyagramı**
+- Regresyon testi 29 adım
+
+## v1.26.0 — 2026-10-16
+
+- **Item flow:** Connector/Association/Object Flow üzerinde taşınan öğeler ve akış yönü üçgeni; N² ve ICD ile senkron
+- **İlişki uçları:** rol adı, çokluk ve yönlülük gösterimi
+- **İç içe portlar**
+- **Instance specification:** bloktan tek tıkla örnek ağacı, slotlar, BDD'de örnek şekli; **Örneklem tablosu** (Σ toplama, Excel)
+- **Davranış notasyonu:** durum değişmezi, süre ve zaman kısıtı, found/lost mesaj, destroy; «datastore», «centralBuffer», {stream}
+- **Use Case senaryosu:** ana senaryo adımlarından aktivite ve sequence diyagramı üretimi
+- Regresyon testi 28 adım
+
+## v1.25.0 — 2026-10-16
+
+- **Model tarayıcısı sekmeleri:** Hiyerarşi, Diyagramlar, Kalıtım, Akıllı; anlık süzgeç ve vurgulama
+- **Akıllı paketler:** tür, kapsam, stereotip, özellik ve ilişki varlığı/yokluğu kurallarıyla kendiliğinden güncellenen içerik
+- **Spesifikasyon penceresi (Enter):** genel, özellikler, bölmeler, ilişkiler, stereotip/etiketler, kullanıldığı yerler, notlar
+- Büyük modelde akıllı paket hesabı önbellekli ve indeksli
+- Regresyon testi 27 adım
+
+## v1.24.0 — 2026-10-16
+
+- **Sürükleyerek ilişki:** seçili şeklin ok tutamağından başka şekle sürükleyip bırakınca uygun ilişki türleri simgeli menüde listelenir
+- **Akıllı manipülatörler:** seçili şeklin yanında diyagram türüne göre ilişki simgeleri; sürükleyip bırakınca o tür doğrudan kurulur
+- **Hizalama kılavuzları:** taşırken kenar/merkez hizalama çizgileri ve yapışma
+- **Simgeler:** araç çubuğu, menüler, sağ tık menüleri, görünüm çubukları ve pencere düğmeleri; sık kullanılan araç çubuğu düğmeleri yalnız simge
+- Gölge efektleri kaldırıldı (menü, pencere, kartlar düz kenarlıklı)
+- Regresyon testi 26 adım
+
+## v1.23.0 — 2026-10-05
+
+- **Modüller:** paketi `.sysmod` dosyası olarak dışa aktarma (revizyonlu); başka modellere **salt okunur** ekleme; modül elemanlarındaki değişikliklerin otomatik geri alınması
+- **Modül güncelleme:** yeni sürümü karşılaştırma ekranında seçerek veya doğrudan alma; yerel ilişki ve notlar korunur; bağlantıyı koparma, kaldırma
+- **Dosya kilidi (masaüstü):** açık model dosyasının yanına `.lock`; başkası açmışsa uyarı, araç çubuğunda 🔒 ve kaydetmeden önce onay; modül dosyası için "Düzenliyorum" kilidi
+- Modüller ekranı (Araçlar ▾ → Modüller…); masaüstü uygulamasına dosya okuma ve kilit fonksiyonları eklendi
+- Regresyon testi 25 adım
+
+## v1.22.0 — 2026-10-05
+
+- **IBD üret / eşitle:** BDD'deki bloklar için IBD oluşturma veya mevcut IBD'ye eksik part, value, port ve connector ekleme; part'ı olmayan Composition'lar için part
+- **Bağlam diyagramı:** sistem bloğu ortada; ilişkili bloklar, aktörler ve IBD bağlantılarından bulunan dış elemanlar çevresinde
+- **Bul ve değiştir (Ctrl+H):** ad, metin, açıklama, kimlik, etiket ve diğer alanlarda; önizlemeli, seçerek, tek adımda geri alınabilir
+- **Toplu düzenleme:** çoklu seçimde renk, stereotip, paket, boyut; gereksinim durumu/yöntemi, test sonucu/seviyesi/sorumlusu
+- **Lejant kuralları:** dolgu rengi gereksinim/doğrulama durumu, test sonucu, tür, stereotip, açık NCR, RPN veya etiket değerine göre; lejant öğeleri otomatik
+- Regresyon testi 24 adım
+
+## v1.21.0 — 2026-10-05
+
+- **Test prosedürü (Word):** amaç/kapsam, referanslar, gereksinimler, numune, düzenek ve kaynaklar, profil grafikleri, ön koşullar, doldurulacak adım tablosu, kabul kriterleri, imza
+- **Test raporu (Word):** özet ve sonuç, adım sonuçları, NCR'lar, gereksinim doğrulama durumu, otomatik değerlendirme metni, imza
+- Bölüm seçimi ve sırası doküman türü başına şablon olarak saklanır; teste özel metinler (amaç, ön koşul, kabul, değerlendirme)
+- **Doküman şablonları:** kuruluş, proje, kontrol/onay, kapakta imza tablosu ve revizyon geçmişi — gereksinim spesifikasyonu, ICD ve model raporu da kullanır
+- Regresyon testi 23 adım
+
+## v1.20.0 — 2026-10-05
+
+- **Test kaynakları:** sarsıcı, iklim odası, akustik oda, ölçüm cihazı, fikstür, personel…; tür, konum, kalibrasyon geçerliliği, doluluk
+- **Bağımlılıklar:** test kampanyasında "Önce gelen testler" (bitiş → başlangıç); çizelgede oklar, ihlaller kırmızı
+- **Kritik yol ve bolluk:** planlanan tarihlere göre toplam bolluk; kritik testler kalın çerçeveli
+- **Çakışma denetimi:** aynı kaynak veya numuneyi aynı günlerde kullanan testler, test bitişinden önce dolan kalibrasyon
+- **Kaynak satırları:** test kampanyası çizelgesi kaynak bazında gösterilebilir
+- **Kayma etkisi:** bir testi n gün kaydırınca ardılların ve kampanya bitişinin nasıl değişeceğini önizleme ve uygulama
+- Takvim PNG, Plan Excel (test planı, kaynak planı, çakışmalar), rapor bölümü, model doğrulama kuralları
+- Regresyon testi 22 adım
+
+## v1.19.0 — 2026-10-05
+
+- **Test yürütme** (**Gereksinimler ▾**): test durumu başına prosedür adımları (işlem, beklenen, ölçülen, Geçti/Kaldı); tüm adımlar sonuçlanınca test sonucu adımlardan hesaplanır; Excel'den adım yapıştırma; tekrar test oluşturma
+- **Test numuneleri:** seri no, parça no, ürün bloğu, konfigürasyon, konum, durum; numune başına test ve NCR geçmişi
+- **Uygunsuzluk kaydı (NCR):** test, adım, numune, önem, kök neden, düzeltici faaliyet, karar, durum; gereksinim, arıza modu ve tekrar test bağlantısı; başarısız adımdan tek tıkla NCR
+- VCRM'de "Açık NCR" sütunu; kalite raporunda onaylı gereksinimdeki açık NCR uyarısı; model doğrulamada NCR ve adım/sonuç tutarlılık kuralları
+- Excel (NCR, numuneler, test adımları) ve rapor bölümü; örnek modele numune, adım ve NCR'lar eklendi
+- İngilizce arayüz sözlüğüne yeni metinler eklendi; regresyon testi 21 adım
+
+## v1.18.0 — 2026-10-05
+
+- **İngilizce arayüz:** araç çubuğundaki **EN / TR** düğmesiyle arayüz dili değişir; seçim bu bilgisayarda hatırlanır, varsayılan Türkçe
+  - İngilizce olanlar: araç çubuğu, menüler, palet, Özellikler paneli, tüm görünümler, pencereler, bildirimler ve onay soruları, doğrulama/kalite mesajları, yardım, komut paleti, eleman türü adları, yeni elemanların varsayılan adları
+  - Türkçe kalanlar: model içeriği (adlar, gereksinim metinleri), çıktılar (Word, Excel, ReqIF, PDF), Türkçe gereksinim yazım kuralları, şablon gereksinim metinleri, KULLANIM.md
+  - Sözlük uygulamanın içinde (~2400 kayıt); internet veya ek dosya gerekmez
+- Regresyon testi 20 adıma çıktı (İngilizce arayüz adımı)
+
+## v1.17.0 — 2026-10-05
+
+- **Akıllı "+" düğmesi:** diyagramda seçili blok, arayüz bloğu, kısıt bloğu, sinyal (IBD'de part) yanında; sağ tık → *Ekle / ilişkilendir* ile de açılır
+  - Bölmeye ekleme: part property (var olan veya yeni tip bloğu, çokluk, isteğe bağlı Composition çizgisi), reference (Aggregation), value property, flow property, port, parametre — kısa formlarla
+  - İlişki + yeni blok: Composition (part adı, çokluk), Aggregation, Association, Generalization (yeni alt / üst tip), Dependency
+  - İlişki → var olan eleman: çoklu hedef seçimi, diyagramda olmayan hedefi ekleme, yinelenen ilişkiyi atlama
+  - IBD'de part: port (kenara yerleşir), tip bloğuna value/flow property, connector
+- Blok büyüyünce çakışan şekiller zincirleme aşağı kaydırılır
+
+## v1.16.0 — 2026-10-05
+
+Kullanım kolaylığı:
+
+- **Komut paleti** (`Ctrl+K`, araç çubuğunda ⌕ Komut): komutlar, tüm menü öğeleri, görünümler, diyagramlar ve elemanlar (ad, gereksinim/arayüz/risk ID, prosedür no) için bulanık arama, klavyeyle seçim
+- **Karanlık tema** (☾): arayüz panelleri koyu, diyagram alanı ve çıktılar açık; tercih hatırlanır
+- **Durum geçiş tablosu** (**Analiz ▾**): geçiş listesi ve durum × olay matrisi, olay/koşul/etki düzenleme, ulaşılamayan / çıkışsız durum ve belirsiz geçiş göstergeleri, Excel
+- **Kullanıldığı yerler** (Özellikler paneli): diyagramlar, tip kullanımları, çağıran aksiyonlar, alt tipler, ilişkiler, test durumları, arıza modları, riskler
+- Regresyon testi 18 adıma çıktı
+
+## v1.15.0 — 2026-10-05
+
+Şartname, karşılaştırma ve inceleme:
+
+- **Şartnameden gereksinim çıkarma** (**Gereksinimler ▾**): bağımlılıksız .docx okuyucu (başlık stilleri, tablolar), .txt/.md ve yapıştırılan metin; zorunluluk cümlesi tespiti (-ecek/-acak, -malıdır, gerekmektedir, shall/must), bölüm numarası ve madde başı ister numarası, tablo satırları, kısaltma/ondalık duyarlı cümle bölme; önizlemede kalite rozeti, mevcut gereksinimlere benzerlik, düzenlenebilir metin; seviye/alt sistem/paket seçimi
+- **Model karşılaştırma** (**Araçlar ▾**): kimlik, tür+yol, gereksinim/arayüz/risk ID ile eşleştirme; eklenen/silinen/değişen elemanlar, alan bazında ve kelime düzeyinde fark, diyagram şekil/yerleşim farkı; seçerek uygulama (tek adımda geri alınır), Excel
+- **İnceleme notları:** elemanlara yazan/tarih/durumlu notlar, yanıtlar, kapatma; diyagramda ve ağaçta açık not rozeti; tüm notlar görünümü ve Excel; model doğrulamada açık notlar
+
+## v1.14.0 — 2026-10-05
+
+Arayüz yönetimi:
+
+- **N² arayüz matrisi** (**Analiz ▾ → N² arayüz matrisi**): bağlam bloğunun part'ları veya blok tipleri köşegende; hücrelerde satırdan sütuna giden arayüzler (ID, akış öğeleri), ileri/geri besleme renkleri, çift yönlü gösterim, sınır portları için *Dış ortam*; tıklayınca bağlantıyı seçme, çift tıklayınca IBD'yi açma
+- **Arayüz kontrol tablosu (ICD)**: connector başına kaynak/hedef, türetilmiş yön, arayüz bloğu ve akış öğeleri (yön, tip, birim) modelden; arayüz ID, ek taşınan öğeler, tür, protokol/standart, konnektör ve özellikler düzenlenebilir; otomatik ID atama; bağlantısız portlar listesi
+- **Arayüz uyumsuzluğu denetimi:** yön çelişkisi, delegasyon yönü, eksik/eşleşmeyen akış özelliği, eşlenik eksikliği, tip ve birim uyumsuzluğu, tanımsız port tipi; model doğrulamaya eklendi
+- Bağlantı Özellikler panelinde ICD alanları; Excel (ICD + N²), Word ICD dokümanı, rapora ICD bölümü
+
+## v1.13.0 — 2026-10-05
+
+Güvenilirlik ve risk:
+
+- **FMEA / FMECA** (yeni *Arıza Modu* elemanı, **Analiz ▾ → FMEA / FMECA**): blok/part/fonksiyon bazında arıza modu, neden, yerel/üst/son etki, Ş/O/T ve RPN, eşik renklendirme, kontroller, önlem, sorumlu, tarih, durum; önlem sonrası puanlar ve artık RPN; MIL-STD-1629A şiddet sınıfı, mod kritikliği Cm ve eleman kritikliği Cr
+- Önleyici gereksinim bağlantısı ve doğrulayan testlerin sonuçlarıyla gösterimi; arıza modundan risk oluşturma
+- **Risk kaydı** (yeni *Risk* elemanı): O × E skoru ve seviye, kategori, strateji, önlem, sorumlu, hedef tarih, artık risk, ilgili elemanlar; önlem öncesi/sonrası **5×5 risk matrisi** ve hücre süzgeci
+- Excel (FMEA, Risk Kaydı, Risk Matrisi), matris PNG, rapora *FMEA / FMECA ve risk kaydı* bölümü, model doğrulama kuralları; örnek modele FMEA ve risk örnekleri
+
+## v1.12.0 — 2026-10-05
+
+Çevresel test profilleri ve gereksinim çıktıları:
+
+- **Test profilleri** (yeni *Test Profili* elemanı, **Analiz ▾ → Test profilleri**): rastgele titreşim PSD (Grms, dB/oktav eğimler, 3σ yer değiştirme, rms hız, ±dB tolerans bandı, süre), sinüs süpürme (yer değiştirme/hız, süpürme süresi), SRS (köşe frekansı, Q, tolerans, şok sayısı), termal döngü (değişim hızı, bekleme, döngü ve toplam süre); log-log grafikler
+- Profil karşılaştırma (nokta bazında marj, kapsama sonucu, Grms oranı), çoklu profil **zarfı**, ± dB ölçekleme, Excel'den yapıştırma, PNG ve Excel çıktısı
+- Profiller test durumlarına ve («refine» ile) gereksinimlere bağlanır; **VCRM**'de *Test Profili* sütunu, Word/HTML raporunda grafik ve tablolar; gereksinim diyagramında grafikli kutu; model doğrulamada profil kuralları
+- **Türkçe gereksinim yazım kuralı:** cümle sonu "-ecek / -acak / -ecektir / -acaktır" (varsayılan); "-malıdır" için düzeltme önerisi; çoklu cümle ve "ve"li fiillerle birden fazla ister tespiti; parantez içi açıklamalar ve kısaltmalar yok sayılır; kalite raporundan "-malıdır" kuralı veya ikisi birden seçilebilir
+- **Dışa aktarmada sütun (attribute) seçimi:** Excel, Word ve ReqIF öncesi sütun seçimi ve sıralama, kapsam (sistem/alt sistem), iptal edilenleri hariç tutma, Excel ek sayfa seçimi; yeni **Word gereksinim spesifikasyonu** çıktısı; rapordaki gereksinim tablosu aynı seçimi kullanır; ek sütunlar: Açıklama, Paket, Son Değişiklik
+- Örnek model gereksinim metinleri "-ecektir / -acaktır" biçimine çevrildi; örnek modele test profilleri ve titreşim doğrulama diyagramı eklendi
+
+## v1.11.0 — 2026-10-05
+
+Sağlamlık ve performans:
+
+- **Büyük modeller:** alt eleman dizini, gereksinim listesi ve numaralandırma önbelleğe alındı; bağlantı rotaları yerel engellere göre önbellekte tutulur. ~6000 elemanlı modelde (150 bloklu BDD, 2000 gereksinim) gereksinim tablosu 22,7 sn → 0,6 sn, diyagram çizimi 5 sn → 0,05 sn, sürükleme karesi 5 sn → 0,06 sn, kapsama analizi 2,9 sn → 0,3 sn
+- Büyük diyagramda bırakınca önce yalnız taşınan şeklin bağlantıları yenilenir, tam rota arka planda hesaplanır
+- Gereksinim tablosu ve kapsama analizinde 250'şer satırlık sayfalama
+- **Dosya biçimi sürümü (v2) ve otomatik onarım:** eski dosyalar yükseltilir; sahipsiz eleman, sahiplik döngüsü, ucu kopuk ilişki, diyagramdaki geçersiz şekil/bağlantı düzeltilir; daha yeni sürümün eleman türleri not olarak korunur; yapılan onarım bildirilir
+- **Otomatik regresyon testi** (`tests/regression.js`): diyagramlar, gidiş-dönüş, onarım, tüm dışa aktarımlar, XMI, analiz, simülasyon, şablonlar, performans
+
+## v1.10.0 — 2026-10-05
+
+Birlikte çalışabilirlik ve şablonlar:
+
+- **XMI dışa aktarma** (UML 2.5 / SysML 1.6, Cameo/MagicDraw uyumlu stereotip uygulamaları): paketler, bloklar, arayüz/kısıt blokları, değer tipleri, numaralandırmalar, sinyaller, part/port/value/akış özellikleri, connector ve binding, gereksinimler (id, metin, iç içe), test durumları, tüm SysML gereksinim ilişkileri, allocate, generalization, association, aktör/use case, aktiviteler (pin, koşul, kulvar, çağrı), durum makineleri (bileşik, bölge, sözde durumlar)
+- **XMI içe aktarma:** Cameo/MagicDraw, Papyrus ve EA XMI dosyaları ayrı bir pakete; diyagramların otomatik oluşturulması ve düzenlenmesi
+- **Şablonlar:** MIL-STD-810H çevresel kalifikasyon (14 yöntem), SMC-S-016 uzay aracı kalifikasyon testleri — gereksinim + test durumu + Verify; proje paket iskeleti
+
+## v1.9.0 — 2026-10-05
+
+Editör ergonomisi:
+
+- **Bükme noktaları:** bağlantılara sürükleyerek bükme noktası ekleme, taşıma, çift tıkla silme; düz çizgide eğik, dik açılıda basamaklı rota; uçları birlikte taşınınca bükme noktaları da taşınır
+- **Taşınabilir etiketler:** bağlantı adı, koşul, «stereotip» ve mesaj etiketleri sürüklenebilir
+- **Mini harita:** diyagram ekrana sığmadığında görünen, tıklanıp sürüklenerek gezinilen genel görünüm
+- **Biçim boyacısı:** seçili şeklin/bağlantının renk ve görünümünü diğerlerine uygulama
+- **Lejant** elemanı: renk açıklamaları, diyagramdaki renklerden otomatik doldurma
+- **PDF:** bağımlılıksız PDF yazıcı; açık diyagram, açık sekmeler veya tüm diyagramlar tek PDF'te (A4/A3, otomatik yön); tarayıcıda yazdırma
+- Diyagram çerçevesini gizleme seçeneği; PNG/SVG/pano **Dışa aktar ▾** menüsünde toplandı
+
+## v1.8.0 — 2026-10-05
+
+Analiz ve simülasyon (yeni **Analiz ▾** menüsü):
+
+- **Parametrik hesap:** kısıt bloklarının denklemleri binding connector'lar üzerinden çözülür (güvenli ifade ayrıştırıcı, zincirleme çözüm, tek bilinmeyende sayısal kök bulma, çelişki denetimi); sonuçlar diyagramlarda `= değer ⚙`
+- **Bütçe analizi:** kütle/güç/maliyet toplama (composition ve çokluk), sınır, tasarım payı, kalan marj, tahmin–hesap farkı uyarısı, modele yazma, Excel
+- **Simülasyon:** aktivite token akışı (fork/join, karar seçimi, pin, sinyal) ve durum makinesi (olay düğmeleri, tamamlanma geçişleri, bileşik durum, geçmiş, entry/do/exit günlüğü); adım adım veya otomatik
+- **Tahsis matrisi:** fonksiyon × blok/part, tıklayarak «allocate», kulvardan dolaylı tahsis, Excel
+- **Genel tablo:** her eleman türü için düzenlenebilir tablo, stereotip etiketi sütunları, Excel
+- **İlişki haritası:** seçili elemanın ilişkilerini katmanlı gösteren gezinilebilir harita
+- Örnek modele bütçe, parametrik girdi ve tahsis örnekleri eklendi
+
+## v1.7.0 — 2026-10-05
+
+SysML dil tamlığı:
+
+- **Arayüz bloğu** ve **akış özellikleri** (in/out/inout); port tipi arayüz bloğu olunca port yönü akış özelliklerinden türetilir; **eşlenik (~) port**, port türü (proxy/full), port çokluğu
+- **Değer tipi** (temel tip, birim, büyüklük türü), **numaralandırma**, **sinyal**; value property tip listesi modeldeki tipleri önerir; **SI birim kütüphanesi** (Araçlar ▾)
+- **Stereotipler:** profil paketinde kullanıcı tanımlı stereotip, uygulanabileceği eleman türleri, etiket tanımları (`ad : tip = varsayılan`), dolgu rengi; elemanda etiket değerleri, şekillerde «stereotip» ve *tags* bölmesi
+- **Aktivite:** pin (in/out), aktivite parametresi ve çağıran aksiyonda otomatik pin üretimi, Sinyal Gönder / Olay Kabul / Zaman Olayı aksiyonları, kesilebilir bölge ve kesme akışı; aksiyon etiketi `ad : ÇağrılanAktivite`
+- **Sıralama:** birleşik parçalar (alt, opt, loop, par, break, critical, seq, strict, neg, assert, ignore, consider, ref), sürüklenebilir operand ayırıcıları, fragment ile birlikte taşınan mesajlar; otomatik **yürütme çubukları**
+- **Durum makinesi:** bileşik durum (iç içe yerleşim model ağacına yansır), bölge (region), geçmiş (H / H*), kavşak (junction)
+- Karşılıklı iki bağlantı (A→B, B→A) artık üst üste binmez; etiketleri iki yana yerleşir
+- Otomatik düzen bileşik durumları, kesilebilir bölgeleri ve fragmentleri birlikte taşır
+- Model doğrulama, Word/HTML rapor, birleştirme ve izlenebilirlik yeni elemanları tanır (arayüzler ve tipler bölümü, uygunsuz stereotip, boş numaralandırma, tek operandlı fragment…)
+- Örnek modele arayüzler, değer tipleri, «LRU» stereotipi, pinler, bileşik durum ve loop fragmenti eklendi
+
+## v1.6.0 — 2026-10-03
+
+- **Araçlar ▾** menüsü
+- **Rapor oluştur:** seçilen bölümler ve diyagramlarla Word (.docx) rapor — kapak, içindekiler, başlık stilleri, sayfa numaralı alt bilgi, şekil başlıkları, her sayfada tekrar eden tablo başlıkları — veya yazdırılabilir HTML rapor (PDF'e yazdırma)
+- **Model doğrulama:** 25'i aşkın tutarlılık kuralı (kopuk ilişki, döngüsel kompozisyon/kalıtım, tipsiz part, başlangıç/bitişi olmayan aktivite, ulaşılamayan durum, aktörsüz use case, port yön uyumsuzluğu, bağlantısız test…); hata/uyarı/bilgi sınıfları, filtre, Excel'e aktarma, bulguya tıklayınca elemana gitme
+- **Modeli birleştir:** başka bir .sysml dosyasından seçilen paketleri diyagram ve ilişkileriyle aktarma; ortak kimlikli elemanlarda güncelle / atla / kopya seçenekleri; çakışan gereksinim ID uyarısı
+- **ReqIF 1.2:** gereksinimleri öznitelikleri, Derive/Refine/Trace ilişkileri ve sistem/alt sistem hiyerarşisiyle dışa aktarma; .reqif dosyalarını içe aktarma
+- Araç çubuğu etiketleri kısaltıldı (HTML kaydet, Panoya); yardım, README ve kullanım kılavuzu v1.3–v1.6 özellikleriyle güncellendi
+
+## v1.5.0 — 2026-10-03
+
+- Test durumu alanları: prosedür no, yöntem (Test/Analiz/Muayene/Gösterim), doğrulama seviyesi (Birim → Kalifikasyon), test edilen birim, standart/referans, sorumlu, planlanan başlangıç/bitiş, sonuç (Planlandı/Yapılmadı/Geçti/Kaldı/Koşullu), sonuç tarihi, rapor no; diyagramda sonuç rozeti
+- **Doğrulama Matrisi (VCRM):** gereksinim × T/A/M/G, doğrulama seviyesi, test/prosedür, sonuç, rapor no ve hesaplanan doğrulama durumu; seviye/alt sistem, durum ve yöntem filtreleri
+- Doğrulama durumu (Doğrulandı / Kısmen / Kaldı / Planlandı / Faaliyet yok) gereksinim tablosunda, kapsama analizinde ve Excel çıktısında
+- **Test kampanyası:** testlerin düzenlenebilir tablosu ve seviyeye/sonuca/birime göre gruplanan zaman çizelgesi (Gantt); bugün çizgisi, gecikmiş test uyarısı
+- Excel: VCRM ve Test Durumları sayfaları; test sonuçlarını Excel'den geri aktarma (prosedür no veya ada göre eşleşir, Excel tarih biçimlerini tanır)
+
+## v1.4.0 — 2026-10-03
+
+- Gereksinim kalite kontrolü (INCOSE kuralları): "-malıdır" kipi, birden fazla ister, belirsiz ifadeler (uygun, yeterli, hızlı…), TBD/TBC, birimsiz sayılar, aşırı uzun metin, yinelenen ID, birbirine çok benzeyen gereksinimler; tabloda rozet, özelliklerde uyarı listesi, **Kalite raporu** görünümü ve Excel'de "Kalite" sayfası
+- Durum iş akışı: Taslak → İncelemede → Onaylı → Değişiklikte → İptal; onaylı bir gereksinimin metni/doğrulama yöntemi/seviyesi değişince otomatik "Değişiklikte" olur; tabloda durum sütunu ve filtresi; İptal edilenler kapsama analizine girmez
+- Değişiklik geçmişi: her gereksinim değişikliği kim/ne zaman/eski → yeni değer ve isteğe bağlı gerekçeyle kaydedilir; kelime düzeyinde fark gösterimi; Excel'e aktarma
+- Taban çizgileri (baseline): modelin gereksinim durumunu adla dondurma, iki taban çizgisini veya taban çizgisini güncel modelle karşılaştırma (eklenen/silinen/değişen), farkı Excel'e aktarma
+- Etki analizi: bir gereksinim veya model elemanı değişirse etkilenen üst/alt gereksinimler, karşılayan elemanlar, testler ve diyagramlar ağaç olarak
+- Kullanıcı adı ayarı (geçmiş kayıtlarında görünür)
+
+## v1.3.0 — 2026-10-03
+
+- Kopyala / yapıştır / çoğalt (`Ctrl+C`, `Ctrl+V`, `Ctrl+Shift+V`, `Ctrl+D`): aynı elemanı başka diyagramda gösterme veya yeni eleman olarak kopyalama; bloklar iç yapılarıyla birlikte kopyalanır
+- Model içinde arama (`Ctrl+F`): ad, gereksinim ID ve metni, açıklama ve özellik değerlerinde; sonuca tıklayınca ağaçta ve diyagramda gösterir
+- Model ağacında çoklu seçim (`Ctrl`/`Shift` + tık) ve seçili elemanları diyagrama tek seferde sürükleme
+- Bağlantı uçlarını başka elemana sürükleyerek yeniden bağlama
+- Görünüm: şekil ve bağlantı çizgi rengi, blok bölmelerini gizleme, diyagram yazı boyutu, elle rota sonrası "otomatik rotaya dön"
+- Aktivite diyagramında yatay kulvar; "soldan sağa" düzen yatay kulvarları kullanır
+
+## v1.2.0 — 2026-10-02
+
+- Bağlantılar artık elemanların üzerinden geçmiyor: engelden kaçan dik açılı yönlendirici; aynı kenara gelen bağlantılar ayrı noktalara dağıtılıyor, üst üste binen hatlar ayrılıyor
+- Düz çizgili bağlantılar (use case, durum makinesi, not bağlantısı) bir elemanı keserse otomatik olarak etrafından dolaşıyor
+- Otomatik düzende notlar bağlı oldukları elemanın hemen yanına (sağ, sol, üst veya alt boş yere) yerleşiyor
+- Alt sistem gereksinimlerinde **alt sistem adı**: eklerken sorulur, tabloda/özelliklerde düzenlenir, ağaçta her alt sistem kendi paketine yerleşir
+- Gereksinim filtresi: Sistem, tüm alt sistemler veya tek tek alt sistem adları
+- İzlenebilirlik matrisinde alt sistem bazında satır/sütun kümeleri; kapsama analizinde alt sistem etiketi
+- Excel'de "Alt Sistem" sütunu içe/dışa aktarılır
+
+## v1.1.0 — 2026-10-02
+
+- Yeni diyagram türleri: Gereksinim (req), Durum Makinesi (stm), Sıralama/Sequence (sd), Parametrik (par), Paket (pkg)
+- Yeni elemanlar: Gereksinim, Test Durumu, Durum Makinesi, Durum, Seçim, Etkileşim, Yaşam Çizgisi, Kısıt Bloğu, Kısıt Özelliği, Parametre
+- Yeni ilişkiler: Derive, Satisfy, Verify, Refine, Trace, Allocate, Geçiş, senkron/asenkron/yanıt mesajı, Binding Connector, Import
+- Gereksinim tablosu: sistem/alt sistem gereksinimleri, doğrulama yöntemi, müşteri ister no/isteri, özel özellikler, sütun yönetimi, ID önekleri
+- İzlenebilirlik: sistem ↔ alt sistem, gereksinim ↔ model elemanı, gereksinim ↔ fonksiyon, gereksinim ↔ test
+- İzlenebilirlik matrisi (hücreye tıklayarak ilişki kurma) ve kapsama analizi (eksik/kısmi/tam, yetim gereksinimler, izlenmeyen elemanlar)
+- Excel (.xlsx) ve CSV içe aktarma (otomatik sütun eşleme, güncelleme, ilişki kurma); çok sayfalı .xlsx dışa aktarma
+- Masaüstü sürümünde Excel dosyalarının Windows açma penceresiyle okunması
+
+## v1.0.0 — 2026-10-02
+
+İlk sürüm.
+
+- BDD, IBD, Use Case ve Aktivite diyagramları; model ağacı ile senkron çalışma
+- Diyagrama özel palet, sürükle-bırak, ilişki doğrulama
+- Composition/Aggregation ile otomatik part oluşturma; IBD'de otomatik part, port ve connector yerleşimi
+- İç içe diyagramlar: çift tıkla alt diyagrama geçiş, bağlı (hiperlink) diyagram, ◀ ▶ gezinme
+- Otomatik düzenler (hiyerarşik, akış, kulvarlı, use case, ızgara, dairesel, toparla), hizalama ve dağıtma araçları
+- 10 kategoride 200'ü aşkın ikon; bloklarda köşe veya başlık gösterimi; part'larda tip bloğundan kalıtım
+- PNG/SVG dışa aktarma, panoya resim kopyalama
+- Otomatik kayıt, `.sysml` dosyası, modeli gömülü HTML olarak kaydetme
+- Kurulumsuz Windows masaüstü sürümü (Go + WebView2): yerel dosya pencereleri, otomatik kayıt, exe'ye sürükle-bırak ile açma
