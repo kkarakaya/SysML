@@ -1293,6 +1293,67 @@ Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları:
 
 Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinlerini düzenle** düğmesi bulunur. Bir konnektör silinince testlerdeki pinleri de temizlenir.
 
+## 5av. Haberleşme protokolleri, port arayüzleri ve doküman ekleri
+
+**Kablaj ▾ → Haberleşme protokolleri ve yazılım ICD** (`@hcproto`).
+
+**Protokol profili** yeniden kullanılabilir bir haberleşme tanımıdır:
+- **Fiziksel katman:** RS-232/422/485, CAN 2.0A/B, CAN FD, MIL-STD-1553B, ARINC 429, Ethernet UDP/TCP, SpaceWire, SPI, I2C… Ayrıca hız (bit/s), veri biti, eşlik, dur biti, akış kontrolü ve adres/kimlik (RT adresi, CAN ID, IP:port).
+- **Çerçeve yapısı:** bayt sırası (big/little endian), başlık/senkron baytları (hex, ör. `AA 55`), komut ID ofseti ve boyu, uzunluk alanı ofseti, boyu ve neyi saydığı, son baytlar, maksimum çerçeve, periyot, zaman aşımı.
+- **CRC / sağlama:**
+  - Hazır tipler: Checksum-8, XOR-8, CRC-8, CRC-16/CCITT-FALSE, XMODEM, MODBUS, ARC, CRC-32.
+  - Hazır tip seçilince polinom ve başlangıç değeri otomatik dolar.
+  - "Özel" tipte polinom, başlangıç değeri ve genişlik elle girilir.
+  - Kapsam seçilebilir: başlık + veri, yalnız veri ya da tüm çerçeve.
+- **Çerçeve düzeni** tablosu bu alanlardan otomatik çıkar: ofsetler, veri ve CRC konumu.
+- **Mesajlar:**
+  - Her mesajın ID'si, adı, yönü (ana → uç, uç → ana, çift yönlü), periyodu ve notu girilir.
+  - **Alanlar** düğmesi mesaj alanlarını açar: ad, tip (u8…f64, bit alanı, dizi), boy, birim, LSB/ölçek, min, maks ve açıklama.
+  - Ofsetler ve mesaj boyu otomatik hesaplanır.
+- **Ekli dokümanlar:** profile ait ICD veya şartname dosyaları eklenebilir.
+
+İki örnek profil hazır gelir: RS-422 seri protokol ve CAN 2.0B.
+
+**Profili konnektöre atama:** **Birim arayüzleri** ekranında bir konnektörü seçin.
+- **Haberleşme arayüzleri** bölümünde **+ Haberleşme arayüzü** ile bir profil atanır. Bir konnektörde birden çok arayüz olabilir (ör. pin 1–4 RS-422, pin 5–6 CAN).
+- **Rol** ana / uç birim / eşdüzey olabilir.
+- **Pinler** alanı boş bırakılırsa konnektörün haberleşme pinleri kullanılır.
+- **Geçersiz kıl…** düğmesi bu porta özel hız, adres, eşlik, endian, CRC ve periyot değerleri girmenizi sağlar. Boş bırakılan alan profildeki değeri kullanır.
+- **+ Yeni profil oluştur ve ata** yeni bir profil oluşturup bu konnektöre atar.
+
+**Uyumsuzluk uyarıları:** Kabloyla birbirine bağlanan pinlerin arayüzleri karşılaştırılır.
+- **Hata** sayılan farklar:
+  - fiziksel katman
+  - hız, veri, eşlik veya dur biti
+  - bayt sırası
+  - başlık baytları
+  - komut ID ya da uzunluk alanının yeri veya boyu
+  - CRC tipi (özel CRC'de polinom ve başlangıç değeri)
+  - farklı profillerde aynı ID'li mesajın farklı uzunlukta olması
+- **Uyarı** sayılanlar: iki ucun da aynı rolde (ör. ikisi de ana) olması ve bir profildeki mesajın karşı profilde bulunmaması.
+- **Bilgi** olarak gösterilen: karşı uçta hiç haberleşme arayüzü tanımlanmamış olması.
+- Bulgular konnektör ekranında, profil ekranında, kablo denetiminde (şemada kablo rengi) ve model doğrulamada ("Haberleşme protokolü") görünür.
+- Ayrık ve güç hatlarında örtüşmeyen gerilim aralıkları (ör. 10–15 V ↔ 20–25 V) pin eşleştirme denetiminde zaten **hata** olarak raporlanır.
+
+**Doküman ekleri (Word, Excel, PDF…):** Konnektöre veya profile **+ Doküman ekle** ile eklenir.
+- **Masaüstü uygulamasında:**
+  - Dosya, modelin yanındaki `<model adı>_ekler` klasörüne kopyalanır. Model henüz kaydedilmediyse uygulama klasöründeki `ekler` klasörüne kopyalanır.
+  - **Aç**, dosyayı Windows'un varsayılan uygulamasıyla (Word, Excel…) açar. Düzenleyip kaydettiğinizde ek klasöründeki dosya güncellenir.
+  - **↻ Ekleri yenile**, değişen dosyaların tarih ve boyutunu günceller.
+  - **Güncelle**, eki başka bir dosyayla değiştirir ve sürüm numarasını artırır.
+  - **Klasörü aç**, ek klasörünü Gezgin'de açar.
+- **Tarayıcı sürümünde:**
+  - Dosya modele gömülür (en fazla 15 MB).
+  - **Aç**, PDF ve resim dosyalarını yeni sekmede açar; diğer dosyaları indirir.
+  - Düzenlenen dosyayı **Güncelle** ile yeniden yükleyin.
+
+**Sistem kablaj şemasında** protokolü veya eki olan konnektörlerde rozet görünür (ör. `RS-422+CAN 📎1`). Rozete tıklayınca açılan menüden profil veya ekler doğrudan açılır.
+
+**Yazılım ICD:**
+- **Word:** profil özeti, fiziksel katman ve çerçeve parametreleri, çerçeve düzeni, mesaj listesi, mesaj alan tabloları, kullanan arayüzler, ekler ve uyumluluk bulguları.
+- **Excel:** profiller, mesajlar, alanlar, arayüzler ve uyumluluk sayfaları.
+- Bir profil seçiliyse yalnız o profil, seçili değilse tüm profiller dışa aktarılır.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

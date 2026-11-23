@@ -1,5 +1,16 @@
 # Değişiklik Günlüğü
 
+## v1.59.0 — 2026-11-23
+
+- **Haberleşme protokol profilleri:** fiziksel katman, hız / veri / eşlik / dur biti, adres, endian, başlık baytları, komut ID ve uzunluk alanı (ofset, boy), CRC (hazır tipler + özel polinom / başlangıç, kapsam), periyot / zaman aşımı; otomatik çerçeve düzeni; mesaj listesi ve mesaj alanları (tip, boy, birim, LSB, aralık; ofset ve boy otomatik)
+- **Port arayüzleri:** konnektöre bir veya birden çok profil (pin alt kümesi, rol); port başına geçersiz kılma (hız, adres, endian, CRC…)
+- **Protokol uyumsuzluk uyarıları:** kabloyla bağlanan uçlarda fiziksel katman, hız, çerçeve, endian, CRC, mesaj uzunluğu farkı hata; aynı rol ve eksik mesaj uyarı; karşı uçta tanım yok bilgi. Kablo denetiminde, konnektör ve profil ekranlarında, model doğrulamada
+- **Doküman ekleri:** konnektöre ve profile Word / Excel / PDF eki; masaüstünde `<model>_ekler` klasörüne kopyalama, varsayılan uygulamayla açma (düzenle-kaydet), güncelleme, değişiklik yenileme; tarayıcıda modele gömme
+- Masaüstü uygulamasına `nativeAttach`, `nativeOpenFile`, `nativeFileInfo` bağlantıları
+- Sistem şemasında konnektör rozeti (protokol, ek sayısı) ve tıklayınca profil / ek menüsü
+- **Yazılım ICD:** Word ve Excel
+- Birim testleri 189, regresyon testi 63 adım
+
 ## v1.58.0 — 2026-11-23
 
 - **Kablaj test tanımı:** testler (Test Durumu elemanı) için her birimin test edilen pinleri tek tek seçilir; konnektör ve birim bazında toplu seçim, arama, yalnız kabloya bağlı pinler; pin satırında hat ve onu doğrulayan diğer testler

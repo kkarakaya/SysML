@@ -269,5 +269,20 @@ T('kablaj test kapsama: toplam kapsama, açıkta kalan hatlar, hat tipine göre 
 T('kablaj test kapsama: konnektör silinince test pin listesi temizlenir, şema kapsama katmanı', () => R(() => { HCS.cov = true; const svg = hcSysSVG({exp:false, cov:true}).svg; HCS.cov = false; const b = hcUnits().find(u => u.name === 'C'), pc = hcUnitConns(b.id)[0], t = newTest({name:'KT3', hcPins:[pc.id + '|A']}); delModel([pc.id]);
   return /test %/.test(svg) && t.hcPins.length === 0; }));
 
+/* ---------- v1.59 protokol profilleri ve ekler ---------- */
+T('protokol: profil atanan bağlı uçlarda hız / endian / CRC uyumsuzluğu hata, aynı profil uyumlu', () => R(() => { const H = hpM(), a = hcUnits().find(u => u.name === 'A'), b = hcUnits().find(u => u.name === 'B'), pa = hcUnitConns(a.id).find(p => p.name === 'J2'), pb = hcUnitConns(b.id).find(p => p.name === 'J2');
+  pa.hc.ifs = [{id:'ifa', pr:'pr_ser1', role:'M', pins:[], ov:{}}]; pb.hc.ifs = [{id:'ifb', pr:'pr_ser1', role:'S', pins:[], ov:{}}]; afterChange(); const ok0 = hpPairs().pairs.length === 1 && hpPairs().pairs[0].iss.length === 0;
+  pb.hc.ifs[0].ov = {baud:57600, endian:'little'}; afterChange(); const iss = hpPairs().pairs[0].iss.map(x => x[0] + ':' + x[1]);
+  const p2 = JSON.parse(JSON.stringify(hpGet('pr_ser1'))); p2.id = 'pr_t2'; p2.crc = 'CRC-32 (ISO-HDLC)'; p2.msgs = p2.msgs.slice(0, 1); H.protos.push(p2); pb.hc.ifs[0] = {id:'ifb', pr:'pr_t2', role:'M', pins:[], ov:{}}; afterChange(); const iss2 = hpPairs().pairs[0].iss.map(x => x[0] + ':' + x[1]);
+  return ok0 && iss.some(x => /^hata:Hız/.test(x)) && iss.some(x => /^hata:Bayt sırası/.test(x)) && iss2.some(x => /^hata:CRC/.test(x)) && iss2.some(x => /^uyarı:İki uç/.test(x)) && iss2.some(x => /0x81.*yok/.test(x)) && validateModel().some(x => x.rule === 'Haberleşme protokolü' && x.sev === 'hata') || {ok0, iss, iss2}; }));
+T('protokol: kablo denetimine protokol bulgusu eklenir, karşı uçta tanım yoksa bilgi', () => R(() => { const c = hcCables().find(x => hcLines().some(l => l.cable === x && l.cat === 'c_com')), n = hcCableIssues(c).filter(x => /^Protokol/.test(x.msg)).length;
+  const b = hcUnits().find(u => u.name === 'B'), pb = hcUnitConns(b.id).find(p => p.name === 'J2'); const sv = pb.hc.ifs; pb.hc.ifs = []; afterChange(); const lone = hpIssuesFor().filter(x => x.sev === 'bilgi' && /karşı uçta/.test(x.msg)).length; pb.hc.ifs = sv; afterChange();
+  return n >= 2 && lone === 1 || {n, lone}; }));
+T('protokol: çerçeve düzeni, mesaj boyu ve yazılım ICD blokları', () => R(() => { const pr = hpGet('pr_ser1'), F = hpFrame(pr), B = hpIcdBlocks([pr]);
+  return F[0].size === 2 && F[1].off === 2 && F.find(x => /^Veri/.test(x.name)).off === 5 && F.find(x => /^CRC/.test(x.name)).size === 2 && hpMsgLen(pr.msgs[1]) === 5 && B.some(b => b.t === 'h' && /Mesaj listesi/.test(b.x)) && B.some(b => b.t === 'table' && b.head[1] === 'Alan') || F; }));
+T('protokol: ek kaydı port ve profile bağlanır, son sahibi kaldırılınca silinir', () => R(() => { const H = hpM(), a = hcUnits().find(u => u.name === 'A'), pa = hcUnitConns(a.id).find(p => p.name === 'J2');
+  H.files.f1 = {id:'f1', name:'ICD.pdf', size:10, data:'JVBERg=='}; hpLink(pa, 'f1'); hpLink(hpGet('pr_ser1'), 'f1'); const two = hpOwners('f1').length;
+  hpUnlink(pa, 'f1'); const kept = !!H.files.f1; hpUnlink(hpGet('pr_ser1'), 'f1'); return two === 2 && kept && !H.files.f1 && hcPortBadge(pa, 0, 0).includes('RS-422'); }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
