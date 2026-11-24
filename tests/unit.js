@@ -225,5 +225,25 @@ T('kablaj şeması: splice AWG geçişi — sınır içinde bilgi (uygun), aşı
   const rng = hcCableIssues(c).some(x => /AWG 30, .*kabul eder/.test(x.msg) || /AWG 30 kapasitesi/.test(x.msg)); w.awg = 20; return ok && warn && rng; }));
 T('kablaj şeması: port silinince kablo düğümü ve telleri temizlenir; SVG üretilir', () => R(() => { const K = window.__K, c = hcCableOfPort(K.mc2), n0 = c.wires.length; const svg = hcSysSVG({exp:true}).svg, csvg = hcCableSVG(c).svg; delModel([K.sn1]); return n0 === 4 && c.wires.length === 0 && c.nodes.length === 1 && /W1/.test(svg) && /SN · J1|SN/.test(csvg); }));
 
+/* ---------- v1.56 kablaj: AWG / bükümlü çift önerisi, BOM, teknik resim ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n).id;
+  const a = mkU('A', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'src', ipk:9}, B:{lbl:'l_28r', ipk:9}}], ['J2', 'lib:38999-20-13-35P', 'c_com', {1:{lbl:'l_txp', pair:'2'}, 2:{lbl:'l_txn'}, 3:{lbl:'l_canh'}, 4:{lbl:'l_canl'}, 5:{sig:'SPARE_X', cat:'c_dis'}}]]);
+  const b = mkU('B', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', dir:'snk', ipk:9}, B:{lbl:'l_28r', ipk:9}}], ['J2', 'lib:md-9S', 'c_com', {1:{lbl:'l_rxp'}, 2:{lbl:'l_rxn'}, 3:{lbl:'l_canh'}, 4:{lbl:'l_canl'}}]]);
+  window.__P = hcConnect(J(a, 'J1'), J(b, 'J1')); window.__C = hcConnect(J(a, 'J2'), J(b, 'J2')); return true; });
+T('kablaj AWG: uzunluk yokken akım kapasitesi + kontak aralığı (9 A, #16 → 18 AWG demet 10 A)', () => R(() => { const c = window.__P, s = hcAwgSuggest(c, c.wires[0]); return s.ok && s.I === 9 && s.thick === 16 && s.thin === 20 && s.rec === 18 || s; }));
+T('kablaj AWG: uzunlukla gerilim düşümü (4 m, %5, 27 V) daha kalın ister; dönüş hattı besleme gerilimini kullanır', () => R(() => { const c = window.__P; c.len = 4; const s = hcAwgSuggest(c, c.wires[0]), r = hcAwgSuggest(c, c.wires[1]); c.len = ''; return s.ok && s.rec === 16 && s.rMax > 18.5 && s.rMax < 19 && r.rec === 16 && r.why.some(x => /dönüş hattı/.test(x)) || [s, r]; }));
+T('kablaj AWG: kontak sınırı yetmezse "uygun yok" ve gerekçe', () => R(() => { const c = window.__P; c.len = 20; const s = hcAwgSuggest(c, c.wires[0]); c.len = ''; return !s.ok && s.need <= 14 && /daha büyük kontak/.test(s.why[s.why.length - 1]) || s; }));
+T('kablaj AWG: akımsız haberleşme hattı pratik alt sınır 24 AWG (Micro-D 24–30 aralığında)', () => R(() => { const c = window.__C, s = hcAwgSuggest(c, c.wires[0]); return s.ok && s.rec === 24 && s.thick === 24 || s; }));
+T('kablaj bükümlü çift: çift eşi ve +/- / _H/_L etiketleri, protokol empedansı; güç besleme + dönüş', () => R(() => { const g = hcTwistSuggest(window.__C), p = hcTwistSuggest(window.__P);
+  return g.length === 2 && g.some(x => /RS-422/.test(x.kind) && x.shield) && g.some(x => /CAN/.test(x.kind)) && p.length === 1 && /güç/.test(p[0].kind) || [g, p]; }));
+T('kablaj öneri uygula: AWG ve TSP grupları, ekran; BOM bükümlü kablo + kontak + kablo ucu konnektör', () => R(() => { const c = window.__C, r = hcApplySuggest(c, {awg:true, twist:true}), bom = hcBOM(c);
+  return r.nA === 4 && r.nG === 2 && c.wires.every(w => /^TSP\d$/.test(w.grp) && w.shield && w.awg === 24) && bom.some(x => x.part === 'Konnektör (kablo ucu)' && x.pn === 'D38999/26WC35SN') && bom.some(x => x.part === 'Konnektör (kablo ucu)' && x.pn === 'M83513/01-A') && bom.filter(x => x.part === 'Ekranlı bükümlü kablo').length === 1 && bom.find(x => x.part === 'Ekranlı bükümlü kablo').qty === 2 || bom; }));
+T('kablaj teknik resim: A3 sayfaları (şema + tel listesi + BOM + antet, konnektör görünümleri), uzun tel listesi devam sayfası', () => R(() => { const c = window.__C, pg = hcDrawingPages(c);
+  const ok1 = pg.length === 2 && /MALZEME LİSTESİ/.test(pg[0].str) && /TEL LİSTESİ/.test(pg[0].str) && /Çizim no/.test(pg[0].str) && /KONNEKTÖR GÖRÜNÜMLERİ/.test(pg[1].str) && /sol üst köşeden başlar/.test(pg[1].str) && /1 \/ 2/.test(pg[0].str);
+  for(let i = 0; i < 70; i++) hcAddWire(c, {n:c.nodes[0].id, pin:String(10 + (i % 12))}, {n:c.nodes[1].id, pin:'5'}, {on:true}); const pg2 = hcDrawingPages(c); return ok1 && pg2.length >= 3 && /TEL LİSTESİ \(devam\)/.test(pg2[1].str) || pg.length; }));
+T('kablaj konnektör yüzü: başlangıç köşesine göre numaralandırma (sağ alt → ilk pin sağ altta)', () => R(() => { const g = hcFaceGrid(6, 2, 'Sağ alt'), h = hcFaceGrid(6, 2, 'Sol üst'); return g.pos[0].r === 1 && g.pos[0].c === 2 && h.pos[0].r === 0 && h.pos[0].c === 0 && h.pos[3].r === 1; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }

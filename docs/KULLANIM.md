@@ -1245,6 +1245,21 @@ Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları:
 - **Splice üzerinde AWG geçişi** engellenmez: tüm teller akım sınırı içindeyse "uygun ✓" bilgisi, aşan varsa uyarı verilir.
 - Tel kapasite tablosu (AWG 30–4, tek tel ve demet içinde, yaklaşık AS50881 değerleri) modelde düzenlenebilir.
 
+## 5as. Kablaj: AWG ve bükümlü çift önerisi, teknik resim (PDF) ve BOM
+
+**AWG ve bükümlü çift öner…** (Kablo detayı üst çubuğu) her bağlı tel için önerir:
+- **Akım:** telden geçen akım (splice'ta KCL dağılımı) ≤ tel kapasitesi — kabloda birden çok tel varsa demet değeri, yoksa tek tel değeri.
+- **Gerilim düşümü:** kablo **maks. uzunluğu** girilmişse güç hatlarında gidiş + dönüş için tel başına izin = V × %düşüm / 2 (V: hattın gerilim aralığının ortası; dönüş hattında kablodaki besleme gerilimi). Uzunluk girilmezse yalnız akım kapasitesine bakılır. İzin verilen düşüm (% 5) ve akımsız hatlarda pratik alt sınır (24 AWG) pencerede değiştirilebilir.
+- **Kontak:** iki uçtaki kontakların kabul ettiği AWG aralığının kesişimi.
+- Sonuç: **önerilen** (koşulları sağlayan en ince tel) ve **en kalın** (kontak sınırı). Hiçbir tel uymuyorsa "uygun yok" ve gereken AWG ile "daha büyük kontak veya paralel pin" önerisi; Model doğrulamada "Kablaj AWG" kuralı önerilenden ince telleri de bildirir.
+- **Bükümlü çift:** pinout'taki çift eşi veya etiket adı (+/-, _H/_L) ile; RS-422/485 ve CAN için 120 Ω, MIL-STD-1553 için 78 Ω twinax, Ethernet / LVDS için 100 Ω **ekranlı** bükümlü çift (TSP); güç beslemesi ile dönüşü bükümlü güç çifti (TP). Uygulanınca teller TP1 / TSP1… grubuna alınır, TSP'lerde ekran işaretlenir.
+
+**Teknik resim** — Kablo detayında **Teknik resim oluştur** (açık kablo) veya sistem şemasında / Kablaj ▾ menüsünde **Teknik resim oluştur…** (kablo seçim penceresi: **Tek PDF**, **Her kablo ayrı PDF**, **Excel (BOM + teller)**). Her kablo A3 yatay:
+1. **Bağlantı şeması sayfası:** ortada pin pin bağlantı şeması (uçlarda birim · konnektör adı, birim konnektörü ve kablo ucu PN'leri, splice'lar), sağ üstte tel listesi (tel, uçlar, sinyal, AWG, renk, bükümlü grup, ekran), sağ altta **BOM** ve **antet**. Tel listesi sığmazsa devam sayfası eklenir.
+2. **Konnektör görünümleri sayfası:** her uç konnektör dikdörtgen olarak çizilir; pinler konnektör tipindeki "pin numaraları hangi yüzden" (ön / arka) ve "numaralandırma başlangıcı" (sol üst, sağ üst…) ayarına göre yerleşir, ilk pin okla gösterilir, dolu pinler hat tipi rengiyle, kabloda bağlı olmayanlar kesikli çizilir. Satır sayısı konnektör tipindeki "pin satır sayısı" alanından alınır.
+- **BOM:** kablo ucu konnektörü (tipteki "eşleşen konnektör PN"), backshell, kontaklar (boyut ve cinsiyete göre adet), teller (AWG'ye göre, uzunluk girilmişse metre), bükümlü / ekranlı kablolar, splice, kimlik etiketi, makaron. Tel ve splice parça numaraları örnektir.
+- **Antet:** başlık, çizim no (varsayılan kablo adı), revizyon, hazırlayan, kontrol, onay, tarih (Kablo detayında "Teknik resim anteti"), proje adı, sayfa no ve modelin gizlilik derecesi.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.
