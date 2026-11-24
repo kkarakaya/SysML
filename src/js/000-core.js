@@ -1,7 +1,7 @@
 'use strict';
 const PRISTINE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 const LSK = 'sysml-modeler-v1';
-const APP_VER = '1.65.0';
+const APP_VER = '1.66.0';
 const $ = s => document.querySelector(s);
 const uid = () => '_' + Math.random().toString(36).slice(2, 9) + (Date.now() % 1e7).toString(36);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -4118,7 +4118,7 @@ function sheetXML(sh){
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <sheetViews><sheetView workbookViewId="0">${pane}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>
 ${sh.widths && sh.widths.length ? `<cols>${sh.widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : ''}
-<sheetData>${rows}</sheetData>${sh.filter && sh.rows.length > 1 ? `<autoFilter ref="A${sh.filter}:${colName(ncol - 1)}${sh.rows.length}"/>` : ''}${typeof secLabel === 'function' && secLabel() ? `<headerFooter><oddHeader>&amp;C&amp;B${xe(secLabel())}</oddHeader><oddFooter>&amp;C${xe(secLabel())}&amp;R&amp;P / &amp;N</oddFooter></headerFooter>` : ''}</worksheet>`;
+<sheetData>${rows}</sheetData>${sh.filter && sh.rows.length > 1 ? `<autoFilter ref="A${sh.filter}:${colName(ncol - 1)}${sh.rows.length}"/>` : ''}${sh.merges && sh.merges.length ? `<mergeCells count="${sh.merges.length}">${sh.merges.map(r => `<mergeCell ref="${r}"/>`).join('')}</mergeCells>` : ''}${typeof secLabel === 'function' && secLabel() ? `<headerFooter><oddHeader>&amp;C&amp;B${xe(secLabel())}</oddHeader><oddFooter>&amp;C${xe(secLabel())}&amp;R&amp;P / &amp;N</oddFooter></headerFooter>` : ''}</worksheet>`;
 }
 function buildXlsx(sheets){
   const names = sheets.map(s => s.name.replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31));

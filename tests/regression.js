@@ -1225,6 +1225,30 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   v65.xl = await page.evaluate(() => { const f = window.__dl.pop(); return !!f && /test kablajları\.xlsx$/.test(f.name) && f.size > 500; });
   ok('Test kablajları: yeni test kablajı (konnektör + banana jack), bağımsız uç ekleme, splice\'a bölme, genel mimaride gizli, liste, teknik resim PDF ve Excel', Object.values(v65).every(v => v === true), v65);
 
+  console.log('8h13) v1.66 eşleşme tablosu, takılı işaretleme, test hazırlığı, rota, geçiş konnektörü');
+  await page.evaluate(() => { window.__dl = []; const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = 'lib:md-9P'; p.hc.cat = 'c_com'; Object.entries(pins).forEach(([no, sg]) => { hcSetPin(p, no, 'sig', sg); hcSetPin(p, no, 'cat', 'c_com'); }); }); return u; };
+    const P = {1:'DATA_A', 2:'DATA_B'}, a = mkU('Rg1', [['J1', P]]), b = mkU('Rg2', [['J1', P], ['J2', P]]), c = mkU('Rg3', [['J1', P]]), J = (u, n) => hcUnitConns(u.id).find(p => p.name === n);
+    const w1 = hcConnect(J(a, 'J1').id, J(b, 'J1').id), w2 = hcConnect(J(b, 'J2').id, J(c, 'J1').id); window.__g = {w1:w1.id, w2:w2.id, p:J(c, 'J1').id, a:a.id, c:c.id}; afterChange(); openD('@hcmate'); }); await page.waitForTimeout(250);
+  const v66 = await page.evaluate(() => ({ table: !!document.querySelector(`#view [data-hc10m^="${__g.w1}|"]`) && /Eşleşme Tablosu|kablaj ucu/.test($('#view').textContent) }));
+  await page.check(`#view [data-hc10m^="${await page.evaluate(() => __g.w1)}|"] >> nth=0`); await page.waitForTimeout(150);
+  v66.mated = await page.evaluate(() => hcR().cables[__g.w1].nodes.filter(n => n.mated).length === 1);
+  await page.click('[data-hc10="matexl"]'); await page.waitForTimeout(150); v66.xl = await page.evaluate(() => { const f = window.__dl.pop(); return !!f && /eşleşme tablosu\.xlsx$/.test(f.name); });
+  await page.evaluate(() => { HCS.mate = false; openD('@hcsys'); }); await page.waitForTimeout(250); await page.click('[data-hc10="matemode"]'); await page.waitForTimeout(200);
+  await page.evaluate(() => document.querySelector(`#hcSys [data-hcpt="${__g.p}"] rect`).dispatchEvent(new MouseEvent('mousedown', {bubbles:true, cancelable:true, button:0}))); await page.waitForTimeout(200);
+  v66.sysMate = await page.evaluate(() => hcPortMated(__g.p) && /Takılı işaretle:/.test($('#view').textContent)); await page.evaluate(() => { HCS.mate = false; });
+  await page.evaluate(() => { const tc = newTest({name:'Rg rota', hcPins:[]}); hcApplyScope(tc, hcParseScope('Rg1 - Rg3 arası haberleşme'), true); HCT.tc = tc.id; HCT.tab = 'def'; window.__g.tc = tc.id; afterChange(); openD('@hctest'); }); await page.waitForTimeout(300);
+  v66.route = await page.evaluate(() => !!document.querySelector('[data-hc10="racc"]') && /Rota: Rg1 → Rg3/.test($('#view').textContent));
+  await page.click('[data-hc10="racc"]'); await page.waitForTimeout(250);
+  v66.accepted = await page.evaluate(() => (E(hcUnits().find(u => u.name === 'Rg2').id).hcLinks || []).length === 2 && hcScopeChains(E(__g.tc).hcScope).sel.length === 2 && /Hazırlık — takılı konnektörlere göre/.test($('#view').textContent) && /0 \/ 2 hat icra edilebilir/.test($('#view').textContent));
+  await page.evaluate(() => { [__g.w1, __g.w2].forEach(id => hcR().cables[id].nodes.forEach(n => n.mated = true)); afterChange(); openD('@hcready'); }); await page.waitForTimeout(200);
+  v66.ready = await page.evaluate(() => { const r = [...document.querySelectorAll('#view tr')].find(tr => /Rg rota/.test(tr.textContent)); return !!r && /%100/.test(r.textContent); });
+  await page.evaluate(() => { HC9.cats = null; HC9.lbl = ''; HC9.q = ''; HC9.unit = __g.a; HC9.cols = false; openD('@hcroute'); }); await page.waitForTimeout(200); await page.check('[data-hc10f="rcols"]'); await page.waitForTimeout(200);
+  v66.cols = await page.evaluate(() => /Geçiş \(çıkış\)/.test($('#view').textContent) && /Rg2 J2-1/.test($('#view').textContent));
+  await page.click('[data-hc9="xl"]'); await page.waitForTimeout(150); v66.colsXl = await page.evaluate(() => { const f = window.__dl.pop(); return !!f && /hat güzergâh tablosu\.xlsx$/.test(f.name); }); await page.evaluate(() => { HC9.unit = ''; HC9.cols = false; });
+  await page.evaluate(() => hcOpenCable(__g.w1)); await page.waitForTimeout(200); await page.click('[data-hc10="inline"]'); await page.waitForTimeout(150); await page.click('#qfO'); await page.waitForTimeout(250);
+  v66.inline = await page.evaluate(() => { const X = hcUnits().find(u => u.hcInline); const w1 = hcR().cables[__g.w1]; return !!X && w1.nodes.some(n => E(n.port) && E(n.port).owner === X.id) && hcChains().some(ch => ch.cables.length === 3 && ch.ends.some(p => p.port.owner === __g.a) && ch.ends.some(p => p.port.owner === __g.c)); });
+  ok('Eşleşme tablosu ve hazırlık: tablo + takıldı kutusu, Excel, şemada takılı işaretleme, birimden birime rota önerisi ve onay, test hazırlığı %, yan yana güzergâh, geçiş konnektörü', Object.values(v66).every(v => v === true), v66);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);

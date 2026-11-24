@@ -1432,6 +1432,20 @@ Test kablajı, birim konnektörlerine takılan, banana jack gibi birime bağlı 
 
 **Var olan kablajı çevirme:** Kablaj detayında **Kablaj türü → Test kablajı** kutusunu işaretleyin (geri almak için kaldırın).
 
+### 5bb. Eşleşme tablosu, takılı konnektörler, test hazırlığı, rota ve geçiş konnektörü (v1.66)
+
+**Eşleşme tablosu (kablajları takarken):** Sistem kablaj şemasında **Eşleşme tablosu ⤓** tek tuşla Excel indirir. Her kablajın adı birleşik hücrede, sağında uçları (P1, P2…), kablaj ucu parça numarası, takıldığı konnektör (ör. Birim2 · J1) ve en sağda karşı taraf yer alır. Karşı taraf, birim konnektörüyse birimin adıdır, geçiş konnektörüyse öbür yandaki kablajın adıdır (ör. W2) ve aynı değerli satırlar birleşir. Kablaj → Kablaj – konnektör eşleşme tablosu görünümünde aynı tablo PDF olarak da indirilir; uç adları değiştirilebilir.
+
+**Takılı işaretleme:** Şemada **Takılı işaretle** düğmesini açın ve takılan konnektörlere tıklayın (yeşil = takılı). Aynı işaret eşleşme tablosundaki **Takıldı** kutusuyla da verilir.
+
+**Test hazırlığı:** Bir hat, geçtiği bütün kablaj uçları takılıysa icra edilebilir. Testin yüzdesi, testteki toplam hat sayısına göre hesaplanır (adım sayısına göre değil). Örneğin testte 5 haberleşme hattı varsa ve 3'ünün konnektörleri takılıysa %60 görünür. Test tanımındaki **Hazırlık** kutusu her adımın yapılabilir olup olmadığını (●) ve takılmamış uçları gösterir. Kablaj → Test hazırlığı bütün testleri listeler; tamamı icra edilebilen testler yeşildir.
+
+**Birimden birime rota:** Test kapsamına `Birim1 - Birim5 arası haberleşme` yazıp **Tanımdan kapsam çıkar**a basın (ya da "veya başlangıç birimi" ile hedef birimi seçin). Rota kutusu, kablajlar ve ara birimler (Birim2, 3, 4) üzerinden bulunan hatları listeler. Ara birimlerin içindeki geçiş biliniyorsa (içten geçişli birim, geçiş konnektörü, onaylı geçiş) doğrudan kullanılır. Bilinmiyorsa geçiş tahmin edilir: ●●● pin grubu ve rolü, ●● aynı sinyal adı, ● etiket veya genel ad (GND…). Uygun rotaları işaretleyip **Seçili rotaların geçişlerini onayla**ya basın. Onaylanan geçişler birime yazılır ve hat tablosu ile diğer testler de bunları kullanır. Tahmin yoksa ya da yanlışsa **Birim içi geçiş ekle** satırından pinleri tek tek seçin.
+
+**Geçiş konnektörü:** Kablaj detayında (ya da şemada kablaj seçiliyken) **Geçiş konnektörü ekle…** düğmesine basın, hangi uçta araya gireceğini seçin. Seçilen uçtaki hatlar X1 · A'da biter; X1 · B ile birim konnektörü arasında aynı pin numaralarıyla yeni bir kablaj oluşur.
+
+**Hat güzergâhı yan yana:** Hat tablosunda **Yan yana (sütunlu)** kutusunu işaretleyin ve isterseniz bir birim seçin. Her satır bir hattır: başlangıç pini, sonra her kablaj için kablaj, varış konnektörü ve (geçiş varsa) çıkış konnektörü ayrı sütunlarda gösterilir. Tablo Excel ve PDF olarak indirilebilir.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

@@ -59,10 +59,13 @@ function hcChains(){
   if(HC9C.rev === REV && HC9C.v) return HC9C.v;
   const L = hcLines(), par = new Map(L.map(l => [l.id, l.id])), f = x => { while(par.get(x) !== x){ par.set(x, par.get(par.get(x))); x = par.get(x); } return x; }, un = (a, b) => par.set(f(a), f(b));
   const lineOf = new Map(); L.forEach(l => l.pins.forEach(p => lineOf.set(p.key, l)));
-  hcUnits().filter(hcThru).forEach(u => { const by = new Map(); hcUnitConns(u.id).forEach(p => hcPins(p).forEach(q => { const s = String(q.d.sig || '').trim().toLocaleLowerCase('tr'); if(!s) return; const l = lineOf.get(p.id + '|' + q.no); if(!l) return; if(!by.has(s)) by.set(s, []); by.get(s).push(l); }));
+  /* v1.66: geçiş konnektörü (u.hcInline) pin numarasıyla 1:1; birim içi geçişler (u.hcLinks [{a, b}] port|pin) — bu pinler uç sayılmaz */
+  const thruKeys = new Set();
+  hcUnits().forEach(u => (u.hcLinks || []).forEach(k => { const la = lineOf.get(k.a), lb = lineOf.get(k.b); if(la && lb){ un(la.id, lb.id); thruKeys.add(k.a); thruKeys.add(k.b); } }));
+  hcUnits().filter(hcThru).forEach(u => { const by = new Map(); hcUnitConns(u.id).forEach(p => hcPins(p).forEach(q => { const s = u.hcInline ? '#' + q.no : String(q.d.sig || '').trim().toLocaleLowerCase('tr'); if(!s) return; const l = lineOf.get(p.id + '|' + q.no); if(!l) return; if(!by.has(s)) by.set(s, []); by.get(s).push(l); }));
     by.forEach(ls => ls.slice(1).forEach(l => un(ls[0].id, l.id))); });
   const G = new Map(); L.forEach(l => { const r = f(l.id); if(!G.has(r)) G.set(r, []); G.get(r).push(l); });
-  const v = [...G.values()].map(ls => { const pins = ls.flatMap(l => l.pins), cats = [...new Set(ls.flatMap(l => l.cats))], ends = pins.filter(p => !hcThru(E(p.port.owner)));
+  const v = [...G.values()].map(ls => { const pins = ls.flatMap(l => l.pins), cats = [...new Set(ls.flatMap(l => l.cats))], ends = pins.filter(p => !hcThru(E(p.port.owner)) && !thruKeys.has(p.key));
     return {id:ls.map(l => l.id).sort().join(';'), lines:ls, cables:[...new Set(ls.map(l => l.cable))], pins, ends, cats, cat:cats[0] || '', name:[...new Set(ls.map(l => l.name))].join(' / '), lbls:[...new Set(pins.map(p => p.d.lbl).filter(Boolean))], units:[...new Set(pins.map(p => p.port.owner))]}; });
   HC9C.rev = REV; HC9C.v = v; return v;
 }

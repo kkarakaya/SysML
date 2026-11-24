@@ -388,5 +388,35 @@ T('kablaj test kablajı: işletim kablajı test kablajına çevrilir / geri alı
   const tw = hcR().cables[__K.tw], c2 = hcNewCable([], 'TX', {test:true}), f = hcAddFree(c2, {ft:'Krokodil klips', n:2}); const n0 = c2.nodes.length; hcRemoveNode(c2, f.id); delete hcM().cables[c2.id];
   return a === 0 && b === 2 && hcCables().length === 1 && f.name === 'X1' && f.pins.length === 2 && n0 === 1 && c2.nodes.length === 0 && tw.test || {a, b}; }));
 
+/* ---------- v1.66 eşleşme tablosu, takılı konnektörler / test hazırlığı, rota bulma, geçiş konnektörü ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const COM = {1:{sig:'TX+', cat:'c_com'}, 2:{sig:'TX-', cat:'c_com'}, 3:{sig:'P28', cat:'c_pwr'}}, us = [];
+  us.push(mkU('Birim1', [['J1', 'lib:md-9P', 'c_com', COM]]));
+  for(let i = 2; i <= 4; i++) us.push(mkU('Birim' + i, [['J1', 'lib:md-9S', 'c_com', COM], ['J2', 'lib:md-9P', 'c_com', COM]]));
+  us.push(mkU('Birim5', [['J1', 'lib:md-9S', 'c_com', COM]]));
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n), W = [];
+  W.push(hcConnect(J(us[0], 'J1').id, J(us[1], 'J1').id)); for(let i = 1; i <= 3; i++) W.push(hcConnect(J(us[i], 'J2').id, J(us[i + 1], 'J1').id));
+  window.__R = {u:us.map(u => u.id), w:W.map(c => c.id)}; return true; });
+T('kablaj rota: "Birim1 - Birim5 arası haberleşme" → birimden birime kapsam; ara birimlerde geçiş tahmini (aynı sinyal), onay → uçtan uca hat', () => R(() => {
+  const sc = hcParseScope('Birim1 - Birim5 arası haberleşme test edilecek'), tc = newTest({name:'R1', hcPins:[]}); hcApplyScope(tc, sc, true); const before = hcScopeChains(tc.hcScope).sel.length;
+  const rs = hcFindRoutes(__R.u[0], __R.u[4], ['c_com']), n = hcAcceptRoutes(rs.filter(r => r.strong)); REV++; hcApplyScope(tc, tc.hcScope, true); const S = hcScopeChains(tc.hcScope);
+  window.__R.tc = tc.id;
+  return sc.from === __R.u[0] && sc.unit === __R.u[4] && sc.cats.join() === 'c_com' && before === 0 && rs.length === 2 && rs.every(r => r.inferred.length === 3 && r.strong) && n === 6 && S.sel.length === 2 && S.sel.every(ch => ch.cables.length === 4) && E(__R.u[2]).hcLinks.length === 2
+    && /Birim1 J1-(\d) ⇒\[W1\]⇒ Birim2 J1-\1 ~\? Birim2 J2-\1/.test(hcRouteTxt(hcRouteFill(rs[0]))) || {sc, before, rs:rs.length, n, sel:S.sel.length, inf:rs.map(r => r.inferred.length)}; }));
+T('kablaj hazırlık: takılı işaretlenen uçlara göre icra edilebilir hat yüzdesi (adımlardan değil), eksik uçlar', () => R(() => { const tc = E(__R.tc), r0 = hcTestReady(tc);
+  hcCables().forEach(c => c.nodes.forEach(n => n.mated = true)); const r1 = hcTestReady(tc); const c3 = hcR().cables[__R.w[2]]; c3.nodes[0].mated = false; const r2 = hcTestReady(tc);
+  tc.hcSteps = [{id:'a', txt:'J1 haberleşme', cats:['c_com'], grp:'', done:false}, {id:'b', txt:'Güç', cats:['c_pwr'], grp:'', done:false}]; const r3 = hcTestReady(tc); c3.nodes[0].mated = true;
+  return r0.n === 2 && r0.k === 0 && r1.k === 2 && r1.r === 1 && r2.k === 0 && r2.miss.length === 1 && /W3 P1/.test(r2.miss[0].txt) && hcPortMated(c3.nodes[1].port) && r3.steps[0].n === 2 && r3.steps[1].n === 0 && /2 \/ 2 hat icra edilebilir/.test(hcReadyBlock(tc).replace(/<[^>]+>/g, ''))
+    || {r0:[r0.n, r0.k], r1:[r1.k], r2:[r2.k, r2.miss.map(m => m.txt)], st:r3.steps.map(x => x.n)}; }));
+T('kablaj geçiş konnektörü: kablaj ucuna 1:1 ara konnektör, yeni kablaj; hat iki kablajdan geçer; eşleşme tablosu ve yan yana güzergâh', () => R(() => { const w1 = hcR().cables[__R.w[0]], side = w1.nodes.find(n => E(E(n.port).owner).name === 'Birim2');
+  const res = hcInsertInline(w1, side.id, {name:'X1', cable:'W9'}); REV++; const X = res.X, A = hcUnitConns(X.id).find(p => p.name === 'A');
+  const S = hcScopeChains(E(__R.tc).hcScope), ch = S.sel.find(c => c.name === 'TX+'), path = hcChainPath(ch, __R.u[0]), B = hcMateBlocks(), b1 = B.find(b => b.c.id === w1.id), b9 = B.find(b => b.c.name === 'W9');
+  const xl = sheetXML({rows:[['a'], ['b'], ['c']], merges:['A1:A3']}), bom = hcBOM(w1);
+  return X.hcInline && X.hcThru && res.cable.name === 'W9' && res.pins === 3 && res.cable.wires.length === 3 && side.port === A.id && A.hc.pins['1'].dir === 'pas' && S.sel.length === 2 && ch.cables.length === 5
+    && path.join(' ') === 'Birim1 J1-1 W1 X1 A-1 X1 B-1 W9 Birim2 J1-1 Birim2 J2-1 W2 Birim3 J1-1 Birim3 J2-1 W3 Birim4 J1-1 Birim4 J2-1 W4 Birim5 J1-1'
+    && b1.rows.map(r => r.ref + ':' + r.other).join() === 'P1:Birim1,P2:W9' && b9.rows.map(r => r.other).join() === 'W1,Birim2' && /<mergeCell ref="A1:A3"\/>/.test(xl) && bom.some(b => /Geçiş konnektörü/.test(b.part)) && hcCableIssues(w1).filter(i => i.sev === 'hata').length === 0
+    || {pins:res.pins, cab:ch && ch.cables.length, path:path.join(' '), b1:b1.rows.map(r => r.ref + ':' + r.other), b9:b9 && b9.rows.map(r => r.other)}; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
