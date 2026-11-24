@@ -1156,6 +1156,21 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.click('[data-hc7="c100"]'); v60.reset = await page.evaluate(() => HC7.ck === 1);
   ok('Kablaj arama: sonuç paneli, vurgu/soluklaştırma, odak korunur, sonuca git, görünüm PDF, temizle, kablaj görünümünde yakınlaştırma', Object.values(v60).every(v => v === true), v60);
 
+  console.log('8h9) v1.62 katalog görünümü, hat tablosu, toplu bağlantı şeması PDF');
+  await page.evaluate(() => { window.__dl = []; HC9.cats = null; HC9.lbl = ''; HC9.q = ''; openD('@hcsys'); }); await page.waitForTimeout(200);
+  await page.click('[data-hc9="route"]'); await page.waitForTimeout(250);
+  const v62 = await page.evaluate(() => ({ view: ST.cur === '@hcroute', rows: document.querySelectorAll('#view tbody tr, .hcroute tbody tr, table tbody tr').length >= 1, chk: document.querySelectorAll('[data-hc9c]').length >= 2 }));
+  await page.click('[data-hc9="pdf"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v62.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /Hat tablosu/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-'; });
+  await page.click('[data-hc9="xl"]'); await page.waitForTimeout(200); v62.xlsx = await page.evaluate(() => window.__dl.length > 0 && /\.xlsx$/.test(window.__dl.pop().name));
+  await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(200);
+  await page.click('[data-hc9="alldwg"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 60000 });
+  v62.all = await page.evaluate(async () => (await window.__dl.pop().blob.slice(0, 5).text()) === '%PDF-');
+  await page.evaluate(() => { HCS.cab = hcCables()[0].id; openD('@hccable'); }); await page.waitForTimeout(200);
+  await page.selectOption('[data-hc9f="face"]', 'FR'); await page.waitForTimeout(150);
+  v62.face = await page.evaluate(() => hcCables()[0].dwg.face === 'FR' && /ARKA \(kablo giriş yüzü\)/.test(hcDrawingPages(hcCables()[0]).map(p => p.str).join('')));
+  ok('Kablaj katalog görünümü ve hat tablosu: süzgeçli tablo, PDF / Excel, tüm bağlantı şemaları PDF, ön / arka görünüm seçimi', Object.values(v62).every(v => v === true), v62);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);

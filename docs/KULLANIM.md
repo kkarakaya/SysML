@@ -1392,6 +1392,13 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 
 **Görünümü PDF:** Ekrandaki görünüm A3 yatay bir sayfa olarak indirilir. Sayfaya etkin mimari süzgeci, arama vurgusu ve test kapsaması katmanı dahildir; başlıkta ve antette arama ifadesi yazar. Tüm mimarileri tek PDF'te almak için **Kablaj özeti → Mimarileri PDF olarak indir…** kullanılır.
 
+### 5ax. Katalog konnektör görünümü, hat tablosu (v1.62)
+
+- **Katalog görünümü:** Kablaj → Konnektör kütüphanesi → tip seçin → "Ön görünüm", "Arka görünüm" ve "Fotoğraf" alanlarına katalogdan aldığınız resmi yükleyin. Hazır tiplere eklenen resimler de model dosyasında saklanır. Teknik resmin "Konnektör görünümleri" sayfasında bu resim kullanılır; resim yoksa yer tutucu çıkar. Kablaj detayında "Teknik resimde konnektör görünümü" ile ön, arka ya da ikisi seçilir.
+- **İçten geçişli birim:** sistem kablaj şemasında birimin başlığındaki "içten geçişli" kutusunu işaretleyin. Bu birimin konnektörlerinde aynı sinyal adına sahip pinler içeride bağlı sayılır; hat tablosunda hat, geçtiği bütün kablajlarla tek satırda görünür.
+- **Hat tablosu:** sistem kablaj şemasında "Hat tablosu" düğmesi (ya da Analiz → Kablaj ve konnektörler). Hat tiplerini işaretleyin, isterseniz bir etiket seçin ya da arayın. Her satırda hattın güzergâhı (kablaj ve pin pin), kablajlar ve konnektörler listelenir. "PDF indir" A3 sayfalar, "Excel" tablo üretir.
+- **Tüm bağlantı şemaları:** sistem kablaj şemasındaki "Tüm bağlantı şemaları (PDF)" düğmesi bütün kablajların teknik resimlerini tek PDF'te toplar.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.
