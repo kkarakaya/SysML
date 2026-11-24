@@ -48,12 +48,12 @@ function hcSumHTML(){
 function hcSumBar(){ return `<button class="vb pri" data-hc4="archall">Mimarileri PDF olarak indir…</button><button class="vb" data-hc4="xl">Özet Excel</button><span class="vsep"></span><button class="vb" data-hc4="sys">Kablaj şeması</button>`; }
 VIEWS['@hcsum'] = {tr:'Kablaj Özeti', ic:'Σ', note:'Birim, arayüz, kablo, hat ve tel sayıları; hat tiplerine (güç, haberleşme, ayrık…), birimlere ve kablolara göre dağılım.<br><br><b>Hat</b>: bir kablodaki tellerle uçtan uca bağlanan pinler (splice üzerinden dallanan hat tek hat sayılır).<br><br>Her hat tipi için <b>Görüntüle</b> sistem şemasını o tipe süzer (ör. güç mimarisi); <b>PDF</b> o mimariyi A3 sayfa olarak indirir.', render:hcSumHTML, bar:hcSumBar, status:() => { const S = hcSummary(); return S.cs.length + ' kablo · ' + S.lines.length + ' hat · ' + S.wires + ' tel'; }};
 /* ---------- mimari PDF ---------- */
-function hcArchPage(catF, page, pages){
-  const cat = hcCat(catF), title = cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi', r = hcSysSVG({exp:true, det:true, catF:catF || ''});
+function hcArchPage(catF, page, pages, extra){
+  const cat = hcCat(catF), title = (extra && extra.title) || (cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi'), r = hcSysSVG(Object.assign({exp:true, det:true, catF:catF || ''}, extra || {}));
   const aw = HC_PW - 60, ah = HC_PH - 90 - HC_TBH, k = Math.min(aw / r.w, ah / r.h, 1.4);
   const pseudo = {name:title, dwg:{title, no:'MIM-' + (cat ? cat.name : 'SİSTEM').toLocaleUpperCase('tr').replace(/[^A-Z0-9ÇĞİÖŞÜ]+/g, '-'), rev:'A', date:new Date().toLocaleDateString('tr-TR')}};
   const cs = hcCables().filter(c => !catF || hcCableStats(c).byCat[catF]), lines = hcLines().filter(l => !catF || l.cats.includes(catF));
-  let s = hcT(30, 40, title.toLocaleUpperCase('tr'), {fs:16, b:true}) + hcT(30, 58, `${cs.length} kablo · ${lines.length} hat · ${hcUnits().length} birim${cat ? ' · yalnız ' + cat.name + ' tellerini taşıyan kablolar; diğer arayüzler soluk' : ''}`, {fs:11, c:'#444'});
+  let s = hcT(30, 40, title.toLocaleUpperCase('tr'), {fs:16, b:true}) + hcT(30, 58, `${cs.length} kablo · ${lines.length} hat · ${hcUnits().length} birim${cat ? ' · yalnız ' + cat.name + ' tellerini taşıyan kablolar; diğer arayüzler soluk' : ''}${extra && extra.sub ? ' · ' + extra.sub : ''}`, {fs:11, c:'#444'});
   s += `<g transform="translate(30,72) scale(${k})">${r.svg}</g>`;
   let lx = 30; const ly = HC_PH - 34; hcR().cats.forEach(c => { if(catF && c.id !== catF) return; s += `<rect x="${lx}" y="${ly - 9}" width="18" height="4" fill="${c.col}"/>` + hcT(lx + 24, ly - 3, c.name, {fs:10}); lx += 40 + c.name.length * 6.5; });
   return hcFrame(s + hcTitleBlock(pseudo, page, pages));

@@ -328,7 +328,7 @@ tr.d-add td{background:#f0faf3}tr.d-del td{background:#fdf1f2}tr.d-chg td{backgr
 'use strict';
 const PRISTINE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 const LSK = 'sysml-modeler-v1';
-const APP_VER = '1.59.0';
+const APP_VER = '1.60.0';
 const $ = s => document.querySelector(s);
 const uid = () => '_' + Math.random().toString(36).slice(2, 9) + (Date.now() % 1e7).toString(36);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15750,16 +15750,16 @@ function hcPortAnchor(P, p, side){ const u = P[p.owner]; if(!u) return null; con
 function hcCableColor(c, st){ const top = Object.entries(st.byCat).sort((a, b) => b[1] - a[1])[0]; const cat = top && hcCat(top[0]); return cat ? cat.col : '#555'; }
 /* exp: dışa aktarma (olay öznitelikleri ve seçim çizilmez); only: yalnız bu kablolar; catF: yalnız bu hat tipindeki tellerin bulunduğu kablolar (v1.57 mimari görünümleri; verilmezse HCS.catF) */
 function hcSysSVG(opt){
-  opt = opt || {}; const catF = opt.catF !== undefined ? opt.catF : HCS.catF || '', P = hcSysLayout(), cs = hcCables().filter(c => (!opt.only || opt.only.includes(c.id)) && (!catF || hcCableStats(c).byCat[catF])), det = opt.det != null ? opt.det : HCS.det;
+  opt = opt || {}; const catF = opt.catF !== undefined ? opt.catF : HCS.catF || '', P = hcSysLayout(), cs = hcCables().filter(c => (!opt.only || opt.only.includes(c.id)) && (!catF || hcCableStats(c).byCat[catF])), det = opt.det != null ? opt.det : HCS.det, HL = typeof hcSearchRes === 'function' ? hcSearchRes(opt) : null;   /* v1.60 arama vurgusu */
   const dimPort = p => catF && p.hc.cat !== catF && !hcPins(p).some(x => hcPinUsed(x.d) && hcPinCat(x.d) === catF);
   let maxX = 400, maxY = 300; Object.values(P).forEach(u => { maxX = Math.max(maxX, u.x + u.w + 60); maxY = Math.max(maxY, u.y + u.h + 60); });
   const usedPorts = new Map(); cs.forEach(c => c.nodes.forEach(n => { if(n.kind === 'conn') usedPorts.set(n.port, c); }));
   let units = '', cables = '', labels = '';
   hcUnits().forEach(u => { const p0 = P[u.id], cs0 = hcUnitConns(u.id); if(catF && cs0.every(dimPort)) return;   /* mimari görünümünde ilgisiz birimler gizli */
-    units += `<g class="hcU" ${opt.exp ? '' : `data-hcu="${u.id}"`}><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${p0.h}" rx="6" fill="#fff" stroke="#34495e" stroke-width="1.4"/><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${HC_UH}" rx="6" fill="#34495e"/><rect x="${p0.x}" y="${p0.y + HC_UH - 6}" width="${p0.w}" height="6" fill="#34495e"/>
+    units += `<g class="hcU" ${opt.exp ? '' : `data-hcu="${u.id}"`}${HL && !HL.units.has(u.id) ? ' opacity="0.18"' : ''}><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${p0.h}" rx="6" fill="#fff" stroke="#34495e" stroke-width="1.4"/><rect x="${p0.x}" y="${p0.y}" width="${p0.w}" height="${HC_UH}" rx="6" fill="#34495e"/><rect x="${p0.x}" y="${p0.y + HC_UH - 6}" width="${p0.w}" height="6" fill="#34495e"/>
       <text x="${p0.x + p0.w / 2}" y="${p0.y + 20}" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" style="cursor:move">${esc(u.name)}</text>`;
     cs0.forEach((p, i) => { const y = p0.y + HC_UH + i * HC_RH, cat = hcCat(p.hc.cat), t = hcType(p.hc.ct), cb = usedPorts.get(p.id);
-      units += `<g ${opt.exp ? '' : `data-hcpt="${p.id}"`}${dimPort(p) ? ' opacity="0.3"' : ''}><rect x="${p0.x + 4}" y="${y + 2}" width="${p0.w - 8}" height="${HC_RH - 4}" rx="3" fill="${cb ? '#eef5ff' : '#f7f7f7'}" stroke="#dde"/><rect x="${p0.x + 4}" y="${y + 2}" width="5" height="${HC_RH - 4}" fill="${cat ? cat.col : '#bbb'}"/>
+      units += `<g ${opt.exp ? '' : `data-hcpt="${p.id}"`}${dimPort(p) || (HL && !HL.ports.has(p.id)) ? ' opacity="0.3"' : ''}><rect x="${p0.x + 4}" y="${y + 2}" width="${p0.w - 8}" height="${HC_RH - 4}" rx="3" fill="${HL && HL.ports.has(p.id) ? '#fff4d6' : cb ? '#eef5ff' : '#f7f7f7'}" stroke="${HL && HL.ports.has(p.id) ? '#f39c12' : '#dde'}"${HL && HL.ports.has(p.id) ? ' stroke-width="2.2"' : ''}/><rect x="${p0.x + 4}" y="${y + 2}" width="5" height="${HC_RH - 4}" fill="${cat ? cat.col : '#bbb'}"/>
         <text x="${p0.x + 14}" y="${y + 16}" font-size="11.5" font-weight="600">${esc(p.name)}</text><text x="${p0.x + 50}" y="${y + 16}" font-size="10" fill="#667">${(() => { const s0 = (t && (t.pn || t.name)) || 'tip yok', bl = typeof hcPortBadgeLen === 'function' ? hcPortBadgeLen(p) : 0, n = bl ? Math.max(5, Math.floor((146 - bl * 5.7 - 8) / 6.1)) : 26; return esc(s0.length > n ? s0.slice(0, n - 1) + '…' : s0); })()}</text>${typeof hcPortBadge === 'function' ? hcPortBadge(p, p0.x + p0.w - 10, y + 16) : ''}
         ${opt.exp ? '' : `<circle cx="${p0.x}" cy="${y + HC_RH / 2}" r="5" fill="#fff" stroke="#2e86de" stroke-width="1.5" data-hch="${p.id}" style="cursor:crosshair"/><circle cx="${p0.x + p0.w}" cy="${y + HC_RH / 2}" r="5" fill="#fff" stroke="#2e86de" stroke-width="1.5" data-hch="${p.id}" style="cursor:crosshair"/>`}</g>`; });
     if(!cs0.length) units += `<text x="${p0.x + 10}" y="${p0.y + HC_UH + 16}" font-size="11" fill="#999">arayüz yok</text>`;
@@ -15774,12 +15774,13 @@ function hcSysSVG(opt){
     let path = '', lx, ly;
     if(anchors.length === 2){ const [A, B] = anchors, dx = Math.max(40, Math.abs(B.a.x - A.a.x) / 2.5); path = `M${A.a.x},${A.a.y} C${A.a.x + A.side * dx},${A.a.y} ${B.a.x + B.side * dx},${B.a.y} ${B.a.x},${B.a.y}`; lx = (A.a.x + B.a.x) / 2; ly = (A.a.y + B.a.y) / 2; }
     else { lx = anchors.reduce((s, x) => s + x.a.x + x.side * 60, 0) / anchors.length; ly = anchors.reduce((s, x) => s + x.a.y, 0) / anchors.length; path = anchors.map(x => `M${x.a.x},${x.a.y} C${x.a.x + x.side * 60},${x.a.y} ${lx},${ly} ${lx},${ly}`).join(' '); }
-    cables += `<g ${attrs}><path d="${path}" fill="none" stroke="transparent" stroke-width="12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="${sel ? sw + 2 : sw}"${st.wires ? '' : ' stroke-dasharray="6 4"'}/>${anchors.length > 2 ? `<circle cx="${lx}" cy="${ly}" r="5" fill="${col}"/>` : ''}
+    const hlC = HL ? (HL.cables.has(c.id) ? 1 : -1) : 0;
+    cables += `<g ${attrs}${hlC < 0 ? ' opacity="0.12"' : ''}>${hlC > 0 ? `<path d="${path}" fill="none" stroke="#f9d56e" stroke-width="${sw + 8}" stroke-linecap="round" opacity="0.85"/>` : ''}<path d="${path}" fill="none" stroke="transparent" stroke-width="12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="${sel ? sw + 2 : sw}"${st.wires ? '' : ' stroke-dasharray="6 4"'}/>${anchors.length > 2 ? `<circle cx="${lx}" cy="${ly}" r="5" fill="${col}"/>` : ''}
       ${anchors.map(x => `<circle cx="${x.a.x}" cy="${x.a.y}" r="3.5" fill="${col}"/>`).join('')}`;
     const mk0 = cov ? ` · test %${Math.round(cov.r * 100)} (${cov.k}/${cov.n})` : (st.nE ? ' ✖' + st.nE : '') + (st.nW ? ' ⚠' + st.nW : '');
     const lab = det ? `${c.name} · ${catF ? (st.byCat[catF] || 0) + ' / ' : ''}${st.wires} tel${mk0}${c.nodes.some(n => n.kind === 'splice') ? ' · ' + c.nodes.filter(n => n.kind === 'splice').length + ' splice' : ''}` : c.name + mk0;
     const tw = lab.length * 6.4 + 12, lc = cov ? col : st.nE ? '#c0392b' : st.nW ? '#d68910' : col;
-    labels += `<g ${attrs}><rect x="${lx - tw / 2}" y="${ly - 20}" width="${tw}" height="16" rx="8" fill="#fff" stroke="${lc}" stroke-width="${sel || st.nE ? 2 : 1}"/><text x="${lx}" y="${ly - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="${lc}">${esc(lab)}</text>`;
+    labels += `<g ${attrs}${hlC < 0 ? ' opacity="0.15"' : ''}><rect x="${lx - tw / 2}" y="${ly - 20}" width="${tw}" height="16" rx="8" fill="#fff" stroke="${lc}" stroke-width="${sel || st.nE ? 2 : 1}"/><text x="${lx}" y="${ly - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="${lc}">${esc(lab)}</text>`;
     if(det){ const cats = Object.entries(st.byCat).filter(([k]) => k && (!catF || k === catF)); cats.forEach(([k, v], i) => { const ct = hcCat(k); if(ct) labels += `<text x="${lx}" y="${ly + 10 + i * 12}" text-anchor="middle" font-size="10" fill="${ct.col}" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(ct.name)} ${v}</text>`; }); }
     labels += '</g>';
     cables += '</g>';
@@ -15816,7 +15817,8 @@ function hcCableSVG(c, opt){
     let s = `<g><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH + Math.max(1, rows.length) * HC_PR + 4}" fill="#fff" stroke="#34495e" stroke-width="1.2"/><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH}" fill="#34495e"/>
       <text x="${x + 8}" y="${y + 16}" fill="#fff" font-size="12.5" font-weight="700">${esc(u ? u.name : '?')} · ${esc(p ? p.name : '?')}</text><text x="${x + 8}" y="${y + 32}" fill="#cfd8e3" font-size="10">${esc(t ? [t.pn || t.name, t.mate ? 'kablo ucu: ' + t.mate : ''].filter(Boolean).join(' · ') : 'tip seçilmedi')}</text>`;
     rows.forEach((r, i) => { const yy = y + HC_TH + i * HC_PR, cat = hcCat(hcPinCat(r.d)), lb = hcLabel(r.d.lbl); pos[n.id].rows[r.no] = yy + HC_PR / 2 + 2;
-      s += `<rect x="${x}" y="${yy + 2}" width="${HC_TW}" height="${HC_PR}" fill="${i % 2 ? '#f6f8fb' : '#fff'}"/><rect x="${side > 0 ? x + HC_TW - 4 : x}" y="${yy + 2}" width="4" height="${HC_PR}" fill="${cat ? cat.col : '#ccc'}"/>
+      const hlP = !opt.exp && typeof hcSearchRes === 'function' && (hcSearchRes({}) || {pins:new Set()}).pins.has(p.id + '|' + r.no);
+      s += `<rect x="${x}" y="${yy + 2}" width="${HC_TW}" height="${HC_PR}" fill="${hlP ? '#ffe9a8' : i % 2 ? '#f6f8fb' : '#fff'}"/><rect x="${side > 0 ? x + HC_TW - 4 : x}" y="${yy + 2}" width="4" height="${HC_PR}" fill="${cat ? cat.col : '#ccc'}"/>
         <text x="${x + 10}" y="${yy + 14}" font-size="11" font-weight="700">${esc(r.no)}</text><text x="${x + 40}" y="${yy + 14}" font-size="11">${esc((r.d.sig || '').slice(0, 20))}</text><text x="${x + 170}" y="${yy + 14}" font-size="10" fill="#667">${esc(lb ? lb.name.slice(0, 13) : '')}</text>`; });
     return s + '</g>'; };
   let body = '';
@@ -15855,7 +15857,7 @@ function hcCableHTML(){
       <button class="vb" data-hca2="splice">+ Splice</button><button class="vb" data-hca2="auto" title="Bağlanmamış dolu pinleri etiket ve eşleşme kurallarına göre bağla">Etiketlere göre eşle</button>
       <span class="vsep"></span><label>Tümüne AWG <select data-hcf2="awgAll">${hcOpt('', '—', '')}${aw.map(a => hcOpt(a, a + ' AWG', '')).join('')}</select></label></div>`;
   if(st.iss.length) h += `<div style="background:#fdf6ec;border:1px solid #f0d9b5;color:#7a4b0b;font-size:12px;padding:5px 8px;border-radius:4px;margin-bottom:6px;max-height:110px;overflow:auto">${st.iss.map(x => `<span style="color:${x.sev === 'hata' ? '#c0392b' : x.sev === 'uyarı' ? '#b9770e' : '#2e6da4'}">${hcSev(x.sev)}</span> ${esc(x.msg)}`).join('<br>')}</div>`;
-  h += `<div style="border:1px solid #dde;border-radius:6px;background:#fff;overflow:auto;max-height:52vh"><svg width="${r.w}" height="${r.h}" viewBox="0 0 ${r.w} ${r.h}" style="display:block">${r.svg}</svg></div>`;
+  h += `<div id="hcCabWrap" style="border:1px solid #dde;border-radius:6px;background:#fff;overflow:auto;max-height:52vh;cursor:grab"><svg id="hcCabSvg" width="${Math.round(r.w * (typeof HC7 !== 'undefined' ? HC7.ck : 1))}" height="${Math.round(r.h * (typeof HC7 !== 'undefined' ? HC7.ck : 1))}" viewBox="0 0 ${r.w} ${r.h}" style="display:block">${r.svg}</svg></div>`;
   h += `<div class="hcsec">Teller <span class="muted" style="font-weight:normal;font-size:12px">${st.wires} bağlı${st.off ? ', ' + st.off + ' bağlı değil' : ''}</span></div>
     <div style="max-height:40vh;overflow:auto"><table class="hcpt"><thead><tr><th>Tel</th><th>Uç A</th><th>Uç B</th><th>Sinyal / etiket</th><th>Durum</th><th>AWG</th><th>Renk</th><th>Bükümlü grup</th><th>Ekranlı</th><th>Akım</th><th>Denetim</th><th></th></tr></thead><tbody>`;
   const nets = hcNets(c), wi = new Map(); st.iss.forEach(x => { if(x.w){ const l = wi.get(x.w) || []; l.push(x); wi.set(x.w, l); } });
@@ -16254,12 +16256,12 @@ function hcSumHTML(){
 function hcSumBar(){ return `<button class="vb pri" data-hc4="archall">Mimarileri PDF olarak indir…</button><button class="vb" data-hc4="xl">Özet Excel</button><span class="vsep"></span><button class="vb" data-hc4="sys">Kablaj şeması</button>`; }
 VIEWS['@hcsum'] = {tr:'Kablaj Özeti', ic:'Σ', note:'Birim, arayüz, kablo, hat ve tel sayıları; hat tiplerine (güç, haberleşme, ayrık…), birimlere ve kablolara göre dağılım.<br><br><b>Hat</b>: bir kablodaki tellerle uçtan uca bağlanan pinler (splice üzerinden dallanan hat tek hat sayılır).<br><br>Her hat tipi için <b>Görüntüle</b> sistem şemasını o tipe süzer (ör. güç mimarisi); <b>PDF</b> o mimariyi A3 sayfa olarak indirir.', render:hcSumHTML, bar:hcSumBar, status:() => { const S = hcSummary(); return S.cs.length + ' kablo · ' + S.lines.length + ' hat · ' + S.wires + ' tel'; }};
 /* ---------- mimari PDF ---------- */
-function hcArchPage(catF, page, pages){
-  const cat = hcCat(catF), title = cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi', r = hcSysSVG({exp:true, det:true, catF:catF || ''});
+function hcArchPage(catF, page, pages, extra){
+  const cat = hcCat(catF), title = (extra && extra.title) || (cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi'), r = hcSysSVG(Object.assign({exp:true, det:true, catF:catF || ''}, extra || {}));
   const aw = HC_PW - 60, ah = HC_PH - 90 - HC_TBH, k = Math.min(aw / r.w, ah / r.h, 1.4);
   const pseudo = {name:title, dwg:{title, no:'MIM-' + (cat ? cat.name : 'SİSTEM').toLocaleUpperCase('tr').replace(/[^A-Z0-9ÇĞİÖŞÜ]+/g, '-'), rev:'A', date:new Date().toLocaleDateString('tr-TR')}};
   const cs = hcCables().filter(c => !catF || hcCableStats(c).byCat[catF]), lines = hcLines().filter(l => !catF || l.cats.includes(catF));
-  let s = hcT(30, 40, title.toLocaleUpperCase('tr'), {fs:16, b:true}) + hcT(30, 58, `${cs.length} kablo · ${lines.length} hat · ${hcUnits().length} birim${cat ? ' · yalnız ' + cat.name + ' tellerini taşıyan kablolar; diğer arayüzler soluk' : ''}`, {fs:11, c:'#444'});
+  let s = hcT(30, 40, title.toLocaleUpperCase('tr'), {fs:16, b:true}) + hcT(30, 58, `${cs.length} kablo · ${lines.length} hat · ${hcUnits().length} birim${cat ? ' · yalnız ' + cat.name + ' tellerini taşıyan kablolar; diğer arayüzler soluk' : ''}${extra && extra.sub ? ' · ' + extra.sub : ''}`, {fs:11, c:'#444'});
   s += `<g transform="translate(30,72) scale(${k})">${r.svg}</g>`;
   let lx = 30; const ly = HC_PH - 34; hcR().cats.forEach(c => { if(catF && c.id !== catF) return; s += `<rect x="${lx}" y="${ly - 9}" width="18" height="4" fill="${c.col}"/>` + hcT(lx + 24, ly - 3, c.name, {fs:10}); lx += 40 + c.name.length * 6.5; });
   return hcFrame(s + hcTitleBlock(pseudo, page, pages));
@@ -16766,6 +16768,114 @@ function confirmDel(pr, u){ toast(`"${pr.name}" ${u.length} arayüzde kullanıl�
 if(typeof MENU_ADV !== 'undefined') MENU_ADV.analysis = new RegExp(MENU_ADV.analysis.source + '|^Haberleşme protokolleri');
 if(typeof MENU_GROUPS !== 'undefined'){ const g = MENU_GROUPS.analysis.cls.find(x => x[0] === 'Kablaj ve konnektörler'); if(g) g[1] = new RegExp(g[1].source + '|Haberleşme protokol'); }
 if(typeof WF_STEPS !== 'undefined'){ const s = WF_STEPS.find(x => /^Arayüzleri ve kablajı tasarla$/.test(x.t)); if(s) s.a.push(['Haberleşme protokolleri', /^Haberleşme protokolleri/]); }
+/* ================= v1.60 — Mimarilerde arama ve vurgulama, kablo görünümünde yakınlaştırma, görünüm PDF'i =================
+   Arama: birim, konnektör (ad, tip, parça no), pin (no, "J2-3", sinyal), etiket, hat tipi, protokol profili / fiziksel katman /
+   mesaj, ek dosya adı, kablo, tel rengi / grubu, test adı. Eşleşmeyenler soluklaşır, eşleşenler vurgulanır. */
+const HC7 = {q:'', ck:1, open:true};
+const hcLow = s => String(s == null ? '' : s).toLocaleLowerCase('tr');
+const HC7C = {key:'', v:null};
+function hcSearch(q){
+  q = hcLow(q).trim(); if(!q) return null;
+  const key = REV + '|' + q; if(HC7C.key === key) return HC7C.v;
+  const terms = q.split(/\s+/).filter(Boolean), m = s => { const t = hcLow(s); return terms.every(x => t.includes(x)); };
+  const R = {q, units:new Set(), ports:new Set(), cables:new Set(), pins:new Set(), lines:new Set(), hits:[], cats:{}};
+  const hit = (t, label, ref) => { if(R.hits.length < 400) R.hits.push(Object.assign({t, label}, ref)); };
+  const lines = hcLines(), lineOf = new Map(); lines.forEach(l => l.pins.forEach(x => lineOf.set(x.key, l)));
+  const cablesOfPort = pid => hcCables().filter(c => c.nodes.some(n => n.kind === 'conn' && n.port === pid));
+  const litCable = c => { if(!c) return; R.cables.add(c.id); c.nodes.forEach(n => { if(n.kind !== 'conn') return; const p = E(n.port); if(p){ R.ports.add(p.id); R.units.add(p.owner); } }); };
+  const litPort = p => { R.ports.add(p.id); R.units.add(p.owner); cablesOfPort(p.id).forEach(litCable); };
+  const litPin = (p, no) => { const k = p.id + '|' + no, l = lineOf.get(k); R.pins.add(k); R.ports.add(p.id); R.units.add(p.owner);
+    if(l){ litCable(l.cable); l.pins.forEach(x => R.pins.add(x.key)); if(!R.lines.has(l.id)){ R.lines.add(l.id); l.cats.forEach(c => { R.cats[c] = (R.cats[c] || 0) + 1; }); } } };
+  hcUnits().forEach(u => {
+    if(m(u.name)){ hit('Birim', u.name, {unit:u.id}); R.units.add(u.id); hcUnitConns(u.id).forEach(litPort); }
+    hcUnitConns(u.id).forEach(p => {
+      const t = hcType(p.hc.ct), cat = hcCat(p.hc.cat);
+      if(m([p.name, u.name + ' ' + p.name, t && t.name, t && t.pn, t && t.fam, cat && cat.name, p.hc.desc].filter(Boolean).join(' | '))){ hit('Konnektör', u.name + ' ' + p.name + (t ? ' · ' + (t.pn || t.name) : ''), {unit:u.id, port:p.id}); litPort(p); }
+      (typeof hpIfs === 'function' ? hpIfs(p) : []).forEach(ifc => { const e = hpEff(ifc); if(!e) return; const msgs = (e.msgs || []).filter(x => m(x.mid + ' ' + x.name));
+        if(m([e.name, e.phy, e.addr, e.endian === 'little' ? 'little endian' : 'big endian', e.crc].join(' | ')) || msgs.length){ hit('Protokol', `${u.name} ${p.name} · ${e.name}${msgs.length ? ' · ' + msgs.map(x => x.mid + ' ' + x.name).join(', ') : ''}`, {unit:u.id, port:p.id}); hpIfPins(p, ifc).forEach(no => litPin(p, no)); litPort(p); } });
+      (typeof hpAtts === 'function' ? hpAtts(p) : []).forEach(f => { if(m(f.name)){ hit('Ek', `${u.name} ${p.name} · ${f.name}`, {unit:u.id, port:p.id, file:f.id}); litPort(p); } });
+      hcPins(p).forEach(x => { if(!hcPinUsed(x.d)) return; const lb = hcLabel(x.d.lbl), pc = hcCat(hcPinCat(x.d));
+        const txt = [p.name + '-' + x.no, p.name + '.' + x.no, u.name + ' ' + p.name + '-' + x.no, x.d.sig, lb && lb.name, pc && pc.name, x.d.note].filter(Boolean).join(' | ');
+        if(m(txt)){ hit('Pin', `${u.name} ${p.name}-${x.no}${x.d.sig ? ' ' + x.d.sig : ''}${lb ? ' (' + lb.name + ')' : ''}`, {unit:u.id, port:p.id, pin:x.no}); litPin(p, x.no); } });
+    });
+  });
+  hcCables().forEach(c => { if(m(c.name + ' | ' + (c.note || ''))){ hit('Kablo', c.name + ' (' + c.nodes.filter(n => n.kind === 'conn').map(n => hcNodeLabel(c, n)).join(' ↔ ') + ')', {cable:c.id}); litCable(c); }
+    c.wires.forEach((w, i) => { if(w.on === false) return; if(m([hcWireName(c, i), w.color, w.grp, w.note].filter(Boolean).join(' | '))){ hit('Tel', c.name + ' · ' + hcWireName(c, i) + (w.color ? ' ' + w.color : '') + (w.grp ? ' ' + w.grp : ''), {cable:c.id}); litCable(c); [w.a, w.b].forEach(e => { const pe = hcEndPin(c, e); if(pe) litPin(pe.port, pe.no || e.pin); }); } }); });
+  if(typeof hcHarnessTests === 'function') hcHarnessTests().forEach(t => { if(m(t.name + ' | ' + (t.doc || ''))){ hit('Test', t.name + ' · ' + t.hcPins.length + ' pin', {test:t.id}); t.hcPins.forEach(k => { const [pid, no] = k.split('|'), p = E(pid); if(p) litPin(p, no); }); } });
+  HC7C.key = key; HC7C.v = R; return R;
+}
+/* çizimlerin kullandığı sonuç: opt.hl verilmişse o; dışa aktarmada (exp) verilmemişse arama yok */
+function hcSearchRes(opt){ opt = opt || {}; if(opt.hl !== undefined) return opt.hl; if(opt.exp) return null; return HC7.q ? hcSearch(HC7.q) : null; }
+/* ---------- sistem şeması: arama kutusu ve sonuç paneli ---------- */
+{ const bS = VIEWS['@hcsys'].bar; VIEWS['@hcsys'].bar = () => bS() + `<span class="vsep"></span><input data-hc7f="q" placeholder="Ara: birim, konnektör, pin (J2-3), sinyal, etiket, protokol, kablo, test" value="${esc(HC7.q)}" style="width:330px" class="noi18n">${HC7.q ? '<button class="vb" data-hc7="clr" title="Aramayı temizle">✕</button>' : ''}<button class="vb" data-hc7="pdf" title="Ekrandaki görünümü (mimari süzgeci, arama vurgusu, test kapsaması dahil) A3 PDF olarak indir">Görünümü PDF</button>`; }
+{ const rS = VIEWS['@hcsys'].render; VIEWS['@hcsys'].render = () => { let h = rS(); const R = HC7.q ? hcSearch(HC7.q) : null; if(!R) return h; const i = h.lastIndexOf('</div>'); return h.slice(0, i) + hcSearchPanel(R) + h.slice(i); }; }
+function hcSearchPanel(R){
+  const by = {}; R.hits.forEach(x => { (by[x.t] = by[x.t] || []).push(x); });
+  const cats = Object.entries(R.cats).filter(([k]) => hcCat(k));
+  return `<div id="hc7Panel" style="position:absolute;right:10px;top:10px;width:330px;max-height:calc(100% - 60px);overflow:auto;background:#fffffff2;border:1px solid #e3c87a;border-radius:8px;box-shadow:0 2px 10px #0002;font-size:12px">
+    <div style="padding:6px 10px;background:#fff4d6;border-bottom:1px solid #e3c87a;display:flex;gap:6px;align-items:center;cursor:pointer" data-hc7="tog"><b>${R.hits.length >= 400 ? '400+' : R.hits.length} sonuç</b><span class="muted">"${esc(R.q)}" · ${R.units.size} birim · ${R.cables.size} kablo · ${R.lines.size} hat</span><span style="flex:1"></span>${HC7.open ? '▴' : '▾'}</div>
+    ${HC7.open ? `${cats.length ? `<div style="padding:5px 10px;border-bottom:1px solid #eee">Eşleşen hatlar mimarilerde: ${cats.map(([k, v]) => `<a href="#" data-hc7="cat" data-k="${k}" style="text-decoration:none">${hcChip({name:hcCat(k).name + ' ' + v, col:hcCat(k).col})}</a>`).join(' ')} ${HCS.catF ? '<a href="#" data-hc7="cat" data-k="">tüm hat tipleri</a>' : ''}</div>` : ''}
+    ${Object.entries(by).map(([t, L]) => `<div style="padding:4px 10px 2px;font-weight:600;color:#556">${esc(t)} (${L.length})</div>${L.slice(0, 40).map(x => `<div class="hc7hit noi18n" data-hc7="go" data-u="${x.unit || ''}" data-c="${x.cable || ''}" data-p="${x.port || ''}" data-f="${x.file || ''}" data-t="${x.test || ''}" style="padding:2px 10px 2px 18px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(x.label)}">${esc(x.label)}</div>`).join('')}${L.length > 40 ? `<div class="muted" style="padding:0 18px">… ${L.length - 40} daha</div>` : ''}`).join('') || '<div class="muted" style="padding:8px 10px">Eşleşme yok.</div>'}` : ''}</div>`;
+}
+/* bir birimi / kabloyu ekranın ortasına getir ve kısa süre parlat */
+function hcCenterOn(x, y){ const wr = $('#hcSysWrap'); if(!wr) return; HCS.tx = wr.clientWidth / 2 - 165 - x * HCS.k; HCS.ty = wr.clientHeight / 2 - y * HCS.k; const g = $('#hcSysG'); if(g) g.setAttribute('transform', `translate(${HCS.tx},${HCS.ty}) scale(${HCS.k})`); }
+function hcFlash(sel){ const el = document.querySelector(sel); if(!el) return; el.style.transition = 'filter .3s'; el.style.filter = 'drop-shadow(0 0 6px #f39c12) drop-shadow(0 0 6px #f39c12)'; setTimeout(() => { el.style.filter = ''; }, 1400); }
+function hcGoHit(d){
+  const P = hcSysLayout();
+  if(d.t){ HCT.tc = d.t; HCT.tab = 'def'; return openD('@hctest'); }
+  if(d.c && !d.u){ const c = hcR().cables[d.c]; if(!c) return; if(HCS.catF && !hcCableStats(c).byCat[HCS.catF]){ HCS.catF = ''; renderViewBar(); renderView(); }
+    const us = c.nodes.filter(n => n.kind === 'conn' && E(n.port)).map(n => P[E(n.port).owner]).filter(Boolean); if(us.length) hcCenterOn(us.reduce((a, u) => a + u.x + u.w / 2, 0) / us.length, us.reduce((a, u) => a + u.y + u.h / 2, 0) / us.length);
+    HCS.sel = c.id; renderViewBar(); return hcFlash(`#hcSys .hcLabels [data-hcw="${c.id}"]`); }
+  if(d.u){ if(HCS.catF && !document.querySelector(`#hcSys [data-hcu="${d.u}"]`)){ HCS.catF = ''; renderViewBar(); renderView(); }
+    const u = P[d.u]; if(u) hcCenterOn(u.x + u.w / 2, u.y + u.h / 2); hcFlash(d.p ? `#hcSys [data-hcpt="${d.p}"]` : `#hcSys [data-hcu="${d.u}"]`); }
+}
+async function hcViewPdf(){
+  const R = HC7.q ? hcSearch(HC7.q) : null, cat = hcCat(HCS.catF);
+  const title = (cat ? cat.name + ' mimarisi' : 'Sistem kablaj mimarisi') + (R ? ' — arama: ' + R.q : '') + (HCS.cov ? ' — test kapsaması' : '');
+  const sub = [R ? `"${R.q}" araması: ${R.units.size} birim, ${R.cables.size} kablo, ${R.pins.size} pin vurgulu; diğerleri soluk` : '', HCS.cov ? 'kablolar test kapsamasına göre renkli (yeşil tam, turuncu kısmi, kırmızı yok)' : ''].filter(Boolean).join(' · ');
+  const page = hcArchPage(HCS.catF || '', 1, 1, {hl:R, cov:!!HCS.cov, title, sub});
+  toast('PDF hazırlanıyor…');
+  const im = await svgToFlate({str:page, w:HC_PW, h:HC_PH}, 2);
+  download(buildPdf([Object.assign(im, {pw:1190.55, ph:841.89, dw:1190.55, dh:841.89, dx:0, dy:0})]), fileSafe((E(M.rootId) ? E(M.rootId).name + ' - ' : '') + title) + '.pdf');
+}
+/* ---------- kablo detayı: yakınlaştırma / kaydırma ---------- */
+{ const bC = VIEWS['@hccable'].bar; VIEWS['@hccable'].bar = () => bC() + `<span class="vsep"></span><button class="vb" data-hc7="cin" title="Yakınlaştır (Ctrl + tekerlek)">+</button><button class="vb" data-hc7="cout">−</button><button class="vb" data-hc7="cfit" title="Şemayı kutuya sığdır">Sığdır</button><button class="vb" data-hc7="c100">%100</button><input data-hc7f="q" placeholder="Pinleri vurgula (sinyal, etiket, J1-3…)" value="${esc(HC7.q)}" style="width:220px" class="noi18n">${HC7.q ? '<button class="vb" data-hc7="clr">✕</button>' : ''}`; }
+function hcCabZoom(k){ const sv = $('#hcCabSvg'), wr = $('#hcCabWrap'); if(!sv || !wr) { HC7.ck = k; return; } const vb = sv.viewBox.baseVal, cx = (wr.scrollLeft + wr.clientWidth / 2) / HC7.ck, cy = (wr.scrollTop + wr.clientHeight / 2) / HC7.ck;
+  HC7.ck = Math.max(0.25, Math.min(4, k)); sv.setAttribute('width', Math.round(vb.width * HC7.ck)); sv.setAttribute('height', Math.round(vb.height * HC7.ck)); wr.scrollLeft = cx * HC7.ck - wr.clientWidth / 2; wr.scrollTop = cy * HC7.ck - wr.clientHeight / 2; }
+function hcCabFit(){ const sv = $('#hcCabSvg'), wr = $('#hcCabWrap'); if(!sv || !wr) return; const vb = sv.viewBox.baseVal; hcCabZoom(Math.min((wr.clientWidth - 4) / vb.width, (wr.clientHeight - 4) / vb.height || 1)); }
+(() => {
+  const V = $('#view'), onS = () => ST.cur === '@hcsys', onC = () => ST.cur === '@hccable';
+  let tm = 0;
+  const apply = () => { HC7C.key = ''; if(onS()){ renderView(); const b = document.querySelector('.vbar [data-hc7="clr"]'); if(!!b !== !!HC7.q) { const i = document.querySelector('[data-hc7f="q"]'), pos = i && i.selectionStart; renderViewBar(); const j = document.querySelector('[data-hc7f="q"]'); if(j){ j.focus(); try { j.setSelectionRange(pos, pos); } catch(e){} } } } else if(onC()){ const wr = $('#hcCabWrap'), sl = wr && [wr.scrollLeft, wr.scrollTop]; renderView(); const w2 = $('#hcCabWrap'); if(w2 && sl){ w2.scrollLeft = sl[0]; w2.scrollTop = sl[1]; } } };
+  document.addEventListener('input', ev => { if(!(onS() || onC()) || !ev.target.dataset || ev.target.dataset.hc7f !== 'q') return; HC7.q = ev.target.value; clearTimeout(tm); tm = setTimeout(apply, 180); });
+  document.addEventListener('keydown', ev => { if(ev.target.dataset && ev.target.dataset.hc7f === 'q'){ ev.stopPropagation(); if(ev.key === 'Escape'){ HC7.q = ''; ev.target.value = ''; apply(); } if(ev.key === 'Enter'){ const R = hcSearch(HC7.q); if(R && R.hits[0] && onS()) hcGoHit({u:R.hits[0].unit || '', c:R.hits[0].cable || '', p:R.hits[0].port || '', t:R.hits[0].test || ''}); } } }, true);
+  document.addEventListener('click', ev => {
+    if(!(onS() || onC())) return; const b = ev.target.closest && ev.target.closest('[data-hc7]'); if(!b) return; ev.preventDefault(); const a = b.dataset.hc7;
+    if(a === 'clr'){ HC7.q = ''; HC7C.key = ''; renderViewBar(); renderView(); return; }
+    if(a === 'tog'){ HC7.open = !HC7.open; renderView(); return; }
+    if(a === 'cat'){ HCS.catF = b.dataset.k; renderViewBar(); renderView(); return; }
+    if(a === 'go') return hcGoHit({u:b.dataset.u, c:b.dataset.c, p:b.dataset.p, t:b.dataset.t, f:b.dataset.f});
+    if(a === 'pdf') return hcViewPdf();
+    if(a === 'cin') return hcCabZoom(HC7.ck * 1.25);
+    if(a === 'cout') return hcCabZoom(HC7.ck / 1.25);
+    if(a === 'c100') return hcCabZoom(1);
+    if(a === 'cfit') return hcCabFit();
+  });
+  /* panel üzerindeki fare olayları şemayı sürüklemesin / yakınlaştırmasın */
+  V.addEventListener('mousedown', ev => { if(onS() && ev.target.closest && ev.target.closest('#hc7Panel')) ev.stopPropagation(); }, true);
+  V.addEventListener('wheel', ev => { if(onS() && ev.target.closest && ev.target.closest('#hc7Panel')) ev.stopPropagation();
+    if(onC() && ev.ctrlKey && ev.target.closest && ev.target.closest('#hcCabWrap')){ ev.preventDefault(); hcCabZoom(HC7.ck * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)); } }, {capture:true, passive:false});
+  /* kablo şemasında boş alanı sürükleyerek kaydır */
+  let pan = null;
+  V.addEventListener('mousedown', ev => { if(!onC() || ev.button !== 0) return; const wr = ev.target.closest && ev.target.closest('#hcCabWrap'); if(!wr) return; pan = {wr, x:ev.clientX, y:ev.clientY, l:wr.scrollLeft, t:wr.scrollTop}; wr.style.cursor = 'grabbing'; ev.preventDefault(); });
+  window.addEventListener('mousemove', ev => { if(!pan) return; pan.wr.scrollLeft = pan.l - (ev.clientX - pan.x); pan.wr.scrollTop = pan.t - (ev.clientY - pan.y); });
+  window.addEventListener('mouseup', () => { if(pan){ pan.wr.style.cursor = 'grab'; pan = null; } });
+})();
+/* Kablo tablosu satırlarını da vurgula */
+{ const rC = VIEWS['@hccable'].render; VIEWS['@hccable'].render = () => { let h = rC(); const R = HC7.q ? hcSearch(HC7.q) : null, c = HCS.cab && hcR().cables[HCS.cab]; if(!R || !c) return h;
+  const lit = new Set(c.wires.filter(w => [w.a, w.b].some(e => { const pe = hcEndPin(c, e); return pe && R.pins.has(pe.port.id + '|' + (pe.no || e.pin)); })).map(w => w.id));
+  lit.forEach(id => { h = h.replace(new RegExp(`<tr class="([^"]*)"(><td><b>[^<]*</b></td><td><select data-hcwf="${id}\\|a")`), '<tr class="$1" style="background:#fff2c4"$2'); });
+  return h.replace('<div class="hcsec">Teller', `<div class="muted" style="font-size:12px;margin:4px 0">"${esc(R.q)}": bu kabloda ${lit.size} tel vurgulu</div><div class="hcsec">Teller`); }; }
 /* ================= v1.18: İNGİLİZCE ARAYÜZ (TR | EN) ================= */
 /* Arayüz metinleri sözlükle çevrilir: tam eşleşme + yer tutuculu kalıplar ({0}…). Model içeriği (adlar, gereksinim metinleri),
    diyagram tuvali ve çıktılar (Word, Excel, ReqIF, PDF) çevrilmez. Türkçe metinler kodda olduğu gibi kalır. */
