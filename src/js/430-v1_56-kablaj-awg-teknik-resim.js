@@ -95,12 +95,13 @@ function hcBOM(c){
       const awgs = [...new Set(ws.map(x => x.awg || '?'))].join('/'); add(sh ? 'Ekranlı bükümlü kablaj' : 'Bükümlü kablaj', '', `M27500 tipi, ${ws.length} damarlı, ${awgs} AWG${sh ? ', ekranlı + ceketli' : ''}`, len ? len : 1, len ? 'm' : 'adet (uzunluk girilmedi)'); }
     else add('Hat', `M22759/16-${w.awg || '?'} (örnek)`, `${w.awg || '?'} AWG, ETFE yalıtımlı kalaylı bakır${w.shield ? ' (ekranlı)' : ''}`, len ? len : 1, len ? 'm' : 'adet (uzunluk girilmedi)'); });
   const sps = c.nodes.filter(n => n.kind === 'splice'); if(sps.length) add('Splice', 'M81824/1 (örnek)', 'Kıvırmalı splice, ısı ile daralan kılıflı', sps.length, 'adet');
-  const nc = c.nodes.filter(n => n.kind === 'conn').length;
+  c.nodes.filter(n => n.kind === 'free').forEach(n => add('Bağımsız uç', n.pn || '', [n.ft, n.col].filter(Boolean).join(', ') + ' (' + n.name + ')', 1, 'adet'));   /* v1.65 test kablajı: banana jack vb. */
+  const nc = c.nodes.filter(n => n.kind === 'conn' || n.kind === 'free').length;
   add('Kimlik etiketi', '', `Kablaj kimlik markörü (${c.name})`, nc + 1, 'adet');
   add('Isı ile daralan makaron', '', 'Konnektör çıkışı / dallanma', nc + sps.length, 'adet');
   return rows.map((r, i) => Object.assign(r, {no:i + 1}));
 }
-function hcWireList(c){ return c.wires.map((w, i) => ({w, name:hcWireName(c, i), a:hcEndLabel(c, w.a), b:hcEndLabel(c, w.b), sig:(() => { const pe = hcEndPin(c, w.a) || hcEndPin(c, w.b); return pe ? pe.d.sig || (hcLabel(pe.d.lbl) || {}).name || '' : ''; })()})).filter(x => x.w.on !== false); }
+function hcWireList(c){ const nets = hcNets(c); return c.wires.map((w, i) => ({w, name:hcWireName(c, i), a:hcEndLabel(c, w.a), b:hcEndLabel(c, w.b), sig:(() => { const pe = hcWirePin(c, w, nets); return pe ? pe.d.sig || (hcLabel(pe.d.lbl) || {}).name || '' : ''; })()})).filter(x => x.w.on !== false); }
 function hcBomXlsx(cs){
   const S = [];
   cs.forEach(c => {
@@ -113,7 +114,7 @@ function hcBomXlsx(cs){
 /* ---------- teknik resim sayfaları (A3 yatay, 1587 × 1123) ---------- */
 const HC_PW = 1587, HC_PH = 1123, HC_TBW = 577, HC_TBH = 150;
 const hcT = (x, y, s, o) => `<text x="${x}" y="${y}" font-size="${(o && o.fs) || 11}"${o && o.b ? ' font-weight="700"' : ''}${o && o.a ? ` text-anchor="${o.a}"` : ''} fill="${(o && o.c) || '#111'}">${esc(s)}</text>`;
-function hcDwg(c){ return Object.assign({no:c.name, title:'Kablaj ' + c.name, rev:'A', by:'', chk:'', appr:'', date:new Date().toLocaleDateString('tr-TR')}, c.dwg || {}); }
+function hcDwg(c){ return Object.assign({no:c.name, title:(c.test ? 'Test kablajı ' : 'Kablaj ') + c.name, rev:'A', by:'', chk:'', appr:'', date:new Date().toLocaleDateString('tr-TR')}, c.dwg || {}); }
 function hcTitleBlock(c, page, pages, sub){
   const d = hcDwg(c), x = HC_PW - 20 - HC_TBW, y = HC_PH - 20 - HC_TBH, sec = typeof secLabel === 'function' ? secLabel() : '', proj = E(M.rootId) ? E(M.rootId).name : '';
   const cell = (cx, cy, w, h, lab, val, fs) => `<rect x="${cx}" y="${cy}" width="${w}" height="${h}" fill="none" stroke="#111" stroke-width="0.8"/>${hcT(cx + 4, cy + 11, lab, {fs:8, c:'#555'})}${hcT(cx + 6, cy + h - 7, val, {fs:fs || 12, b:true})}`;
@@ -138,7 +139,8 @@ function hcDrawingPages(c){
   const bomH = RH + 2 + bom.length * RH, bomY = HC_PH - 20 - HC_TBH - 14 - bomH - 18, colX = HC_PW - 20 - HC_TBW;
   const wlY = 54, wlMax = Math.max(0, Math.floor((bomY - 30 - wlY - RH - 2) / RH)), first = wl.slice(0, wlMax), rest = wl.slice(wlMax);
   const aw = colX - 50, ah = HC_PH - 80, r = hcCableSVG(c, {exp:true, w:Math.round(aw)}), k = Math.min(aw / r.w, ah / r.h, 1.3);
-  const notes = [`Kablaj maks. uzunluğu: ${c.len ? c.len + ' m' : 'belirtilmedi'}`].concat(c.note ? [c.note] : []);
+  const fr = c.nodes.filter(n => n.kind === 'free');
+  const notes = (c.test ? ['TEST KABLAJI — sistem kablaj şemasında yer almaz'] : []).concat([`Kablaj maks. uzunluğu: ${c.len ? c.len + ' m' : 'belirtilmedi'}`]).concat(fr.length ? ['Bağımsız uçlar: ' + fr.map(n => n.name + ' ' + [n.ft, n.col].filter(Boolean).join(' ') + (hcFreePins(n).some(q => q.sig) ? ' (' + hcFreePins(n).map(q => q.sig).filter(Boolean).join(', ') + ')' : '')).join(' · ')] : []).concat(c.note ? [c.note] : []);
   const conns = Math.ceil(c.nodes.filter(n => n.kind === 'conn').length / 3), restPages = Math.ceil(rest.length / 60);
   const total = 1 + restPages + Math.max(1, conns);
   let p1 = `${hcT(30, 40, 'PİN PİN BAĞLANTI ŞEMASI — ' + c.name, {fs:14, b:true})}<g transform="translate(30,${54}) scale(${k})">${r.svg}</g>`;
@@ -196,10 +198,10 @@ async function hcDrawingPdf(cables, separate){
   else download(await make(cables), fileSafe(cables.length === 1 ? hcDwg(cables[0]).no + ' - teknik resim' : (E(M.rootId) ? E(M.rootId).name : 'Model') + ' - kablaj teknik resimleri') + '.pdf');
 }
 function hcDrawingDialog(pre){
-  const cs = hcCables(); if(!cs.length) return toast('Kablaj yok');
+  const cs = hcCables().concat(hcTestCables()); if(!cs.length) return toast('Kablaj yok');   /* test kablajları sonda, yalnız istenirse seçili */
   const box = $('#modalBox'); box.style.width = 'min(560px, 94vw)'; box.style.maxWidth = 'none';
   box.innerHTML = `<h2>Teknik resim oluştur</h2><p class="muted" style="font-size:12px;margin:-4px 0 8px">Her kablaj için A3 yatay: pin pin bağlantı şeması, hat listesi, sağ altta BOM ve antet; ayrı sayfada konnektör görünümleri.</p>
-    <div style="max-height:46vh;overflow:auto;border:1px solid #dde;border-radius:4px;padding:6px">${cs.map(c => { const s = hcCableStats(c); return `<label style="display:block;font-size:13px;padding:2px 0"><input type="checkbox" data-hcd="${c.id}"${!pre || pre.includes(c.id) ? ' checked' : ''}> <b>${esc(c.name)}</b> <span class="muted">${c.nodes.filter(n => n.kind === 'conn').map(n => esc(hcNodeLabel(c, n))).join(' ↔ ')} · ${s.wires} hat${s.nE ? ' · ✖ ' + s.nE : ''}</span></label>`; }).join('')}</div>
+    <div style="max-height:46vh;overflow:auto;border:1px solid #dde;border-radius:4px;padding:6px">${cs.map(c => { const s = hcCableStats(c); return `<label style="display:block;font-size:13px;padding:2px 0"><input type="checkbox" data-hcd="${c.id}"${pre ? pre.includes(c.id) ? ' checked' : '' : c.test ? '' : ' checked'}> <b>${esc(c.name)}</b>${c.test ? ' <span class="hcchip" style="background:#16a085">test</span>' : ''} <span class="muted">${c.nodes.filter(n => n.kind !== 'splice').map(n => esc(hcNodeLabel(c, n, n.kind === 'free'))).join(' ↔ ')} · ${s.wires} hat${s.nE ? ' · ✖ ' + s.nE : ''}</span></label>`; }).join('')}</div>
     <p style="font-size:12px;margin:6px 0"><a href="#" id="hcDAll">Tümünü seç</a> · <a href="#" id="hcDNone">Hiçbirini seçme</a></p>
     <p style="text-align:right;margin:12px 0 0"><button class="pbtn" id="hcDC">Vazgeç</button> <button class="pbtn" id="hcDX" title="Seçili kablajların BOM ve hat listesi">Excel (BOM + hatlar)</button> <button class="pbtn" id="hcDS">Her kablaj ayrı PDF</button> <button class="pbtn pri" id="hcDO">Tek PDF</button></p>`;
   $('#modal').style.display = 'flex';
@@ -238,4 +240,4 @@ function hcDrawingDialog(pre){
 if(typeof MENU_ADV !== 'undefined') MENU_ADV.analysis = new RegExp(MENU_ADV.analysis.source + '|^Kablaj teknik resimleri');
 if(typeof WF_STEPS !== 'undefined'){ const s = WF_STEPS.find(x => /kablajı tasarla/.test(x.t)); if(s) s.a.push(['Teknik resim (PDF)', /^Kablaj teknik resimleri/]); }
 /* AWG önerisinden kalın gereken hat: model doğrulamada uyarı */
-VALIDATORS.push(add => { if(!M.hrn) return; hcCables().forEach(c => { const nets = hcNets(c); c.wires.forEach((w, i) => { if(w.on === false) return; const s = hcAwgSuggest(c, w, nets); if(!s.ok) add('uyarı', 'Kablaj AWG', null, `${c.name} ${hcWireName(c, i)}: ${s.why[s.why.length - 1]}`); else if(w.awg && +w.awg > s.rec) add('uyarı', 'Kablaj AWG', null, `${c.name} ${hcWireName(c, i)}: ${w.awg} AWG önerilen ${s.rec} AWG'den ince (${s.I} A)`); }); }); });
+VALIDATORS.push(add => { if(!M.hrn) return; hcAllCables().forEach(c => { const nets = hcNets(c); c.wires.forEach((w, i) => { if(w.on === false) return; const s = hcAwgSuggest(c, w, nets); if(!s.ok) add('uyarı', 'Kablaj AWG', null, `${c.name} ${hcWireName(c, i)}: ${s.why[s.why.length - 1]}`); else if(w.awg && +w.awg > s.rec) add('uyarı', 'Kablaj AWG', null, `${c.name} ${hcWireName(c, i)}: ${w.awg} AWG önerilen ${s.rec} AWG'den ince (${s.I} A)`); }); }); });

@@ -2,25 +2,57 @@
    Kablaj (M.hrn.cables[id]): {id, name, len, note, nodes:[{id, kind:'conn', port} | {id, kind:'splice', name}], wires:[{id, a:{n, pin}, b:{n, pin}, on, awg, color, grp, shield, note}]}
    - Bir birim konnektörü (port) en çok bir kablaja takılır. 2'den çok konnektör düğümü = dallanma (Y kablaj); splice düğümünde pin yoktur (pin '').
    - "on" false: hat tanımlı ama bağlı değil (combobox ile kaldırılır) — denetime ve sayımlara girmez.
-   - Net: açık (on) hatlarla birbirine bağlanan pin / splice uçları; uyumluluk net içindeki tüm pin çiftleri için denetlenir. */
-const hcCables = () => Object.values(hcR().cables || {}).sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric:true}));
+   - Net: açık (on) hatlarla birbirine bağlanan pin / splice uçları; uyumluluk net içindeki tüm pin çiftleri için denetlenir.
+   v1.65 test kablajı: c.test = true. Projeye aittir (kayıt, doğrulama, teknik resim) ama genel mimaride (sistem şeması, özet, mimariler, hat tablosu,
+   test kapsaması, arama) yer almaz: hcCables() yalnız işletim kablajlarını, hcTestCables() test kablajlarını, hcAllCables() hepsini verir.
+   Test kablajı, işletim kablajının takılı olduğu birim konnektörüne de takılabilir (birim test sırasında kablajından ayrılır).
+   Bağımsız uç düğümü {id, kind:'free', name, ft, col, pn, pins:[{no, sig}]}: banana jack, krokodil, test probu gibi birime bağlı olmayan uç. */
+const hcAllCables = () => Object.values(hcR().cables || {}).sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric:true}));
+const hcCables = () => hcAllCables().filter(c => !c.test);
+const hcTestCables = () => hcAllCables().filter(c => c.test);
+const HC_FREE_TYPES = ['Banana jack 4 mm', 'Banana jack 2 mm', 'Banana fiş 4 mm', 'Krokodil klips', 'Test probu', 'Test noktası (test point)', 'BNC', 'Halka / çatal terminal', 'Açık uç (izoleli)'];
+const HC_FREE_COLS = ['Kırmızı', 'Siyah', 'Mavi', 'Sarı', 'Yeşil', 'Beyaz', 'Turuncu'];
+const hcFreePins = n => (n.pins && n.pins.length ? n.pins : [{no:'1', sig:''}]);
 const hcNode = (c, nid) => (c.nodes || []).find(n => n.id === nid) || null;
 const hcCableOfPort = pid => hcCables().find(c => c.nodes.some(n => n.kind === 'conn' && n.port === pid)) || null;
 const hcCablesOfPort = pid => hcCables().filter(c => c.nodes.some(n => n.kind === 'conn' && n.port === pid));
-function hcNextCableName(){ const H = hcR(); let n = 1; const used = new Set(Object.values(H.cables || {}).map(c => c.name)); while(used.has('W' + n)) n++; return 'W' + n; }
+function hcNextCableName(pre){ const H = hcR(); pre = pre || 'W'; let n = 1; const used = new Set(Object.values(H.cables || {}).map(c => c.name)); while(used.has(pre + n)) n++; return pre + n; }
 function hcNodeLabel(c, n, short){
   if(!n) return '?';
   if(n.kind === 'splice') return n.name || 'SP';
+  if(n.kind === 'free') return (n.name || 'X') + (short || !n.ft ? '' : ' (' + n.ft + (n.col ? ', ' + n.col.toLocaleLowerCase('tr') : '') + ')');
   const p = E(n.port), u = p && E(p.owner); return p ? (short ? '' : (u ? u.name + ' · ' : '')) + p.name : '(silinmiş)';
 }
-const hcEndLabel = (c, e) => { const n = hcNode(c, e.n); return n && n.kind === 'splice' ? hcNodeLabel(c, n) : hcNodeLabel(c, n, true) + '-' + e.pin; };
-const hcEndLong = (c, e) => { const n = hcNode(c, e.n); return n && n.kind === 'splice' ? hcNodeLabel(c, n) : hcNodeLabel(c, n) + ' / ' + e.pin; };
+const hcFreeEnd = (n, e) => (n.name || 'X') + (hcFreePins(n).length > 1 ? '-' + e.pin : '');
+const hcEndLabel = (c, e) => { const n = hcNode(c, e.n); return n && n.kind === 'splice' ? hcNodeLabel(c, n) : n && n.kind === 'free' ? hcFreeEnd(n, e) : hcNodeLabel(c, n, true) + '-' + e.pin; };
+const hcEndLong = (c, e) => { const n = hcNode(c, e.n); return n && n.kind === 'splice' ? hcNodeLabel(c, n) : n && n.kind === 'free' ? hcFreeEnd(n, e) + (n.ft ? ' (' + n.ft + ')' : '') : hcNodeLabel(c, n) + ' / ' + e.pin; };
+/* düğümün pin listesi: konnektörde birim pinout'u, bağımsız uçta kendi kontakları */
+const hcNodePins = (c, n) => !n ? [] : n.kind === 'free' ? hcFreePins(n).map(q => ({no:String(q.no), size:'', d:{sig:q.sig || ''}})) : n.kind === 'conn' && E(n.port) && E(n.port).hc ? hcPins(E(n.port)) : [];
 function hcEndPin(c, e){ const n = hcNode(c, e.n); if(!n || n.kind !== 'conn') return null; const p = E(n.port); if(!p || !p.hc) return null; return {port:p, no:e.pin, d:(p.hc.pins || {})[e.pin] || {}}; }
 const hcWireName = (c, i) => c.name + '-' + String(i + 1).padStart(2, '0');
 /* ---------- kablaj oluşturma ve düzenleme ---------- */
-function hcNewCable(portIds, name){
-  const H = hcM(), id = 'cb' + uid(), c = {id, name:name || hcNextCableName(), len:'', note:'', nodes:[], wires:[]};
-  H.cables[id] = c; (portIds || []).forEach(pid => hcAddConnNode(c, pid, true)); return c;
+function hcNewCable(portIds, name, opt){
+  opt = opt || {}; const H = hcM(), id = 'cb' + uid(), c = {id, name:name || hcNextCableName(opt.test ? 'TW' : 'W'), len:'', note:'', nodes:[], wires:[]};
+  if(opt.test) c.test = true;
+  H.cables[id] = c; (portIds || []).forEach(pid => hcAddConnNode(c, pid, opt.auto !== false)); return c;
+}
+/* bağımsız uç (banana jack vb.): o = {name, ft, col, pn, n (kontak sayısı), sig} */
+function hcAddFree(c, o){
+  o = o || {}; const used = new Set(c.nodes.filter(n => n.kind === 'free').map(n => n.name)), pre = /banana/i.test(o.ft || 'Banana') ? 'BJ' : 'X'; let k = 1; while(used.has(pre + k)) k++;
+  const cnt = Math.max(1, Math.min(50, parseInt(o.n, 10) || 1)), n = {id:'n' + uid(), kind:'free', name:o.name || pre + k, ft:o.ft || HC_FREE_TYPES[0], col:o.col || '', pn:o.pn || '', pins:Array.from({length:cnt}, (_, i) => ({no:String(i + 1), sig:cnt === 1 ? o.sig || '' : ''}))};
+  c.nodes.push(n); return n;
+}
+/* hat ekle; uçlardan biri bağımsız uçsa ve diğer uç (pin) zaten bir hatta bağlıysa hat splice'a bölünür (pin → SP → hedef + bağımsız uç) */
+function hcWireTo(c, a, b, extra){
+  const na = hcNode(c, a.n), nb = hcNode(c, b.n); if(!na || !nb) return null;
+  const freeEnd = na.kind === 'free' ? a : nb.kind === 'free' ? b : null, pinEnd = freeEnd === a ? b : a, pn = hcNode(c, pinEnd.n);
+  if(freeEnd && pn && pn.kind === 'conn'){ const k = hcEndKey(pinEnd), w = c.wires.find(w0 => w0.on !== false && (hcEndKey(w0.a) === k || hcEndKey(w0.b) === k));
+    if(w){ const oth = hcEndKey(w.a) === k ? w.b : w.a, on = hcNode(c, oth.n);
+      if(on && on.kind === 'splice') return hcAddWire(c, {n:on.id, pin:''}, freeEnd, Object.assign({awg:w.awg, color:w.color}, extra || {}));
+      const sp = hcAddSplice(c); if(hcEndKey(w.a) === k) w.b = {n:sp.id, pin:''}; else w.a = {n:sp.id, pin:''};
+      hcAddWire(c, {n:sp.id, pin:''}, oth, {awg:w.awg, color:w.color, grp:w.grp, shield:w.shield});
+      return hcAddWire(c, {n:sp.id, pin:''}, freeEnd, Object.assign({awg:w.awg, color:w.color}, extra || {})); } }
+  return hcAddWire(c, a, b, extra);
 }
 function hcAddConnNode(c, pid, auto){
   if(c.nodes.some(n => n.kind === 'conn' && n.port === pid)) return null;
@@ -86,7 +118,7 @@ const hcAwgRow = awg => (hcR().awg || []).find(r => +r.awg === +awg) || null;
 /* kablaj denetimi: [{sev, msg, w (hat id) | n (düğüm id)}] */
 function hcCableIssues(c){
   const out = [], push = (sev, msg, ref) => out.push(Object.assign({sev, msg}, ref || {}));
-  c.nodes.forEach(n => { if(n.kind !== 'conn') return; const p = E(n.port); if(!p || !p.hc){ push('hata', 'Konnektör modelde yok (silinmiş)', {n:n.id}); return; } const o = hcCablesOfPort(p.id).filter(x => x.id !== c.id); if(o.length) push('hata', `${hcNodeLabel(c, n)} başka bir kablaja da takılı (${o.map(x => x.name).join(', ')})`, {n:n.id}); });
+  c.nodes.forEach(n => { if(n.kind !== 'conn') return; const p = E(n.port); if(!p || !p.hc){ push('hata', 'Konnektör modelde yok (silinmiş)', {n:n.id}); return; } const o = c.test ? [] : hcCablesOfPort(p.id).filter(x => x.id !== c.id); if(o.length) push('hata', `${hcNodeLabel(c, n)} başka bir kablaja da takılı (${o.map(x => x.name).join(', ')})`, {n:n.id}); });
   const nets = hcNets(c), seen = new Set();
   nets.forEach(net => {
     const pins = net.ends.map(e => Object.assign({e}, hcEndPin(c, e) || {})).filter(x => x.port);
@@ -96,8 +128,8 @@ function hcCableIssues(c){
         const w = c.wires.find(w0 => w0.on !== false && [hcEndKey(w0.a), hcEndKey(w0.b)].includes(hcEndKey(pins[i].e))) || {};
         push(sev, `${hcEndLabel(c, pins[i].e)} ↔ ${hcEndLabel(c, pins[j].e)}: ${m}`, {w:w.id}); });
     }
-    const sps = net.ends.filter(e => { const n = hcNode(c, e.n); return n && n.kind === 'splice'; });
-    if(sps.length && pins.length < 2) push('uyarı', `${sps.map(e => hcNodeLabel(c, hcNode(c, e.n))).join(', ')}: splice'a tek pin bağlı`);
+    const sps = net.ends.filter(e => { const n = hcNode(c, e.n); return n && n.kind === 'splice'; }), frees = net.ends.filter(e => { const n = hcNode(c, e.n); return n && n.kind === 'free'; });
+    if(sps.length && pins.length + frees.length < 2) push('uyarı', `${sps.map(e => hcNodeLabel(c, hcNode(c, e.n))).join(', ')}: splice'a tek pin bağlı`);
   });
   /* hat denetimi: aynı uç birden çok hatta, akım / AWG, kontak AWG aralığı */
   const useCnt = new Map(); c.wires.filter(w => w.on !== false).forEach(w => [w.a, w.b].forEach(e => { const n = hcNode(c, e.n); if(n && n.kind === 'conn'){ const k = hcEndKey(e); useCnt.set(k, (useCnt.get(k) || 0) + 1); } }));
@@ -116,13 +148,21 @@ function hcCableIssues(c){
     if(gs.length > 1){ const bad = ws.filter(w => { const r = hcAwgRow(w.awg); return r && hcWireCurrent(c, w, nets) > r.bundle; });
       push(bad.length ? 'uyarı' : 'bilgi', `${n.name}: AWG geçişi (${gs.sort((a, b) => a - b).join(' / ')}) — ${bad.length ? bad.length + ' hat akım sınırını aşıyor' : 'tüm hatlar akım sınırı içinde ✓'}`, {n:n.id}); }
   });
+  /* bağımsız uçlar: hat bağlı değilse bilgi */
+  c.nodes.filter(n => n.kind === 'free').forEach(n => { const nw = c.wires.filter(w => w.on !== false && (w.a.n === n.id || w.b.n === n.id)).length; if(!nw) push('bilgi', `${n.name}: bağımsız uca hat bağlı değil`, {n:n.id}); });
   /* bağlanmamış dolu pinler */
   c.nodes.filter(n => n.kind === 'conn').forEach(n => { const p = E(n.port); if(!p || !p.hc) return; const free = hcPins(p).filter(x => hcPinUsed(x.d) && !useCnt.has(n.id + '|' + x.no)); if(free.length) push('bilgi', `${hcNodeLabel(c, n)}: ${free.length} dolu pin bu kablajda bağlı değil (${free.slice(0, 8).map(x => x.no).join(', ')}${free.length > 8 ? '…' : ''})`, {n:n.id}); });
   return out;
 }
+/* hattın temsil ettiği pin: uçlardan biri; iki ucu da pin değilse (splice ↔ bağımsız uç) netteki ilk pin */
+function hcWirePin(c, w, nets){
+  const pe = hcEndPin(c, w.a) || hcEndPin(c, w.b); if(pe || w.on === false) return pe;
+  const net = (nets || hcNets(c)).find(x => x.keys.includes(hcEndKey(w.a))); if(!net) return null;
+  for(const e of net.ends){ const p = hcEndPin(c, e); if(p) return p; } return null;
+}
 function hcCableStats(c){
-  const on = c.wires.filter(w => w.on !== false), byCat = {};
-  on.forEach(w => { const pe = hcEndPin(c, w.a) || hcEndPin(c, w.b); const k = pe ? hcPinCat(pe.d) : ''; byCat[k] = (byCat[k] || 0) + 1; });
+  const on = c.wires.filter(w => w.on !== false), byCat = {}, nets = hcNets(c);
+  on.forEach(w => { const pe = hcWirePin(c, w, nets); const k = pe ? hcPinCat(pe.d) : ''; byCat[k] = (byCat[k] || 0) + 1; });
   const iss = hcCableIssues(c);
   return {wires:on.length, off:c.wires.length - on.length, byCat, iss, nE:iss.filter(x => x.sev === 'hata').length, nW:iss.filter(x => x.sev === 'uyarı').length};
 }
@@ -199,7 +239,7 @@ function hcSysHTML(){
   const r = hcSysSVG(), cs = hcCables(), tot = cs.reduce((a, c) => { const s = hcCableStats(c); a.w += s.wires; a.e += s.nE; a.u += s.nW; return a; }, {w:0, e:0, u:0});
   return `<div id="hcSysWrap" style="position:relative;height:calc(100vh - 150px);overflow:hidden;background:#fafbfc;background-image:radial-gradient(#dfe3ea 1px, transparent 1px);background-size:20px 20px">
     <svg id="hcSys" width="100%" height="100%" style="user-select:none"><g id="hcSysG" transform="translate(${HCS.tx},${HCS.ty}) scale(${HCS.k})">${r.svg}</g><path id="hcLink" d="" stroke="#2e86de" stroke-width="2" stroke-dasharray="5 4" fill="none" style="pointer-events:none"/></svg>
-    <div style="position:absolute;left:10px;bottom:8px;font-size:11px;background:#fffc;padding:3px 8px;border-radius:4px;color:#556">${cs.length} kablaj · ${tot.w} hat${tot.e ? ` · <span style="color:#c0392b">✖ ${tot.e} hata</span>` : ''}${tot.u ? ` · <span style="color:#b9770e">⚠ ${tot.u} uyarı</span>` : ''} — Bağlamak için konnektörün yanındaki ● noktasından başka bir konnektöre sürükleyin · kablajı açmak için çift tıklayın · tekerlek: yakınlaştır · boş alanı sürükle: kaydır</div></div>`;
+    <div style="position:absolute;left:10px;bottom:8px;font-size:11px;background:#fffc;padding:3px 8px;border-radius:4px;color:#556">${cs.length} kablaj · ${tot.w} hat${tot.e ? ` · <span style="color:#c0392b">✖ ${tot.e} hata</span>` : ''}${tot.u ? ` · <span style="color:#b9770e">⚠ ${tot.u} uyarı</span>` : ''}${hcTestCables().length ? ` · <a href="#" data-hsa="tests" title="Test kablajları genel mimaride gösterilmez">${hcTestCables().length} test kablajı (mimaride gösterilmez)</a>` : ''} — Bağlamak için konnektörün yanındaki ● noktasından başka bir konnektöre sürükleyin · kablajı açmak için çift tıklayın · tekerlek: yakınlaştır · boş alanı sürükle: kaydır</div></div>`;
 }
 function hcSysBar(){
   const c = HCS.sel && hcR().cables[HCS.sel];
@@ -215,15 +255,16 @@ function hcFit(){
 /* ---------- kablaj detayı: pin pin bağlantı şeması ---------- */
 const HC_TW = 250, HC_TH = 40, HC_PR = 17;
 function hcCableSVG(c, opt){
-  opt = opt || {}; const conns = c.nodes.filter(n => n.kind === 'conn'), sps = c.nodes.filter(n => n.kind === 'splice');
-  const shown = n => { const p = E(n.port); if(!p || !p.hc) return []; const wired = new Set(c.wires.flatMap(w => [w.a, w.b]).filter(e => e.n === n.id).map(e => e.pin)); return hcPins(p).filter(x => hcPinUsed(x.d) || wired.has(x.no)); };
-  const L = conns.slice(0, 1), R = conns.slice(1), W = opt.w || 980, pos = {};
+  opt = opt || {}; const conns = c.nodes.filter(n => n.kind === 'conn'), sps = c.nodes.filter(n => n.kind === 'splice'), frees = c.nodes.filter(n => n.kind === 'free');
+  const shown = n => { if(n.kind === 'free') return hcNodePins(c, n); const p = E(n.port); if(!p || !p.hc) return []; const wired = new Set(c.wires.flatMap(w => [w.a, w.b]).filter(e => e.n === n.id).map(e => e.pin)); return hcPins(p).filter(x => hcPinUsed(x.d) || wired.has(x.no)); };
+  const L = conns.slice(0, 1), R = conns.slice(1).concat(frees), W = opt.w || 980, pos = {};
   let yL = 20, yR = 20;
-  const table = (n, x, y, side) => { const p = E(n.port), u = p && E(p.owner), t = p && hcType(p.hc.ct), rows = shown(n); pos[n.id] = {x, y, side, rows:{}};
-    let s = `<g><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH + Math.max(1, rows.length) * HC_PR + 4}" fill="#fff" stroke="#34495e" stroke-width="1.2"/><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH}" fill="#34495e"/>
-      <text x="${x + 8}" y="${y + 16}" fill="#fff" font-size="12.5" font-weight="700">${esc(u ? u.name : '?')} · ${esc(p ? p.name : '?')}</text><text x="${x + 8}" y="${y + 32}" fill="#cfd8e3" font-size="10">${esc(t ? [t.pn || t.name, t.mate ? 'kablaj ucu: ' + t.mate : ''].filter(Boolean).join(' · ') : 'tip seçilmedi')}</text>`;
+  const table = (n, x, y, side) => { const fr = n.kind === 'free', p = fr ? null : E(n.port), u = p && E(p.owner), t = p && hcType(p.hc.ct), rows = shown(n); pos[n.id] = {x, y, side, rows:{}};
+    const hc0 = fr ? '#16a085' : '#34495e', t1 = fr ? n.name || 'X' : `${u ? u.name : '?'} · ${p ? p.name : '?'}`, t2 = fr ? [n.ft, n.col, n.pn].filter(Boolean).join(' · ') + ' — bağımsız uç' : t ? [t.pn || t.name, t.mate ? 'kablaj ucu: ' + t.mate : ''].filter(Boolean).join(' · ') : 'tip seçilmedi';
+    let s = `<g><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH + Math.max(1, rows.length) * HC_PR + 4}" fill="#fff" stroke="${hc0}" stroke-width="1.2"/><rect x="${x}" y="${y}" width="${HC_TW}" height="${HC_TH}" fill="${hc0}"/>
+      <text x="${x + 8}" y="${y + 16}" fill="#fff" font-size="12.5" font-weight="700">${esc(t1)}</text><text x="${x + 8}" y="${y + 32}" fill="#e3ece9" font-size="10">${esc(t2)}</text>`;
     rows.forEach((r, i) => { const yy = y + HC_TH + i * HC_PR, cat = hcCat(hcPinCat(r.d)), lb = hcLabel(r.d.lbl); pos[n.id].rows[r.no] = yy + HC_PR / 2 + 2;
-      const hlP = !opt.exp && typeof hcSearchRes === 'function' && (hcSearchRes({}) || {pins:new Set()}).pins.has(p.id + '|' + r.no);
+      const hlP = !opt.exp && p && typeof hcSearchRes === 'function' && (hcSearchRes({}) || {pins:new Set()}).pins.has(p.id + '|' + r.no);
       s += `<rect x="${x}" y="${yy + 2}" width="${HC_TW}" height="${HC_PR}" fill="${hlP ? '#ffe9a8' : i % 2 ? '#f6f8fb' : '#fff'}"/><rect x="${side > 0 ? x + HC_TW - 4 : x}" y="${yy + 2}" width="4" height="${HC_PR}" fill="${cat ? cat.col : '#ccc'}"/>
         <text x="${x + 10}" y="${yy + 14}" font-size="11" font-weight="700">${esc(r.no)}</text><text x="${x + 40}" y="${yy + 14}" font-size="11">${esc((r.d.sig || '').slice(0, 20))}</text><text x="${x + 170}" y="${yy + 14}" font-size="10" fill="#667">${esc(lb ? lb.name.slice(0, 13) : '')}</text>`; });
     return s + '</g>'; };
@@ -248,8 +289,9 @@ function hcCableSVG(c, opt){
     if(A.side && B.side){ const X = chan.get(w.id); if(X == null) return `M${A.x},${A.y} H${B.x}`; const xx = A.side === B.side ? (A.side > 0 ? Math.max(A.x, B.x) + 24 + Math.abs(X - W / 2) : Math.min(A.x, B.x) - 24 - Math.abs(X - W / 2)) : X; return `M${A.x},${A.y} H${xx} V${B.y} H${B.x}`; }
     const S = A.side ? B : A, P = A.side ? A : B; if(!P.side){ return `M${A.x},${A.y} H${(A.x + B.x) / 2} V${B.y} H${B.x}`; }
     const b = busOf(S, P); return `M${P.x},${P.y} H${b.x} V${S.y} H${S.x}`; };
+  const nets0 = hcNets(c);
   c.wires.forEach((w, i) => { const A = ept(w.a), B = ept(w.b); if(!A || !B) return;
-    const pe = hcEndPin(c, w.a) || hcEndPin(c, w.b), cat = pe && hcCat(hcPinCat(pe.d)), lv = wIss.get(w.id) || 0, col = w.on === false ? '#aab' : lv === 2 ? '#c0392b' : lv === 1 ? '#d68910' : cat ? cat.col : '#444';
+    const pe = hcWirePin(c, w, nets0), cat = pe && hcCat(hcPinCat(pe.d)), lv = wIss.get(w.id) || 0, col = w.on === false ? '#aab' : lv === 2 ? '#c0392b' : lv === 1 ? '#d68910' : cat ? cat.col : '#444';
     const d = route(w, A, B);
     const lab = hcWireName(c, i) + (w.awg ? ' · ' + w.awg + ' AWG' : '') + (w.grp ? ' · ' + w.grp : '');
     wires += `<g ${opt.exp ? '' : `data-hcwire="${w.id}"`}><path d="${d}" fill="none" stroke="${col}" stroke-width="${w.on === false ? 1 : 1.6}"${w.on === false ? ' stroke-dasharray="4 3"' : ''}/>${opt.labels === false ? '' : (() => { const L0 = A.side ? A : B; return `<text x="${L0.x + (L0.side >= 0 ? 6 : -6)}" y="${L0.y - 3}" font-size="8.5" fill="${col}" text-anchor="${L0.side >= 0 ? 'start' : 'end'}">${esc(lab)}</text>`; })()}</g>`; });
@@ -261,33 +303,35 @@ function hcCableHTML(){
   const c = HCS.cab && hcR().cables[HCS.cab];
   if(!c) return `<div style="padding:14px" class="muted">Kablaj seçilmedi. Sistem şemasında bir kablaja çift tıklayın veya üstten seçin.</div>`;
   const r = hcCableSVG(c), st = hcCableStats(c), aw = (hcR().awg || []).map(x => x.awg);
-  const free = Object.values(M.els).filter(e => hcIsConn(e) && !hcCableOfPort(e.id)).sort((a, b) => (E(a.owner) ? E(a.owner).name : '').localeCompare(E(b.owner) ? E(b.owner).name : '', 'tr') || String(a.name).localeCompare(String(b.name), 'tr', {numeric:true}));
-  const endOpts = cur => { let o = hcOpt('', '—', cur); c.nodes.forEach(n => { if(n.kind === 'splice') o += hcOpt(n.id + '|', n.name, cur); else { const p = E(n.port); if(!p) return; o += `<optgroup label="${esc(hcNodeLabel(c, n))}">${hcPins(p).map(x => hcOpt(n.id + '|' + x.no, hcNodeLabel(c, n, true) + '-' + x.no + (x.d.sig ? ' ' + x.d.sig : ''), cur)).join('')}</optgroup>`; } }); return o; };
+  const free = Object.values(M.els).filter(e => hcIsConn(e) && (c.test ? !c.nodes.some(n => n.kind === 'conn' && n.port === e.id) : !hcCableOfPort(e.id))).sort((a, b) => (E(a.owner) ? E(a.owner).name : '').localeCompare(E(b.owner) ? E(b.owner).name : '', 'tr') || String(a.name).localeCompare(String(b.name), 'tr', {numeric:true}));
+  const endOpts = cur => { let o = hcOpt('', '—', cur); c.nodes.forEach(n => { if(n.kind === 'splice') o += hcOpt(n.id + '|', n.name, cur); else if(n.kind === 'free') o += `<optgroup label="${esc(hcNodeLabel(c, n))}">${hcNodePins(c, n).map(x => hcOpt(n.id + '|' + x.no, hcFreeEnd(n, {pin:x.no}) + (x.d.sig ? ' ' + x.d.sig : ''), cur)).join('')}</optgroup>`; else { const p = E(n.port); if(!p) return; o += `<optgroup label="${esc(hcNodeLabel(c, n))}">${hcPins(p).map(x => hcOpt(n.id + '|' + x.no, hcNodeLabel(c, n, true) + '-' + x.no + (x.d.sig ? ' ' + x.d.sig : ''), cur)).join('')}</optgroup>`; } }); return o; };
   let h = `<div style="padding:10px">
     <div class="hcform" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-top:0">
       <label>Kablaj adı<input data-hck2="name" value="${esc(c.name)}" class="noi18n"></label><label>Maks. uzunluk (m)<input data-hck2="len" value="${esc(c.len == null ? '' : c.len)}"></label><label>Not<input data-hck2="note" value="${esc(c.note || '')}"></label>
-      <label>Uçlar<span style="font-size:12px;color:#223;padding-top:4px">${c.nodes.map(n => `<span class="hcchip" style="background:${n.kind === 'splice' ? '#34495e' : '#2e86de'}">${esc(hcNodeLabel(c, n))} <a data-hca2="nrm" data-n="${n.id}" style="cursor:pointer;color:#fff" title="Uçu kablajdan çıkar">✕</a></span>`).join(' ')}</span></label></div>
+      <label title="Test kablajı projede saklanır, doğrulanır ve teknik resmi alınır; sistem şemasında, özette, mimarilerde, hat tablosunda ve test kapsamasında yer almaz">Kablaj türü<span style="font-size:12px;padding-top:4px"><input type="checkbox" data-hck2="test"${c.test ? ' checked' : ''} style="width:auto"> Test kablajı (genel mimaride görünmez)</span></label>
+      <label>Uçlar<span style="font-size:12px;color:#223;padding-top:4px">${c.nodes.map(n => `<span class="hcchip" style="background:${n.kind === 'splice' ? '#34495e' : n.kind === 'free' ? '#16a085' : '#2e86de'}">${esc(hcNodeLabel(c, n))} ${n.kind === 'free' ? `<a data-hca2="fedit" data-n="${n.id}" style="cursor:pointer;color:#fff" title="Bağımsız ucu düzenle">✎</a> ` : ''}<a data-hca2="nrm" data-n="${n.id}" style="cursor:pointer;color:#fff" title="Uçu kablajdan çıkar">✕</a></span>`).join(' ')}</span></label></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;margin-bottom:6px">
       <label>Dal ekle <select data-hcf2="branch" class="noi18n">${hcOpt('', '— konnektör seçin —', '')}${free.map(p => hcOpt(p.id, (E(p.owner) ? E(p.owner).name + ' · ' : '') + p.name, '')).join('')}</select></label>
-      <button class="vb" data-hca2="splice">+ Splice</button><button class="vb" data-hca2="auto" title="Bağlanmamış dolu pinleri etiket ve eşleşme kurallarına göre bağla">Etiketlere göre eşle</button>
+      <button class="vb" data-hca2="splice">+ Splice</button><button class="vb" data-hca2="free" title="Birime bağlı olmayan uç: banana jack, krokodil, test probu…">+ Bağımsız uç</button><button class="vb" data-hca2="auto" title="Bağlanmamış dolu pinleri etiket ve eşleşme kurallarına göre bağla">Etiketlere göre eşle</button>
       <span class="vsep"></span><label>Tümüne AWG <select data-hcf2="awgAll">${hcOpt('', '—', '')}${aw.map(a => hcOpt(a, a + ' AWG', '')).join('')}</select></label></div>`;
   if(st.iss.length) h += `<div style="background:#fdf6ec;border:1px solid #f0d9b5;color:#7a4b0b;font-size:12px;padding:5px 8px;border-radius:4px;margin-bottom:6px;max-height:110px;overflow:auto">${st.iss.map(x => `<span style="color:${x.sev === 'hata' ? '#c0392b' : x.sev === 'uyarı' ? '#b9770e' : '#2e6da4'}">${hcSev(x.sev)}</span> ${esc(x.msg)}`).join('<br>')}</div>`;
   h += `<div id="hcCabWrap" style="border:1px solid #dde;border-radius:6px;background:#fff;overflow:auto;max-height:52vh;cursor:grab"><svg id="hcCabSvg" width="${Math.round(r.w * (typeof HC7 !== 'undefined' ? HC7.ck : 1))}" height="${Math.round(r.h * (typeof HC7 !== 'undefined' ? HC7.ck : 1))}" viewBox="0 0 ${r.w} ${r.h}" style="display:block">${r.svg}</svg></div>`;
   h += `<div class="hcsec">Hatlar <span class="muted" style="font-weight:normal;font-size:12px">${st.wires} bağlı${st.off ? ', ' + st.off + ' bağlı değil' : ''}</span></div>
     <div style="max-height:40vh;overflow:auto"><table class="hcpt"><thead><tr><th>Hat</th><th>Uç A</th><th>Uç B</th><th>Sinyal / etiket</th><th>Durum</th><th>AWG</th><th>Renk</th><th>Bükümlü grup</th><th>Ekranlı</th><th>Akım</th><th>Denetim</th><th></th></tr></thead><tbody>`;
   const nets = hcNets(c), wi = new Map(); st.iss.forEach(x => { if(x.w){ const l = wi.get(x.w) || []; l.push(x); wi.set(x.w, l); } });
-  c.wires.forEach((w, i) => { const pe = hcEndPin(c, w.a) || hcEndPin(c, w.b), lb = pe && hcLabel(pe.d.lbl), I = hcWireCurrent(c, w, nets), is = wi.get(w.id) || [], a = f => `data-hcwf="${w.id}|${f}"`;
+  c.wires.forEach((w, i) => { const pe = hcWirePin(c, w, nets), lb = pe && hcLabel(pe.d.lbl), I = hcWireCurrent(c, w, nets), is = wi.get(w.id) || [], a = f => `data-hcwf="${w.id}|${f}"`;
     h += `<tr class="${w.on === false ? 'unused' : ''}"><td><b>${esc(hcWireName(c, i))}</b></td><td><select ${a('a')} style="min-width:120px">${endOpts(hcEndKey(w.a))}</select></td><td><select ${a('b')} style="min-width:120px">${endOpts(hcEndKey(w.b))}</select></td>
       <td>${esc(pe ? (pe.d.sig || '') + (lb ? ' (' + lb.name + ')' : '') : '')}</td><td><select ${a('on')}>${hcOpt('1', 'Bağlı', w.on === false ? '0' : '1')}${hcOpt('0', 'Bağlı değil', w.on === false ? '0' : '1')}</select></td>
       <td><select ${a('awg')}>${hcOpt('', '—', w.awg)}${aw.map(x => hcOpt(x, x, w.awg)).join('')}</select></td><td><input ${a('color')} value="${esc(w.color || '')}" style="width:70px"></td><td><input ${a('grp')} value="${esc(w.grp || '')}" style="width:70px" title="Aynı grup adını taşıyan hatlar bükümlü çift / üçlü olarak işaretlenir (ör. TP1)"></td>
       <td style="text-align:center"><input type="checkbox" ${a('shield')}${w.shield ? ' checked' : ''} style="width:auto"></td><td>${I ? I + ' A' : ''}</td>
       <td class="iss" title="${esc(is.map(x => x.msg).join('\n'))}">${is.map(x => `<span style="color:${x.sev === 'hata' ? '#c0392b' : x.sev === 'uyarı' ? '#b9770e' : '#2e86de'}">${hcSev(x.sev)}</span>`).join(' ')}</td><td><button class="vb" data-hca2="wdel" data-w="${w.id}">✕</button></td></tr>`; });
   h += `<tr><td class="muted">yeni</td><td><select id="hcNwA">${endOpts('')}</select></td><td><select id="hcNwB">${endOpts('')}</select></td><td colspan="9"><button class="vb" data-hca2="wadd">+ Hat ekle</button></td></tr></tbody></table></div>
-    <p class="muted" style="font-size:11px">Durum "Bağlı değil" seçilen hat tanımlı kalır ama denetime, sayımlara ve teknik resme bağlı olarak girmez. Dallanma için <b>Dal ekle</b>: eşleşen etiketli pin zaten bağlıysa hat otomatik olarak bir splice'a bölünür. Splice üzerindeki AWG geçişleri engellenmez; akım sınırı içinde kalıyorsa uygun olarak işaretlenir.</p></div>`;
+    <p class="muted" style="font-size:11px">${c.test ? '<b>Test kablajı:</b> genel mimaride görünmez; birim konnektörüne işletim kablajı takılıyken de eklenebilir. Bağımsız uca (banana jack) zaten bağlı bir pinden hat eklenirse hat otomatik olarak splice\'a bölünür. ' : ''}Durum "Bağlı değil" seçilen hat tanımlı kalır ama denetime, sayımlara ve teknik resme bağlı olarak girmez. Dallanma için <b>Dal ekle</b>: eşleşen etiketli pin zaten bağlıysa hat otomatik olarak bir splice'a bölünür. Splice üzerindeki AWG geçişleri engellenmez; akım sınırı içinde kalıyorsa uygun olarak işaretlenir.</p></div>`;
   return h;
 }
 function hcCableBar(){
-  return `<button class="vb" data-hsa="sys">◀ Sistem şeması</button><label>Kablaj <select data-hsf="cab" class="noi18n">${hcOpt('', '—', HCS.cab)}${hcCables().map(x => hcOpt(x.id, x.name + ' (' + x.nodes.filter(n => n.kind === 'conn').map(n => hcNodeLabel(x, n)).join(' ↔ ') + ')', HCS.cab)).join('')}</select></label>
+  const c0 = HCS.cab && hcR().cables[HCS.cab], o = x => hcOpt(x.id, x.name + ' (' + x.nodes.filter(n => n.kind !== 'splice').map(n => hcNodeLabel(x, n, n.kind === 'free')).join(' ↔ ') + ')', HCS.cab), ts = hcTestCables();
+  return `${c0 && c0.test ? '<button class="vb" data-hsa="tests">◀ Test kablajları</button>' : '<button class="vb" data-hsa="sys">◀ Sistem şeması</button>'}<label>Kablaj <select data-hsf="cab" class="noi18n">${hcOpt('', '—', HCS.cab)}${hcCables().map(o).join('')}${ts.length ? `<optgroup label="Test kablajları">${ts.map(o).join('')}</optgroup>` : ''}</select></label>
     <button class="vb" data-hsa="cdel" style="color:#c0392b"${HCS.cab ? '' : ' disabled'}>Kablajı sil</button>`;
 }
 VIEWS['@hcsys'] = {tr:'Kablaj Şeması', ic:'HRN', note:'Tüm birimler ve kablajlar tek şemada. Bir konnektörün yanındaki <b>●</b> noktasından başka bir konnektöre sürükleyerek kablaj oluşturun; pinler etiket ve eşleşme kurallarına göre otomatik bağlanır. Bir kablaja takılı konnektöre sürüklerseniz yeni konnektör o kablaja <b>dal</b> olarak eklenir.<br><br>Kablaja <b>çift tıklayın</b>: yalnız o kablajın pin pin şeması ve hat tablosu açılır. <b>Detaylı görünüm</b> düğmesi kablajlarda hat sayısını, hat tiplerini ve denetim sonuçlarını gösterir.<br><br>Kırmızı kablaj: eşleştirme hatası (farklı hat tipi, örtüşmeyen gerilim, iki çıkış); turuncu: uyarı.', render:hcSysHTML, bar:hcSysBar, status:() => hcCables().length + ' kablaj · ' + hcUnits().length + ' birim'};
@@ -299,7 +343,7 @@ const hcOpenCable = id => { HCS.cab = id; HCS.sel = id; openD('@hccable'); };
 { const _m = hcLibMenu; hcLibMenu = () => _m().concat([{t:'Kablaj şeması', f:() => openD('@hcsys')}]); }
 if(typeof MENU_ADV !== 'undefined') MENU_ADV.analysis = new RegExp(MENU_ADV.analysis.source + '|^Kablaj şeması');
 if(typeof WF_STEPS !== 'undefined'){ const s = WF_STEPS.find(x => /kablajı tasarla/.test(x.t)); if(s){ s.a.push(['Kablaj şeması', /^Kablaj şeması/]); const k0 = s.k; s.k = () => k0() + ', ' + hcCables().length + ' kablaj'; } }
-VALIDATORS.push((add) => { if(!M.hrn) return; hcCables().forEach(c => hcCableIssues(c).filter(x => x.sev !== 'bilgi').forEach(x => { const n = x.n && hcNode(c, x.n), e = n && n.kind === 'conn' ? E(n.port) : null; add(x.sev, 'Kablaj eşleştirme', e, c.name + ': ' + x.msg); })); });
+VALIDATORS.push((add) => { if(!M.hrn) return; hcAllCables().forEach(c => hcCableIssues(c).filter(x => x.sev !== 'bilgi').forEach(x => { const n = x.n && hcNode(c, x.n), e = n && n.kind === 'conn' ? E(n.port) : null; add(x.sev, 'Kablaj eşleştirme', e, c.name + ': ' + x.msg); })); });
 /* port silinince kablaj düğümleri temizlenir */
 { const _dm = delModel; delModel = function(ids){ const r = _dm.apply(this, arguments); if(M.hrn && M.hrn.cables) Object.values(M.hrn.cables).forEach(c => c.nodes.filter(n => n.kind === 'conn' && !E(n.port)).forEach(n => hcRemoveNode(c, n.id))); return r; }; }
 /* ---------- olaylar ---------- */
@@ -336,7 +380,7 @@ VALIDATORS.push((add) => { if(!M.hrn) return; hcCables().forEach(c => hcCableIss
     const t = ev.target, v = t.type === 'checkbox' ? t.checked : t.value.trim();
     if((onS() || onC()) && t.dataset.hsf){ if(t.dataset.hsf === 'cable'){ HCS.sel = v; renderViewBar(); renderView(); } else { HCS.cab = v; HCS.sel = v; renderViewBar(); renderView(); } return; }
     if(!onC()) return; const c = HCS.cab && hcM().cables[HCS.cab]; if(!c) return;
-    if(t.dataset.hck2){ const k = t.dataset.hck2; return save(() => { if(k === 'name'){ if(v && !hcCables().some(x => x.id !== c.id && x.name === v)) c.name = v; else toast('Kablaj adı boş veya başka kablajda kullanılıyor'); } else if(k === 'len') c.len = v === '' ? '' : (numOf(v) == null ? c.len : numOf(v)); else c[k] = v; }); }
+    if(t.dataset.hck2){ const k = t.dataset.hck2; return save(() => { if(k === 'name'){ if(v && !hcAllCables().some(x => x.id !== c.id && x.name === v)) c.name = v; else toast('Kablaj adı boş veya başka kablajda kullanılıyor'); } else if(k === 'test'){ if(v) c.test = true; else delete c.test; if(HCS.sel === c.id && c.test) HCS.sel = ''; } else if(k === 'len') c.len = v === '' ? '' : (numOf(v) == null ? c.len : numOf(v)); else c[k] = v; }); }
     if(t.dataset.hcf2 === 'branch' && v) return save(() => { const n = hcAddConnNode(c, v, true); toast(n ? 'Dal eklendi' : 'Konnektör zaten bu kablajda'); });
     if(t.dataset.hcf2 === 'awgAll' && v) return save(() => { c.wires.forEach(w => w.awg = +v); });
     if(t.dataset.hcwf){ const [wid, f] = t.dataset.hcwf.split('|'), w = c.wires.find(x => x.id === wid); if(!w) return;
@@ -354,14 +398,23 @@ VALIDATORS.push((add) => { if(!M.hrn) return; hcCables().forEach(c => hcCableIss
       if(a === 'del' && HCS.sel) return hcDelCable(HCS.sel);
       if(a === 'units') return openD('@hcunits');
       if(a === 'sys') return openD('@hcsys');
-      if(a === 'cdel' && HCS.cab){ const id = HCS.cab; hcDelCable(id, () => openD('@hcsys')); return; }
+      if(a === 'tests'){ ev.preventDefault(); return openD('@hctk'); }
+      if(a === 'cdel' && HCS.cab){ const id = HCS.cab, t = !!(hcR().cables[id] || {}).test; hcDelCable(id, () => openD(t && VIEWS['@hctk'] ? '@hctk' : '@hcsys')); return; }
       return; }
     const b2 = ev.target.closest('[data-hca2]'); if(!b2 || !onC()) return;
     const c = HCS.cab && hcM().cables[HCS.cab]; if(!c) return; const a = b2.dataset.hca2;
     if(a === 'splice') return save(() => { hcAddSplice(c); });
+    if(a === 'free' || a === 'fedit'){ const n0 = a === 'fedit' ? hcNode(c, b2.dataset.n) : null; if(a === 'fedit' && !n0) return; const ps = n0 ? hcFreePins(n0) : null;
+      return quickForm(n0 ? n0.name + ' — bağımsız uç' : 'Bağımsız uç ekle', [{k:'ft', l:'Uç tipi', t:'select', opts:HC_FREE_TYPES.map(x => [x, x]), v:n0 ? n0.ft : HC_FREE_TYPES[0]}, {k:'name', l:'Ad (boşsa BJ1, BJ2…)', v:n0 ? n0.name : ''},
+        {k:'col', l:'Renk', t:'select', opts:[['', '—']].concat(HC_FREE_COLS.map(x => [x, x])), v:n0 ? n0.col : (c.nodes.some(x => x.kind === 'free') ? 'Siyah' : 'Kırmızı')}, {k:'pn', l:'Parça no (isteğe bağlı)', v:n0 ? n0.pn : ''},
+        {k:'n', l:'Kontak sayısı', v:ps ? ps.length : 1}, {k:'sig', l:'İşlev / sinyal (ör. 28V ölçüm, GND)', v:ps ? ps.map(q => q.sig || '').join(', ') : ''}], r => {
+        if(r.name && c.nodes.some(x => x !== n0 && x.kind !== 'conn' && x.name === r.name)) return 'Bu ad kablajda kullanılıyor';
+        save(() => { if(!n0){ hcAddFree(c, r); return; } const cnt = Math.max(1, Math.min(50, parseInt(r.n, 10) || 1)), sg = String(r.sig || '').split(',').map(x => x.trim());
+          Object.assign(n0, {ft:r.ft, name:r.name || n0.name, col:r.col, pn:r.pn}); n0.pins = Array.from({length:cnt}, (_, i) => ({no:String(i + 1), sig:sg[i] || ''}));
+          c.wires = c.wires.filter(w => ![w.a, w.b].some(e => e.n === n0.id && +e.pin > cnt)); }); }, 'Birime bağlı olmayan uç (banana jack, krokodil, test probu…). Hat tablosundan veya <b>+ Hat ekle</b> ile bir pine bağlayın; kontak sayısı birden çoksa sinyalleri virgülle girin.'); }
     if(a === 'auto') return save(() => { const n = c.nodes.filter(x => x.kind === 'conn').reduce((s, x) => s + hcAutoMap(c, x.id), 0); toast(n ? n + ' hat eklendi' : 'Eşlenecek pin bulunamadı'); });
     if(a === 'wdel') return save(() => { c.wires = c.wires.filter(w => w.id !== b2.dataset.w); });
-    if(a === 'wadd'){ const A = $('#hcNwA').value, B = $('#hcNwB').value; if(!A || !B || A === B) return toast('İki farklı uç seçin'); const [na, pa] = A.split('|'), [nb, pb] = B.split('|'); return save(() => { hcAddWire(c, {n:na, pin:pa || ''}, {n:nb, pin:pb || ''}); }); }
+    if(a === 'wadd'){ const A = $('#hcNwA').value, B = $('#hcNwB').value; if(!A || !B || A === B) return toast('İki farklı uç seçin'); const [na, pa] = A.split('|'), [nb, pb] = B.split('|'); return save(() => { hcWireTo(c, {n:na, pin:pa || ''}, {n:nb, pin:pb || ''}); }); }
     if(a === 'nrm'){ const n = hcNode(c, b2.dataset.n); if(!n) return; if(!confirm(hcNodeLabel(c, n) + ' kablajdan çıkarılsın mı? Bağlı hatlar silinir.')) return; return save(() => { hcRemoveNode(c, n.id); }); }
   });
 })();
