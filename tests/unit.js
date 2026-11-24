@@ -241,7 +241,7 @@ T('kablaj bükümlü çift: çift eşi ve +/- / _H/_L etiketleri, protokol emped
 T('kablaj öneri uygula: AWG ve TSP grupları, ekran; BOM bükümlü kablaj + kontak + kablaj ucu konnektör', () => R(() => { const c = window.__C, r = hcApplySuggest(c, {awg:true, twist:true}), bom = hcBOM(c);
   return r.nA === 4 && r.nG === 2 && c.wires.every(w => /^TSP\d$/.test(w.grp) && w.shield && w.awg === 24) && bom.some(x => x.part === 'Konnektör (kablaj ucu)' && x.pn === 'D38999/26WC35SN') && bom.some(x => x.part === 'Konnektör (kablaj ucu)' && x.pn === 'M83513/01-A') && bom.filter(x => x.part === 'Ekranlı bükümlü kablaj').length === 1 && bom.find(x => x.part === 'Ekranlı bükümlü kablaj').qty === 2 || bom; }));
 T('kablaj teknik resim: A3 sayfaları (şema + hat listesi + BOM + antet, konnektör görünümleri), uzun hat listesi devam sayfası', () => R(() => { const c = window.__C, pg = hcDrawingPages(c);
-  const ok1 = pg.length === 2 && /MALZEME LİSTESİ/.test(pg[0].str) && /HAT LİSTESİ/.test(pg[0].str) && /Çizim no/.test(pg[0].str) && /KONNEKTÖR GÖRÜNÜMLERİ/.test(pg[1].str) && /sol üst köşeden başlar/.test(pg[1].str) && /1 \/ 2/.test(pg[0].str);
+  const ok1 = pg.length === 2 && /MALZEME LİSTESİ/.test(pg[0].str) && /HAT LİSTESİ/.test(pg[0].str) && /Çizim no/.test(pg[0].str) && /KONNEKTÖR GÖRÜNÜMLERİ/.test(pg[1].str) && /Katalog görünümü eklenmemiş|<image/.test(pg[1].str) && /1 \/ 2/.test(pg[0].str);
   for(let i = 0; i < 70; i++) hcAddWire(c, {n:c.nodes[0].id, pin:String(10 + (i % 12))}, {n:c.nodes[1].id, pin:'5'}, {on:true}); const pg2 = hcDrawingPages(c); return ok1 && pg2.length >= 3 && /HAT LİSTESİ \(devam\)/.test(pg2[1].str) || pg.length; }));
 T('kablaj konnektör yüzü: başlangıç köşesine göre numaralandırma (sağ alt → ilk pin sağ altta)', () => R(() => { const g = hcFaceGrid(6, 2, 'Sağ alt'), h = hcFaceGrid(6, 2, 'Sol üst'); return g.pos[0].r === 1 && g.pos[0].c === 2 && h.pos[0].r === 0 && h.pos[0].c === 0 && h.pos[3].r === 1; }));
 
@@ -291,6 +291,27 @@ T('kablaj arama: pin / etiket / birim / kablaj / protokol eşleşmesi, hattın k
     && r2.units.has(b.id) && r3.hits.some(x => x.t === 'Protokol') && r4.cables.has(c.id) && r4.hits.some(x => x.t === 'Kablaj') && r0.hits.length === 0 && hcSearch('') === null || {r1:r1.hits, r3:r3.hits.length}; }));
 T('kablaj arama: şemada eşleşmeyenler soluk, dışa aktarmada arama yalnız açıkça verilirse', () => R(() => { HC7.q = 'rs422_tx+'; const live = hcSysSVG({}).svg, exp = hcSysSVG({exp:true}).svg, hl = hcSysSVG({exp:true, hl:hcSearch('rs422_tx+')}).svg, page = hcArchPage('', 1, 1, {hl:hcSearch('rs422_tx+'), title:'Arama sayfası', sub:'vurgulu'}); HC7.q = '';
   return /#f9d56e/.test(live) && /opacity="0\.1[25]"|opacity="0\.18"|opacity="0\.3"/.test(live) && !/#f9d56e/.test(exp) && /#f9d56e/.test(hl) && /ARAMA SAYFASI/.test(page) && /vurgulu/.test(page); }));
+
+/* ---------- v1.62 katalog görünümü, içten geçişli birim, hat tablosu ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n).id;
+  const a = mkU('A', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}}], ['J2', 'lib:md-9P', 'c_com', {1:{lbl:'l_txp', sig:'TXP'}}]]);
+  const x = mkU('KUTU', [['J1', 'lib:38999-20-15-5S', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}}], ['J2', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}}]]);
+  const c = mkU('C', [['J1', 'lib:38999-20-15-5S', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}}], ['J2', 'lib:md-9S', 'c_com', {1:{lbl:'l_rxp', sig:'RXP'}}]]);
+  hcConnect(J(a, 'J1'), J(x, 'J1')); hcConnect(J(x, 'J2'), J(c, 'J1')); hcConnect(J(a, 'J2'), J(c, 'J2')); window.__K9 = {a:a.id, x:x.id}; return true; });
+T('kablaj hat tablosu: içten geçişli birimde aynı sinyal adlı hatlar tek satır, birden çok kablaj', () => R(() => { const x = E(__K9.x), n0 = hcChains().length, L = hcLines().length;
+  x.hcThru = true; REV++; const ch = hcChains(), p = ch.find(k => k.name === '28V' && k.cables.length === 2);
+  x.hcThru = false; REV++; return n0 === L && ch.length === L - 2 && !!p && p.ends.length === 2 && /⇒/.test(hcChainRoute(p)) || {n0, L, n:ch.length}; }));
+T('kablaj hat tablosu: hat tipi ve etiket süzgeci, satırda kablaj ve konnektör pinleri', () => R(() => { HC9.cats = new Set(['c_com']); HC9.lbl = ''; HC9.q = ''; const r1 = hcRouteRows();
+  HC9.cats = new Set(['c_pwr']); HC9.lbl = 'l_28v'; const r2 = hcRouteRows(); HC9.cats = null; HC9.lbl = ''; const all = hcRouteRows();
+  return r1.length === 1 && r1[0].cat === hcCat('c_com').name && /A J2-1/.test(r1[0].route) && /C J2-1/.test(r1[0].pins) && r2.length >= 1 && r2.every(r => r.ch.lbls.includes('l_28v')) && all.length === hcChains().length || {r1, r2:r2.length}; }));
+T('kablaj katalog görünüm: konnektör yüzü elle çizilmez, katalog resmi (ön / arka) yerleşir', () => R(() => { const c = hcCables().find(k => k.nodes.some(n => n.kind === 'conn' && E(n.port).owner === __K9.a && E(n.port).name === 'J1'));
+  const n = c.nodes.find(k => k.kind === 'conn'), t = hcType(E(n.port).hc.ct), H = hcM(); delete (H.timg || {})[t.id];
+  const none = hcConnFace(c, n, 0, 0, 700, 400); H.timg = H.timg || {}; H.timg[t.id] = {F:'data:image/png;base64,AAAA', R:'data:image/png;base64,BBBB'};
+  c.dwg = Object.assign(c.dwg || {}, {face:'F'}); const f = hcConnFace(c, n, 0, 0, 700, 400); c.dwg.face = 'R'; const r = hcConnFace(c, n, 0, 0, 700, 400); c.dwg.face = 'FR'; const fr = hcConnFace(c, n, 0, 0, 700, 400);
+  delete H.timg[t.id]; c.dwg.face = 'F';
+  return /Katalog görünümü eklenmemiş/.test(none) && !/<circle/.test(none) && /AAAA/.test(f) && !/BBBB/.test(f) && /BBBB/.test(r) && /ARKA/.test(r) && (fr.match(/<image/g) || []).length === 2 && hcTImg(t, 'F') === '' || {none:none.slice(0, 200)}; }));
 
 /* ---------- v1.61 dik köşeli bağlantı çizimi ---------- */
 T('kablaj çizim: kablaj detayı ve sistem şemasında eğri yok (dik köşeli doğrular), splice birleşimleri siyah nokta', () => R(() => {

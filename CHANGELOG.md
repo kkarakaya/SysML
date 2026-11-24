@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü
 
+## v1.62.0 — 2026-11-24
+
+- **Katalog konnektör görünümü:** teknik resimdeki konnektör görünümleri artık elle çizilmez; konnektör kütüphanesinde her tipe katalogdan alınan **ön** (eşleşme yüzü) ve **arka** (kablaj giriş yüzü) görünüm resmi eklenir (hazır tipler dahil, model dosyasında saklanır). Kablaj detayında "ön / arka / ön ve arka" seçimi; resim yoksa yer tutucu ve pin tablosu
+- **İçten geçişli birim** (ara kutu, dağıtım kutusu): aynı sinyal adlı pinler içeride bağlı sayılır, hat birden çok kablajdan geçerek uçtan uca izlenir
+- **Hat tablosu:** hat tiplerine (haberleşme, güç…) ve / veya etikete göre seçilen hatların geçtiği kablajlar ve konnektör pinleri (ör. `[W1] A J1-1 ↔ B J2-3 ⇒ [W2] …`); A3 PDF ve Excel
+- **Tüm bağlantı şemaları tek PDF:** sistem kablaj şemasından bütün kablajların teknik resimleri
+- Birim testleri 195, regresyon testi 65 adım
+
 ## v1.61.0 — 2026-11-23
 
 - **Bağlantı şemaları dik köşeli:** kablaj detayı, teknik resim ve sistem kablaj şemasında hatlar eğri yerine yatay / dikey doğrularla çizilir; splice'a giden hatlar ortak dikey baraya bağlanır, çok uçlu kablajlar birimlerin altındaki ortak yatay baradan dallanır, aynı birim yanından çıkan kablajlar ayrı kanallardan iner

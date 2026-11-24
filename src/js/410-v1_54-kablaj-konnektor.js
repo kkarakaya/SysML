@@ -176,7 +176,7 @@ function hcTypesHTML(){
     <div class="muted" style="font-size:12px">${(t.pins || []).length} kontak: ${Object.entries(cnt).map(([k, v]) => v + ' × ' + esc(k || '?')).join(', ') || '—'} · ${used.length} arayüzde kullanılıyor</div>
     <datalist id="hcFams">${fams.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
     <div class="hcform">${HC_TF.map(fld).join('')}</div>
-    <div class="hcsec">Resim</div>${t.img ? `<img class="hcimg" src="${esc(t.img)}" alt="">` : '<div class="muted" style="font-size:12px">Resim yok</div>'}${ro ? '' : `<button class="vb" data-hca="img">Resim yükle…</button>${t.img ? '<button class="vb" data-hca="imgdel">Kaldır</button>' : ''}`}
+    ${typeof hcImgBlock === 'function' ? hcImgBlock(t, ro) : `<div class="hcsec">Resim</div>${t.img ? `<img class="hcimg" src="${esc(t.img)}" alt="">` : '<div class="muted" style="font-size:12px">Resim yok</div>'}${ro ? '' : `<button class="vb" data-hca="img">Resim yükle…</button>${t.img ? '<button class="vb" data-hca="imgdel">Kaldır</button>' : ''}`}`}
     <div class="hcsec">Ek özellikler</div>
     <table class="hcpt"><thead><tr><th>Özellik</th><th>Değer</th><th></th></tr></thead><tbody>${Object.entries(t.custom || {}).map(([k, v], i) => `<tr><td><input data-hcx="k|${i}" value="${esc(k)}"${dis}></td><td><input data-hcx="v|${i}" value="${esc(v)}"${dis}></td><td>${ro ? '' : `<button class="vb" data-hca="xdel" data-i="${i}">✕</button>`}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">—</td></tr>'}</tbody></table>
     ${ro ? '' : '<button class="vb" data-hca="xadd">+ Özellik</button>'}
