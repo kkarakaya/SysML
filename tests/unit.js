@@ -313,6 +313,26 @@ T('kablaj katalog görünüm: konnektör yüzü elle çizilmez, katalog resmi (�
   delete H.timg[t.id]; c.dwg.face = 'F';
   return /Katalog görünümü eklenmemiş/.test(none) && !/<circle/.test(none) && /AAAA/.test(f) && !/BBBB/.test(f) && /BBBB/.test(r) && /ARKA/.test(r) && (fr.match(/<image/g) || []).length === 2 && hcTImg(t, 'F') === '' || {none:none.slice(0, 200)}; }));
 
+/* ---------- v1.63 pin grupları ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n);
+  const x = mkU('X', [['J1', 'lib:md-9P', 'c_com', {1:{sig:'RS485_A'}, 2:{sig:'RS485_B'}, 3:{sig:'GND'}, 4:{sig:'TXD'}, 5:{sig:'RXD'}, 6:{sig:'SPARE'}}]]);
+  const y = mkU('Y', [['J1', 'lib:md-9S', 'c_com', {1:{sig:'A'}, 2:{sig:'B'}, 4:{sig:'UART_RX'}, 5:{sig:'UART_TX'}, 6:{sig:'SPARE'}}]]);
+  window.__G = {x:J(x, 'J1').id, y:J(y, 'J1').id}; return true; });
+T('pin grubu: şablondan grup, sinyal adından pin önerisi, pin iki grupta olmaz', () => R(() => { const px = E(__G.x), py = E(__G.y), a = hgNewGroup(px, 'RS-485'), u = hgNewGroup(px, 'UART'), b = hgNewGroup(py, 'RS-485'), v = hgNewGroup(py, 'UART');
+  const m = g => g.mem.map(k => k.role + '=' + k.no).join(',');
+  return m(a) === 'A=1,B=2,GND=3' && m(u) === 'TX=4,RX=5,GND=' && m(b) === 'A=1,B=2,GND=' && m(v) === 'TX=5,RX=4,GND=' && a.name === 'RS-485 1' && hgOf(px).length === 2 || {a:m(a), u:m(u), b:m(b), v:m(v)}; }));
+T('pin grubu: grup gruba bağlanır, roller eşlenir (TX ↔ RX, A ↔ A), karşılığı olmayan üye uyarılır ama engellenmez', () => R(() => { const px = E(__G.x), py = E(__G.y), [a, u] = hgOf(px), [b, v] = hgOf(py);
+  const r1 = hgConnect(px, a.id, py, b.id), r2 = hgConnect(px, u.id, py, v.id), again = hgConnect(px, u.id, py, v.id); REV++;
+  const c = r1.cable, L = hgLinks(), l1 = L.find(l => [l.ga.id, l.gb.id].includes(a.id)), iss = hcCableIssues(c).filter(i => /karşılığı olmayan/.test(i.msg));
+  const has = (p, q) => c.wires.some(w => { const e = [hcEndPin(c, w.a), hcEndPin(c, w.b)].map(z => z.port.id + '|' + z.no).sort().join(); return e === [__G.x + '|' + p, __G.y + '|' + q].sort().join(); });
+  return r1.added === 2 && r1.missA.length === 1 && r1.missA[0].role === 'GND' && r2.added === 2 && again.added === 0 && r2.cable === c && c.wires.length === 4 && has('4', '4') && has('5', '5') && has('1', '1')
+    && L.length === 2 && l1.n === 2 && l1.missA.length + l1.missB.length === 1 && iss.length === 1 && validateModel().some(i => /karşılığı olmayan/.test(i.msg)) || {r1:r1.added, r2:r2.added, w:c.wires.length, L:L.length, iss}; }));
+T('pin grubu: grupsuz pinler el ile pin pin bağlanır; grup görünümü ve PDF çizimi', () => R(() => { const px = E(__G.x), py = E(__G.y), r = hgPinConnect(px, '6', py, '6'), r2 = hgPinConnect(px, '6', py, '6'); REV++;
+  HG.pins = true; const s = hgSVG({}).svg, e = hgSVG({exp:true}).svg; HG.pins = false;
+  return r.added === 1 && r2.added === 0 && /data-hgh="[^"]*\|g:/.test(s) && /data-hgh="[^"]*\|p:6"/.test(s) && /2\/3 ⚠/.test(s) && !/data-hgh/.test(e) && /RS-485 1/.test(e) || {r:r.added, s:s.length}; }));
+
 /* ---------- v1.61 dik köşeli bağlantı çizimi ---------- */
 T('kablaj çizim: kablaj detayı ve sistem şemasında eğri yok (dik köşeli doğrular), splice birleşimleri siyah nokta', () => R(() => {
   const cs = hcCables(), svgs = cs.map(c => hcCableSVG(c, {exp:true}).svg).concat([hcSysSVG({exp:true, det:true}).svg]), sp = cs.find(c => c.nodes.some(n => n.kind === 'splice'));

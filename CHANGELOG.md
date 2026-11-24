@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü
 
+## v1.63.0 — 2026-11-24
+
+- **Pin grupları:** birim arayüzü panelinde her konnektöre grup tanımlanır (ör. Haberleşme UART 1, UART 2, RS-485, CAN, Güç, Ayrık sinyal); şablon rolleri (TX / RX / GND, A / B / GND, CAN_H / CAN_L…) ve sinyal adından otomatik pin önerisi
+- **Grup Bağlantıları görünümü:** grup tutamağı başka bir grubun tutamağına sürüklenince üyeler role göre eşlenip hatlar oluşur (TX ↔ RX, TX+ ↔ RX+, A ↔ A, GND ↔ GND; TXD, 0V gibi eş anlamlılar tanınır); kablaj yoksa açılır, varsa ona eklenir
+- Karşı grupta karşılığı olmayan üye (ör. RS-485 GND) **uyarılır ama engellenmez**, eşleşenler otomatik bağlanır; uyarı kablaj denetiminde ve model doğrulamada da görünür
+- "Grupsuz pinler" açıkken pin tutamaklarıyla pin pin el ile bağlantı (ör. pin 100 → pin 101); grup bağlantıları hatlardan türetildiği için kablaj detayında el ile eklenen hatlar da görünür
+- Görünümü PDF; birim testleri 198, regresyon testi 66 adım
+
 ## v1.62.0 — 2026-11-24
 
 - **Katalog konnektör görünümü:** teknik resimdeki konnektör görünümleri artık elle çizilmez; konnektör kütüphanesinde her tipe katalogdan alınan **ön** (eşleşme yüzü) ve **arka** (kablaj giriş yüzü) görünüm resmi eklenir (hazır tipler dahil, model dosyasında saklanır). Kablaj detayında "ön / arka / ön ve arka" seçimi; resim yoksa yer tutucu ve pin tablosu

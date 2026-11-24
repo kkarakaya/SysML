@@ -1399,6 +1399,14 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Hat tablosu:** sistem kablaj şemasında "Hat tablosu" düğmesi (ya da Analiz → Kablaj ve konnektörler). Hat tiplerini işaretleyin, isterseniz bir etiket seçin ya da arayın. Her satırda hattın güzergâhı (kablaj ve pin pin), kablajlar ve konnektörler listelenir. "PDF indir" A3 sayfalar, "Excel" tablo üretir.
 - **Tüm bağlantı şemaları:** sistem kablaj şemasındaki "Tüm bağlantı şemaları (PDF)" düğmesi bütün kablajların teknik resimlerini tek PDF'te toplar.
 
+### 5ay. Pin grupları ve grup bağlantıları (v1.63)
+
+- **Grup tanımı:** Birim arayüzleri ve pinout → konnektörü seçin → "Pin grupları" bölümünde şablonu seçip **+ Grup ekle**. Şablonlar: UART, RS-232, RS-422, RS-485, CAN, Ethernet, MIL-STD-1553, Güç, Ayrık sinyal, Analog, Özel. Roller (TX, RX, GND…) gelir; pinler sinyal adından önerilir (ör. `RS485_A` → A). Rol ve pin elle değiştirilebilir, üye eklenip çıkarılabilir.
+- **Grupları bağlama:** Kablaj → Grup bağlantıları (ya da sistem kablaj şemasındaki "Grup bağlantıları" düğmesi). Bir grubun mavi tutamağını başka bir konnektördeki grubun tutamağına sürükleyin. Üyeler role göre eşlenir: TX ↔ RX, TX+ ↔ RX+, RTS ↔ CTS, diğerleri aynı rolle (A ↔ A, GND ↔ GND). İki konnektör arasında kablaj varsa hatlar ona eklenir, yoksa yeni kablaj açılır.
+- **Eksik karşılık:** Örneğin bir tarafta RS-485 A / B / GND, diğer tarafta yalnız A / B varsa A ve B bağlanır, GND için uyarı verilir; bağlantı engellenmez. Uyarı çizgi etiketinde (⚠), kablaj denetiminde ve model doğrulamada görünür.
+- **Pin pin bağlantı:** "Grupsuz pinler" kutusunu açın; gri pin tutamaklarını sürükleyerek tek tek pin bağlayın. Kablaj detayında el ile hat eklemek de mümkündür.
+- Konnektör başlığına tıklayınca grup düzenleyici açılır; çizgiye çift tıklayınca kablaj detayı açılır.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.
