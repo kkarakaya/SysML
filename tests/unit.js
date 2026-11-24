@@ -418,5 +418,15 @@ T('kablaj geçiş konnektörü: kablaj ucuna 1:1 ara konnektör, yeni kablaj; ha
     && b1.rows.map(r => r.ref + ':' + r.other).join() === 'P1:Birim1,P2:W9' && b9.rows.map(r => r.other).join() === 'W1,Birim2' && /<mergeCell ref="A1:A3"\/>/.test(xl) && bom.some(b => /Geçiş konnektörü/.test(b.part)) && hcCableIssues(w1).filter(i => i.sev === 'hata').length === 0
     || {pins:res.pins, cab:ch && ch.cables.length, path:path.join(' '), b1:b1.rows.map(r => r.ref + ':' + r.other), b9:b9 && b9.rows.map(r => r.other)}; }));
 
+T('kablaj otomatik eşleme: çok kanallı konnektörde (4 birim → tek J1) kanallar birbirine kısa devre edilmez; dallar boştaki kanala, ortak 28V splice\'a', () => R(() => {
+  const mk = (n, ct, pins) => { const u = hcNewUnit(n), p = hcNewPort(u.id, 'J1'); p.hc.ct = ct; p.hc.cat = 'c_com'; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); return p; };
+  const U = k => ({1:{sig:'B' + k + '_TX+', lbl:'l_txp'}, 2:{sig:'B' + k + '_RX+', lbl:'l_rxp'}, 3:{sig:'28V', lbl:'l_28v', dir:'snk'}}), H = {};
+  for(let k = 1; k <= 3; k++){ H[2 * k - 1] = {sig:'CH' + k + '_RX+', lbl:'l_rxp'}; H[2 * k] = {sig:'CH' + k + '_TX+', lbl:'l_txp'}; } H[7] = {sig:'28V_OUT', lbl:'l_28v', dir:'src'};
+  const hub = mk('MK_HUB', 'lib:md-9S', H), ps = [1, 2, 3].map(k => mk('MK_U' + k, 'lib:md-9P', U(k)));
+  const c = hcConnect(ps[0].id, hub.id), n0 = c.wires.length; hcConnect(ps[1].id, hub.id); hcConnect(ps[2].id, hub.id); const st = hcCableStats(c);
+  const pairOf = (p, no) => { const n = c.nodes.find(x => x.port === p.id), w = c.wires.find(w0 => (w0.a.n === n.id && w0.a.pin === no) || (w0.b.n === n.id && w0.b.pin === no)); const o = w.a.n === n.id ? w.b : w.a; return hcEndLabel(c, o); };
+  return n0 === 3 && st.nE === 0 && st.nW === 0 && c.nodes.filter(n => n.kind === 'splice').length === 1 && pairOf(ps[1], '1') === 'J1-3' && pairOf(ps[2], '2') === 'J1-6'
+    || {n0, nE:st.nE, nW:st.nW, sp:c.nodes.filter(n => n.kind === 'splice').length, p2:pairOf(ps[1], '1'), p3:pairOf(ps[2], '2')}; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }

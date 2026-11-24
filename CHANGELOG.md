@@ -1,5 +1,10 @@
 # Değişiklik Günlüğü
 
+## v1.66.1 — 2026-11-24
+
+- **Düzeltme — çok kanallı konnektörde otomatik pin eşleme:** birden çok birimin kendi kanalıyla aynı konnektöre bağlandığı yapılarda (ör. Birim1–4 J1 → Birim5 J1'de 4 ayrı RS-422 kanalı) ilk kablaj çizilirken boştaki kanal pinleri, aynı etiket kuralına uyduğu için dolu kanala splice ile ekleniyor ve konnektörün kendi pinleri birbirine kısa devre ediliyordu (çok sayıda "iki çıkış" hatası). Artık bir pine dal açılırken netin o konnektörün başka bir pinini içermemesi gerekir: her birim boştaki kendi kanalına, ortak 28V / RTN gibi paylaşılan hatlar splice'a bağlanır
+- Birim testleri 209
+
 ## v1.66.0 — 2026-11-24
 
 - **Kablaj – konnektör eşleşme tablosu:** her kablaj birleşik hücrede, uçları (P1, P2… — değiştirilebilir), kablaj ucu parça no, takıldığı konnektör ve en sağda karşı taraf (birim ya da geçiş konnektörünün öbür yanındaki kablaj, ardışık aynı değerler birleşik). Sistem şemasında **Eşleşme tablosu ⤓** ile tek tuşta Excel; görünümde Excel ve A3 PDF. Excel'e birleşik hücre (merge) desteği
