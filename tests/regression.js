@@ -1040,7 +1040,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   });
   ok('Kablaj: birim ve konnektör arayüzü ekleme, etiketten varsayılanlar, kontak akım sınırı, pinout Excel, yerleşik tip salt okunur, iş akışı adımı, geri al', Object.values(v54).every(v => v === true), v54);
 
-  console.log('8h3) v1.55 kablaj şeması: sürükleyerek kablo, dal, kablo detayı');
+  console.log('8h3) v1.55 kablaj şeması: sürükleyerek kablaj, dal, kablaj detayı');
   await page.evaluate(() => { const mkU = (n, nm, ct, cat, pins) => { const u = hcNewUnit(n); const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); return p; };
     window.__ka = mkU('KA Bilgisayar', 'J5', 'lib:md-9P', 'c_com', {1:{lbl:'l_txp'}, 2:{lbl:'l_txn'}, 3:{lbl:'l_canh'}}); window.__kb = mkU('KA Sensör', 'J6', 'lib:md-9S', 'c_com', {1:{lbl:'l_rxp'}, 2:{lbl:'l_rxn'}, 3:{lbl:'l_28v'}});
     afterChange(); HCS.init = true; HCS.k = 1; HCS.tx = 0; HCS.ty = 0; hcM().lay[window.__ka.owner] = {x:40, y:40}; hcM().lay[window.__kb.owner] = {x:480, y:40}; openD('@hcsys'); });
@@ -1048,7 +1048,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   const hA = await page.locator(`[data-hch="${await page.evaluate(() => window.__ka.id)}"]`).last().boundingBox(), hB = await page.locator(`[data-hch="${await page.evaluate(() => window.__kb.id)}"]`).first().boundingBox();
   await page.mouse.move(hA.x + hA.width / 2, hA.y + hA.height / 2); await page.mouse.down(); await page.mouse.move(hB.x + 2, hB.y + 2, { steps: 5 }); await page.mouse.move(hB.x + hB.width / 2, hB.y + hB.height / 2, { steps: 2 }); await page.mouse.up(); await page.waitForTimeout(200);
   const v55 = await page.evaluate(() => { const c = hcCableOfPort(window.__ka.id); return { cable: !!c && c.nodes.length === 2 && c.wires.length === 2, err: !!c && hcCableIssues(c).some(x => x.sev === 'hata' && /örtüşmüyor|Hat tipi/.test(x.msg)) === false, drawn: !!document.querySelector(`#hcSys [data-hcw="${c && c.id}"]`) }; });
-  await page.click('[data-hsa="det"]'); await page.waitForTimeout(100); v55.det = await page.evaluate(() => HCS.det && /tel/.test(document.querySelector('#hcSys .hcLabels').textContent));
+  await page.click('[data-hsa="det"]'); await page.waitForTimeout(100); v55.det = await page.evaluate(() => HCS.det && /hat/.test(document.querySelector('#hcSys .hcLabels').textContent));
   await page.locator('#hcSys .hcLabels [data-hcw] text').first().dblclick(); await page.waitForTimeout(200);
   v55.detail = await page.evaluate(() => ST.cur === '@hccable' && document.querySelectorAll('#view [data-hcwire]').length === 2);
   const wid = await page.evaluate(() => hcCableOfPort(window.__ka.id).wires[0].id);
@@ -1057,7 +1057,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
     c.wires[0].on = true; hcAddWire(c, { n: c.nodes[0].id, pin: '3' }, { n: c.nodes[1].id, pin: '3' }); o.mismatch = hcCableIssues(c).some(x => x.sev === 'hata' && /Hat tipi uyuşmuyor/.test(x.msg)); o.valid = validateModel().some(x => x.rule === 'Kablaj eşleştirme');
     undo(); undo(); o.undo = !hcCableOfPort(window.__ka.id); return o; }));
   await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(100); const k0 = await page.evaluate(() => HCS.k); await page.mouse.move(700, 500); await page.mouse.wheel(0, -200); await page.waitForTimeout(100); v55.zoom = await page.evaluate(k => HCS.k > k, k0);
-  ok('Kablaj şeması: konnektörden konnektöre sürükleyerek kablo + etiketle otomatik tel, detaylı görünüm, çift tıkla kablo detayı, "bağlı değil" combobox, hat tipi uyuşmazlığı, model doğrulama, geri al, tekerlekle yakınlaştırma', Object.values(v55).every(v => v === true), v55);
+  ok('Kablaj şeması: konnektörden konnektöre sürükleyerek kablaj + etiketle otomatik hat, detaylı görünüm, çift tıkla kablaj detayı, "bağlı değil" combobox, hat tipi uyuşmazlığı, model doğrulama, geri al, tekerlekle yakınlaştırma', Object.values(v55).every(v => v === true), v55);
 
   console.log('8h4) v1.56 kablaj: AWG önerisi ve teknik resim PDF');
   await page.evaluate(() => { const mkU = (n, nm, ct, cat, pins) => { const u = hcNewUnit(n); const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); return p; };
@@ -1077,7 +1077,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   v56.multi = await page.evaluate(() => document.querySelectorAll('#modalBox [data-hcd]').length === hcCables().length && !!document.querySelector('#hcDS'));
   await page.click('#hcDC');
   v56.undo = await page.evaluate(() => { undo(); undo(); undo(); return true; });
-  ok('Kablaj AWG ve teknik resim: öneri penceresi ve uygulama (AWG + bükümlü çift), antet alanı, tek kablo PDF indirme, çoklu kablo penceresi', Object.values(v56).every(v => v === true), v56);
+  ok('Kablaj AWG ve teknik resim: öneri penceresi ve uygulama (AWG + bükümlü çift), antet alanı, tek kablaj PDF indirme, çoklu kablaj penceresi', Object.values(v56).every(v => v === true), v56);
 
   console.log('8h5) v1.57 kablaj özeti ve mimariler');
   await page.evaluate(() => { const a = hcNewUnit('OZ A'), b = hcNewUnit('OZ B'), pa = hcNewPort(a.id, 'J1'), pb = hcNewPort(b.id, 'J1'); pa.hc.ct = pb.hc.ct = 'lib:md-9P'; hcSetPin(pa, '1', 'lbl', 'l_28v'); hcSetPin(pa, '2', 'lbl', 'l_txp'); hcSetPin(pb, '1', 'lbl', 'l_28v'); hcSetPin(pb, '2', 'lbl', 'l_rxp'); hcConnect(pa.id, pb.id); afterChange();
@@ -1154,7 +1154,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.click('[data-hc7="cin"]'); await page.waitForTimeout(100);
   v60.zoom = await page.evaluate(() => HC7.ck > 1.2 && +$('#hcCabSvg').getAttribute('width') > $('#hcCabSvg').viewBox.baseVal.width);
   await page.click('[data-hc7="c100"]'); v60.reset = await page.evaluate(() => HC7.ck === 1);
-  ok('Kablaj arama: sonuç paneli, vurgu/soluklaştırma, odak korunur, sonuca git, görünüm PDF, temizle, kablo görünümünde yakınlaştırma', Object.values(v60).every(v => v === true), v60);
+  ok('Kablaj arama: sonuç paneli, vurgu/soluklaştırma, odak korunur, sonuca git, görünüm PDF, temizle, kablaj görünümünde yakınlaştırma', Object.values(v60).every(v => v === true), v60);
 
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });

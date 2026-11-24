@@ -61,7 +61,7 @@ function hpFrame(pr){
   const tl = hpHexLen(pr.tail); if(tl) r.push({name:'Son bayt(lar)', off:'sonda', size:tl, val:hpNormHex(pr.tail)});
   return r;
 }
-/* ---------- uyumluluk: kabloyla birbirine bağlanan arayüz çiftleri ---------- */
+/* ---------- uyumluluk: kablajla birbirine bağlanan arayüz çiftleri ---------- */
 const HPC = {rev:-1, v:null};
 function hpPairs(){
   if(HPC.rev === REV && HPC.v) return HPC.v;
@@ -105,7 +105,7 @@ function hpIssuesFor(filter){
   v.lone.forEach(L => { if(filter && !filter(L.f, null)) return; out.push({sev:'bilgi', msg:`${hpIfLabel(L.f)}: karşı uçta (${(E(L.o.port.owner) || {}).name} ${L.o.port.name}) haberleşme arayüzü tanımlı değil`, el:L.f.p.id, cables:L.cables}); });
   return out;
 }
-/* kablo denetimine protokol bulguları */
+/* kablaj denetimine protokol bulguları */
 { const _ci = hcCableIssues; hcCableIssues = function(c){ const r = _ci.apply(this, arguments); try { hpIssuesFor().filter(x => x.cables.has(c) && x.sev !== 'bilgi').forEach(x => r.push({sev:x.sev, msg:'Protokol: ' + x.msg})); } catch(e){} return r; }; }
 VALIDATORS.push((add) => { if(!M.hrn || !M.hrn.protos) return; hpIssuesFor().forEach(x => add(x.sev, 'Haberleşme protokolü', x.el, x.msg));
   Object.values(M.els).forEach(p => hpIfs(p).forEach(ifc => { if(!hpGet(ifc.pr)) add('uyarı', 'Haberleşme protokolü', p.id, `${p.name}: arayüzün protokol profili yok / silinmiş`); })); });
@@ -187,10 +187,10 @@ function hpBar(){
 function hpHTML(){ const pr = hpGet(HPV.sel); return pr ? hpProfHTML(pr) : hpListHTML(); }
 function hpListHTML(){
   const L = hpList(), iss = hpIssuesFor(), v = hpPairs();
-  return `<div style="padding:12px"><p class="muted" style="font-size:12px;margin-top:0">Protokol profilleri yeniden kullanılabilir haberleşme tanımlarıdır (fiziksel katman, çerçeve yapısı, endian, komut ID, uzunluk, CRC, mesaj listesi). Profilleri <b>Birim arayüzleri</b> ekranında konnektörlere atayın; port başına hız, adres gibi alanları geçersiz kılabilirsiniz. Kabloyla bağlanan iki ucun protokolleri karşılaştırılır.</p>
+  return `<div style="padding:12px"><p class="muted" style="font-size:12px;margin-top:0">Protokol profilleri yeniden kullanılabilir haberleşme tanımlarıdır (fiziksel katman, çerçeve yapısı, endian, komut ID, uzunluk, CRC, mesaj listesi). Profilleri <b>Birim arayüzleri</b> ekranında konnektörlere atayın; port başına hız, adres gibi alanları geçersiz kılabilirsiniz. Kablajla bağlanan iki ucun protokolleri karşılaştırılır.</p>
     <div class="hccards">${L.map(p => { const u = hpUsers(p.id); return `<div class="hccard" data-hp6="open" data-k="${p.id}"><b class="noi18n">${esc(p.name)}</b><div class="muted">${esc(p.phy || '')}${p.baud ? ' · ' + (+p.baud).toLocaleString('tr-TR') + ' bit/s' : ''} · ${p.endian === 'little' ? 'LE' : 'BE'} · ${esc(p.crc || '')}</div><div class="muted">${(p.msgs || []).length} mesaj · ${u.length} arayüzde · ${hpAtts(p).length} ek</div></div>`; }).join('')}</div>
     <div class="hcsec">Bağlı arayüz çiftleri (${v.pairs.length})</div>
-    <table class="hcpt"><thead><tr><th>Uç A</th><th>Uç B</th><th>Kablo</th><th>Hat</th><th>Durum</th></tr></thead><tbody>${v.pairs.map(P => `<tr><td class="noi18n">${esc(hpIfLabel(P.a))}</td><td class="noi18n">${esc(hpIfLabel(P.b))}</td><td class="noi18n">${[...P.cables].map(c => esc(c.name)).join(', ')}</td><td>${P.lines.length}</td><td>${P.iss.length ? P.iss.map(([s, m]) => `<div style="color:${s === 'hata' ? '#c0392b' : '#b9770e'}">${hcSev(s)} ${esc(m)}</div>`).join('') : '<span style="color:#27ae60">✓ uyumlu</span>'}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Kabloyla bağlı, iki ucunda da haberleşme arayüzü tanımlı çift yok.</td></tr>'}</tbody></table>
+    <table class="hcpt"><thead><tr><th>Uç A</th><th>Uç B</th><th>Kablaj</th><th>Hat</th><th>Durum</th></tr></thead><tbody>${v.pairs.map(P => `<tr><td class="noi18n">${esc(hpIfLabel(P.a))}</td><td class="noi18n">${esc(hpIfLabel(P.b))}</td><td class="noi18n">${[...P.cables].map(c => esc(c.name)).join(', ')}</td><td>${P.lines.length}</td><td>${P.iss.length ? P.iss.map(([s, m]) => `<div style="color:${s === 'hata' ? '#c0392b' : '#b9770e'}">${hcSev(s)} ${esc(m)}</div>`).join('') : '<span style="color:#27ae60">✓ uyumlu</span>'}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Kablajla bağlı, iki ucunda da haberleşme arayüzü tanımlı çift yok.</td></tr>'}</tbody></table>
     ${iss.filter(x => x.sev === 'bilgi').length ? `<div class="muted" style="font-size:12px;margin-top:6px">${iss.filter(x => x.sev === 'bilgi').map(x => 'ℹ ' + esc(x.msg)).join('<br>')}</div>` : ''}</div>`;
 }
 function hpProfHTML(pr){
@@ -214,7 +214,7 @@ function hpProfHTML(pr){
   h += `</tbody></table>` + hpAttHTML(pr, 'pr') + '</div>';
   return h;
 }
-VIEWS['@hcproto'] = {tr:'Haberleşme Protokolleri', ic:'ICD', note:'<b>Protokol profili:</b> fiziksel katman (RS-422, CAN, 1553, Ethernet…), hız, veri/eşlik/dur biti, bayt sırası (endian), başlık baytları, komut ID ve uzunluk alanlarının yeri, CRC tipi / polinomu / kapsamı, mesaj listesi ve mesaj alanları.<br><br>Profiller konnektörlere <b>Birim arayüzleri</b> ekranından atanır; port başına adres, hız gibi alanlar geçersiz kılınabilir.<br><br>Kabloyla bağlanan uçlarda fiziksel katman, hız, çerçeve, endian, CRC ve mesaj farkları <b>uyumsuzluk</b> olarak raporlanır.<br><br><b>Yazılım ICD</b>: Word ve Excel.', render:hpHTML, bar:hpBar, status:() => { const v = hpPairs(); return hpList().length + ' profil · ' + v.pairs.length + ' bağlı çift · ' + v.pairs.filter(P => P.iss.some(x => x[0] === 'hata')).length + ' uyumsuz'; }};
+VIEWS['@hcproto'] = {tr:'Haberleşme Protokolleri', ic:'ICD', note:'<b>Protokol profili:</b> fiziksel katman (RS-422, CAN, 1553, Ethernet…), hız, veri/eşlik/dur biti, bayt sırası (endian), başlık baytları, komut ID ve uzunluk alanlarının yeri, CRC tipi / polinomu / kapsamı, mesaj listesi ve mesaj alanları.<br><br>Profiller konnektörlere <b>Birim arayüzleri</b> ekranından atanır; port başına adres, hız gibi alanlar geçersiz kılınabilir.<br><br>Kablajla bağlanan uçlarda fiziksel katman, hız, çerçeve, endian, CRC ve mesaj farkları <b>uyumsuzluk</b> olarak raporlanır.<br><br><b>Yazılım ICD</b>: Word ve Excel.', render:hpHTML, bar:hpBar, status:() => { const v = hpPairs(); return hpList().length + ' profil · ' + v.pairs.length + ' bağlı çift · ' + v.pairs.filter(P => P.iss.some(x => x[0] === 'hata')).length + ' uyumsuz'; }};
 function hpRefresh(){ if(typeof ST !== 'undefined' && /^@hc/.test(ST.cur || '')){ renderViewBar(); renderView(); } }
 /* ---------- birim arayüzleri: konnektörde haberleşme arayüzleri + ekler ---------- */
 function hpPortBlock(p){
@@ -259,7 +259,7 @@ function hpIcdBlocks(L){
     const at = hpAtts(pr).concat(...us.map(({p}) => hpAtts(p))); if(at.length){ H(2, `${n}.5 Ekli dokümanlar`); TB(['Dosya', 'Boyut', 'Sürüm'], [...new Set(at)].map(f => [f.name, hpSize(f.size), String(f.rev || 1)]), [60, 20, 20]); }
   });
   const iss = hpIssuesFor(); H(1, `${L.length + 2}. Uyumluluk bulguları`);
-  if(iss.length) TB(['Önem', 'Bulgu'], iss.map(x => [x.sev, x.msg]), [12, 88]); else P('Kabloyla bağlı arayüz çiftlerinde protokol uyumsuzluğu yok.');
+  if(iss.length) TB(['Önem', 'Bulgu'], iss.map(x => [x.sev, x.msg]), [12, 88]); else P('Kablajla bağlı arayüz çiftlerinde protokol uyumsuzluğu yok.');
   return B;
 }
 async function hpIcdDocx(){ const L = HPV.sel ? [hpGet(HPV.sel)] : hpList(); const nm0 = L.length === 1 ? L[0].name : E(M.rootId).name;

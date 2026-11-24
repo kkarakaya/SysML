@@ -10,11 +10,11 @@
    Birim = Block; arayüz (konnektör) = Block'a ait Port, port.hc = {ct, cat, desc, pins:{no:{sig, lbl, cat, dir, vmin, vmax, inom, ipk, pair, shield, note}}}. */
 const HC_DIRS = [['', '—'], ['in', 'Giriş'], ['out', 'Çıkış'], ['bi', 'Çift yönlü'], ['src', 'Güç kaynağı (çıkış)'], ['snk', 'Güç girişi (yük)'], ['rtn', 'Dönüş / GND'], ['pas', 'Pasif']];
 const HC_GENDERS = ['Erkek (pin)', 'Dişi (soket)', 'Hermafrodit'];
-const HC_BODIES = ['Plug (kablo ucu)', 'Receptacle — duvar flanşlı', 'Receptacle — jam-nut', 'Receptacle — kutu montaj', 'Inline receptacle', 'PCB montaj'];
+const HC_BODIES = ['Plug (kablaj ucu)', 'Receptacle — duvar flanşlı', 'Receptacle — jam-nut', 'Receptacle — kutu montaj', 'Inline receptacle', 'PCB montaj'];
 const HC_LOCKS = ['Vidalı (threaded)', 'Bayonet', 'Push-pull', 'Vidalı kilit (jackscrew)', 'Klips / mandal', 'Yok'];
-const HC_TERMS = ['Crimp', 'Lehim kabı', 'PCB (düz)', 'PCB (90°)', 'Tel uçlu (pigtail)'];
+const HC_TERMS = ['Crimp', 'Lehim kabı', 'PCB (düz)', 'PCB (90°)', 'Hat uçlu (pigtail)'];
 const HC_START = ['Sol üst', 'Sağ üst', 'Sol alt', 'Sağ alt'];
-const HC_VIEWS = ['Ön yüz (eşleşme yüzü)', 'Arka yüz (kablo girişi)'];
+const HC_VIEWS = ['Ön yüz (eşleşme yüzü)', 'Arka yüz (kablaj girişi)'];
 const HC_LETTERS = 'ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnprstuvwxyz'.split('');   /* MIL-DTL-38999 harf dizisi: I, O, Q (ve i, l, o, q) yok */
 function hcDefaults(){
   const C = (id, name, col, desc) => ({id, name, col, desc});
@@ -32,7 +32,7 @@ function hcDefaults(){
     K('Fisher Ø0.7', 4, 24, 28, 'Fisher Core S102 — yaklaşık, katalogla doğrulayın'), K('Fisher Ø0.9', 6, 22, 26, 'Fisher Core S103 — yaklaşık, katalogla doğrulayın'), K('Fisher Ø1.3', 10, 20, 24, 'Fisher Core S104 — yaklaşık, katalogla doğrulayın')];
   return {v:1, cats, labels, rules, contacts, ctypes:{}, cables:{}, lay:{}, awg:hcAwgDefaults()};
 }
-/* tel tablosu: taşıma kapasitesi (A) — tek tel serbest havada ve demet içinde; yaklaşık SAE AS50881 / MIL-W-5088 değerleri (M22759, 200 °C), düzenlenebilir.
+/* hat tablosu: taşıma kapasitesi (A) — tek hat serbest havada ve demet içinde; yaklaşık SAE AS50881 / MIL-W-5088 değerleri (M22759, 200 °C), düzenlenebilir.
    Direnç bakır, 20 °C, AWG çapından hesaplanır (Ω/km). */
 function hcAwgDefaults(){
   const T = [[30, 3, 1], [28, 4, 1.5], [26, 5, 2.5], [24, 7, 3.5], [22, 9, 5], [20, 11, 7.5], [18, 16, 10], [16, 22, 13], [14, 32, 17], [12, 41, 23], [10, 55, 33], [8, 73, 46], [6, 101, 60], [4, 135, 80]];
@@ -51,26 +51,26 @@ const HC_LIB = (() => {
     const [sh, ar] = ins.split('-'), base = {fam:'MIL-DTL-38999 Seri III', std:'MIL-DTL-38999', mfr:'Amphenol (TV / D38999)', shell:sh, insert:ins, key:'N (normal)', lock:'Vidalı (threaded)', term:'Crimp', vmax:size === '#22D' ? 400 : 1000, tmin:-65, tmax:200, ip:'IP67 (eşleşmiş)', finish:'W — zeytin yeşili kadmiyum', backshell:'M85049 uyumlu'};
     add(Object.assign({}, base, {id:'lib:38999-20-' + ins + 'P', name:`38999 /20 duvar recep. ${ins} pin`, pn:`D38999/20W${SH[sh]}${ar}PN`, mate:`D38999/26W${SH[sh]}${ar}SN`, gender:'Erkek (pin)', body:'Receptacle — duvar flanşlı', pins:hcPinList(n, size, lt)}));
     add(Object.assign({}, base, {id:'lib:38999-24-' + ins + 'P', name:`38999 /24 jam-nut recep. ${ins} pin`, pn:`D38999/24W${SH[sh]}${ar}PN`, mate:`D38999/26W${SH[sh]}${ar}SN`, gender:'Erkek (pin)', body:'Receptacle — jam-nut', pins:hcPinList(n, size, lt)}));
-    add(Object.assign({}, base, {id:'lib:38999-26-' + ins + 'S', name:`38999 /26 plug ${ins} soket`, pn:`D38999/26W${SH[sh]}${ar}SN`, mate:`D38999/20W${SH[sh]}${ar}PN`, gender:'Dişi (soket)', body:'Plug (kablo ucu)', pins:hcPinList(n, size, lt)}));
+    add(Object.assign({}, base, {id:'lib:38999-26-' + ins + 'S', name:`38999 /26 plug ${ins} soket`, pn:`D38999/26W${SH[sh]}${ar}SN`, mate:`D38999/20W${SH[sh]}${ar}PN`, gender:'Dişi (soket)', body:'Plug (kablaj ucu)', pins:hcPinList(n, size, lt)}));
   });
   [['10-6', 6], ['14-19', 19]].forEach(([ins, n]) => {
-    const [sh] = ins.split('-'), base = {fam:'MIL-DTL-26482 Seri 1', std:'MIL-DTL-26482', mfr:'Amphenol (PT / MS3100)', shell:sh, insert:ins, key:'N (normal)', lock:'Bayonet', term:'Lehim kabı', vmax:600, tmin:-55, tmax:125, ip:'IP67 (eşleşmiş)', finish:'Kadmiyum / zeytin yeşili', backshell:'MS3057 kablo kelepçesi'};
+    const [sh] = ins.split('-'), base = {fam:'MIL-DTL-26482 Seri 1', std:'MIL-DTL-26482', mfr:'Amphenol (PT / MS3100)', shell:sh, insert:ins, key:'N (normal)', lock:'Bayonet', term:'Lehim kabı', vmax:600, tmin:-55, tmax:125, ip:'IP67 (eşleşmiş)', finish:'Kadmiyum / zeytin yeşili', backshell:'MS3057 kablaj kelepçesi'};
     add(Object.assign({}, base, {id:'lib:26482-12-' + ins + 'P', name:`26482 MS3112 kutu recep. ${ins} pin`, pn:`MS3112E${ins}P`, mate:`MS3116F${ins}S`, gender:'Erkek (pin)', body:'Receptacle — kutu montaj', pins:hcPinList(n, '#20', 1)}));
-    add(Object.assign({}, base, {id:'lib:26482-16-' + ins + 'S', name:`26482 MS3116 plug ${ins} soket`, pn:`MS3116F${ins}S`, mate:`MS3112E${ins}P`, gender:'Dişi (soket)', body:'Plug (kablo ucu)', pins:hcPinList(n, '#20', 1)}));
+    add(Object.assign({}, base, {id:'lib:26482-16-' + ins + 'S', name:`26482 MS3116 plug ${ins} soket`, pn:`MS3116F${ins}S`, mate:`MS3112E${ins}P`, gender:'Dişi (soket)', body:'Plug (kablaj ucu)', pins:hcPinList(n, '#20', 1)}));
   });
   [[9, 'A'], [15, 'B'], [25, 'D'], [37, 'F'], [51, 'G']].forEach(([n, c]) => {
-    const base = {fam:'Micro-D MIL-DTL-83513', std:'MIL-DTL-83513', mfr:'Glenair / Amphenol / ITT Cannon', shape:'rect', shell:c, insert:String(n), key:'D gövde', lock:'Vidalı kilit (jackscrew)', term:'Tel uçlu (pigtail)', vmax:250, tmin:-55, tmax:125, ip:'—', finish:'Kadmiyum / nikel', backshell:'Micro-D backshell (M83513/05)'};
-    add(Object.assign({}, base, {id:'lib:md-' + n + 'P', name:`Micro-D ${n} pin plug`, pn:`M83513/01-${c}`, mate:`M83513/02-${c}`, gender:'Erkek (pin)', body:'Plug (kablo ucu)', pins:hcPinList(n, 'Micro-D TwistPin')}));
+    const base = {fam:'Micro-D MIL-DTL-83513', std:'MIL-DTL-83513', mfr:'Glenair / Amphenol / ITT Cannon', shape:'rect', shell:c, insert:String(n), key:'D gövde', lock:'Vidalı kilit (jackscrew)', term:'Hat uçlu (pigtail)', vmax:250, tmin:-55, tmax:125, ip:'—', finish:'Kadmiyum / nikel', backshell:'Micro-D backshell (M83513/05)'};
+    add(Object.assign({}, base, {id:'lib:md-' + n + 'P', name:`Micro-D ${n} pin plug`, pn:`M83513/01-${c}`, mate:`M83513/02-${c}`, gender:'Erkek (pin)', body:'Plug (kablaj ucu)', pins:hcPinList(n, 'Micro-D TwistPin')}));
     add(Object.assign({}, base, {id:'lib:md-' + n + 'S', name:`Micro-D ${n} soket recep.`, pn:`M83513/02-${c}`, mate:`M83513/01-${c}`, gender:'Dişi (soket)', body:'Receptacle — kutu montaj', pins:hcPinList(n, 'Micro-D TwistPin')}));
   });
   [['DE', 9, 'D-Sub #20', ''], ['DA', 15, 'D-Sub #20', ''], ['DB', 25, 'D-Sub #20', ''], ['DC', 37, 'D-Sub #20', ''], ['DD', 50, 'D-Sub #20', ''], ['DE', 15, '#22D', 'HD'], ['DA', 26, '#22D', 'HD'], ['DB', 44, '#22D', 'HD']].forEach(([sh, n, size, hd]) => {
     const base = {fam:hd ? 'D-Sub yüksek yoğunluk' : 'D-Sub MIL-DTL-24308', std:'MIL-DTL-24308', mfr:'Amphenol / ITT Cannon / Glenair', shape:'rect', shell:sh, insert:String(n) + (hd ? ' HD' : ''), key:'D gövde', lock:'Vidalı kilit (jackscrew)', term:'Crimp', vmax:hd ? 300 : 500, tmin:-55, tmax:125, ip:'—', finish:'Nikel / kadmiyum', backshell:'D-Sub EMI backshell'};
-    add(Object.assign({}, base, {id:`lib:ds-${sh}${n}${hd}P`, name:`${sh}-${n}${hd ? ' HD' : ''} pin (erkek)`, pn:`${sh}${hd ? 'M' : ''}-${n}P`, mate:`${sh}${hd ? 'M' : ''}-${n}S`, gender:'Erkek (pin)', body:'Plug (kablo ucu)', pins:hcPinList(n, size)}));
+    add(Object.assign({}, base, {id:`lib:ds-${sh}${n}${hd}P`, name:`${sh}-${n}${hd ? ' HD' : ''} pin (erkek)`, pn:`${sh}${hd ? 'M' : ''}-${n}P`, mate:`${sh}${hd ? 'M' : ''}-${n}S`, gender:'Erkek (pin)', body:'Plug (kablaj ucu)', pins:hcPinList(n, size)}));
     add(Object.assign({}, base, {id:`lib:ds-${sh}${n}${hd}S`, name:`${sh}-${n}${hd ? ' HD' : ''} soket (dişi)`, pn:`${sh}${hd ? 'M' : ''}-${n}S`, mate:`${sh}${hd ? 'M' : ''}-${n}P`, gender:'Dişi (soket)', body:'Receptacle — kutu montaj', pins:hcPinList(n, size)}));
   });
   [['102', 4, 'Fisher Ø0.7'], ['103', 7, 'Fisher Ø0.9'], ['104', 12, 'Fisher Ø1.3']].forEach(([s, n, size]) => {
-    const base = {fam:'Fisher Core Series', std:'Üretici standardı', mfr:'Fisher Connectors', shell:'S' + s, insert:n + ' kontak', key:'Kılavuz kanal', lock:'Push-pull', term:'Lehim kabı', vmax:250, tmin:-55, tmax:135, ip:'IP68 (eşleşmiş)', finish:'Krom / siyah krom', backshell:'Kablo kelepçeli gövde'};
-    add(Object.assign({}, base, {id:`lib:fi-${s}-${n}S`, name:`Fisher S${s} ${n} kontak plug`, pn:`S ${s} A0xx (doğrulayın)`, mate:`DEE ${s} A0xx`, gender:'Erkek (pin)', body:'Plug (kablo ucu)', pins:hcPinList(n, size)}));
+    const base = {fam:'Fisher Core Series', std:'Üretici standardı', mfr:'Fisher Connectors', shell:'S' + s, insert:n + ' kontak', key:'Kılavuz kanal', lock:'Push-pull', term:'Lehim kabı', vmax:250, tmin:-55, tmax:135, ip:'IP68 (eşleşmiş)', finish:'Krom / siyah krom', backshell:'Kablaj kelepçeli gövde'};
+    add(Object.assign({}, base, {id:`lib:fi-${s}-${n}S`, name:`Fisher S${s} ${n} kontak plug`, pn:`S ${s} A0xx (doğrulayın)`, mate:`DEE ${s} A0xx`, gender:'Erkek (pin)', body:'Plug (kablaj ucu)', pins:hcPinList(n, size)}));
     add(Object.assign({}, base, {id:`lib:fi-${s}-${n}R`, name:`Fisher DEE${s} ${n} kontak panel recep.`, pn:`DEE ${s} A0xx (doğrulayın)`, mate:`S ${s} A0xx`, gender:'Dişi (soket)', body:'Receptacle — duvar flanşlı', pins:hcPinList(n, size)}));
   });
   return L;
@@ -205,7 +205,7 @@ function hcLabelsHTML(){
 }
 function hcContactsHTML(){
   const K = hcR().contacts;
-  return `<div style="padding:10px"><p class="muted" style="font-size:12px;margin:0 0 8px">Pin akımı kontak sınırını aşarsa uyarı verilir; AWG aralığı kablaj tel önerisinde üst/alt sınırdır (kalın = küçük AWG numarası). Değerler örnektir, kullandığınız kontak kataloğuyla güncelleyin.</p>
+  return `<div style="padding:10px"><p class="muted" style="font-size:12px;margin:0 0 8px">Pin akımı kontak sınırını aşarsa uyarı verilir; AWG aralığı kablaj hat önerisinde üst/alt sınırdır (kalın = küçük AWG numarası). Değerler örnektir, kullandığınız kontak kataloğuyla güncelleyin.</p>
     <table class="hcpt"><thead><tr><th>Kontak boyutu</th><th>Maks. akım (A)</th><th>En kalın AWG</th><th>En ince AWG</th><th>Not</th><th></th></tr></thead><tbody>${K.map((k, i) => `<tr><td><input data-hck="id|${i}" value="${esc(k.id)}"></td><td><input data-hck="imax|${i}" value="${esc(k.imax)}" style="width:70px"></td><td><input data-hck="awgThick|${i}" value="${esc(k.awgThick)}" style="width:60px"></td><td><input data-hck="awgThin|${i}" value="${esc(k.awgThin)}" style="width:60px"></td><td><input data-hck="note|${i}" value="${esc(k.note || '')}" style="min-width:260px"></td><td><button class="vb" data-hca="kdel" data-i="${i}">✕</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 /* ---------- birim arayüzleri ve pinout görünümü ---------- */
@@ -298,7 +298,7 @@ VIEWS['@hcunits'] = {tr:'Birim Arayüzleri ve Pinout', ic:'PIN', note:'Her birim
 /* ---------- menü, araç çubuğu, iş akışı ---------- */
 HOOKS.menu.analysis.unshift(r => r.push(...hcLibMenu()));   /* gruplama / Temel süzgecinden (menuFinal) önce */
 if(typeof MENU_ADV !== 'undefined') MENU_ADV.analysis = new RegExp(MENU_ADV.analysis.source + '|^Konnektör kütüphanesi|^Hat tipleri ve etiketler|^Birim arayüzleri');   /* Temel görünümde Kablaj ▾ menüsünde */
-if(typeof MENU_GROUPS !== 'undefined'){ MENU_GROUPS.analysis.cls.unshift(['Kablaj ve konnektörler', /Konnektör kütüphanesi|Hat tipleri ve etiketler|Birim arayüzleri|Kablaj|Kablo teknik/]); MENU_GROUPS.analysis.show.splice(1, 0, 'Kablaj ve konnektörler'); }
+if(typeof MENU_GROUPS !== 'undefined'){ MENU_GROUPS.analysis.cls.unshift(['Kablaj ve konnektörler', /Konnektör kütüphanesi|Hat tipleri ve etiketler|Birim arayüzleri|Kablaj|Kablaj teknik/]); MENU_GROUPS.analysis.show.splice(1, 0, 'Kablaj ve konnektörler'); }
 ACT.harnessMenu = () => { const b = document.querySelector('[data-act="harnessMenu"]').getBoundingClientRect(); setTimeout(() => menu(b.left, b.bottom + 4, hcLibMenu()), 0); };
 (() => { const tb = document.querySelector('#toolbar [data-act="analysisMenu"]');
   if(tb && !document.querySelector('#toolbar [data-act="harnessMenu"]')){ tb.insertAdjacentHTML('afterend', '<button data-act="harnessMenu" title="Konnektör kütüphanesi, hat etiketleri, birim arayüzleri ve pinout, kablaj şeması">Kablaj ▾</button>'); if(typeof TB_IC !== 'undefined') TB_IC.harnessMenu = 'tools'; if(typeof decorateToolbar === 'function') decorateToolbar(); } })();
