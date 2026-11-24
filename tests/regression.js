@@ -1171,6 +1171,19 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   v62.face = await page.evaluate(() => hcCables()[0].dwg.face === 'FR' && /ARKA \(kablo giriş yüzü\)/.test(hcDrawingPages(hcCables()[0]).map(p => p.str).join('')));
   ok('Kablaj katalog görünümü ve hat tablosu: süzgeçli tablo, PDF / Excel, tüm bağlantı şemaları PDF, ön / arka görünüm seçimi', Object.values(v62).every(v => v === true), v62);
 
+  console.log('8h10) v1.63 pin grupları, grup sürükleyerek bağlama');
+  const g63 = await page.evaluate(() => { const P = hcUnitConns(hcUnits()[0].id)[0]; HC.unit = P.owner; HC.port = P.id; openD('@hcunits'); return P.id; }); await page.waitForTimeout(200);
+  await page.selectOption('[data-hgf="newkind"]', 'RS-485'); await page.click('[data-hg="add"]'); await page.waitForTimeout(150);
+  await page.evaluate(id => { const p = E(id), g = hgOf(p)[0], ps = hcPins(p); g.mem[0].no = ps[0].no; g.mem[1].no = ps[1].no; g.mem[2].no = ''; afterChange(); }, g63);
+  const v63 = await page.evaluate(id => ({ grp: hgOf(E(id)).length === 1 && hgOf(E(id))[0].kind === 'RS-485', row: !!document.querySelector('[data-hgf="name"]') }), g63);
+  await page.evaluate(() => { const u = hcNewUnit('GrpTest'), p = hcNewPort(u.id, 'J9'); p.hc.ct = 'lib:md-9S'; hcSetPin(p, '1', 'sig', 'A'); hcSetPin(p, '2', 'sig', 'B'); hgNewGroup(p, 'RS-485'); window.__p63 = p.id; afterChange(); openD('@hcgrp'); }); await page.waitForTimeout(250);
+  const kA = await page.evaluate(id => id + '|g:' + hgOf(E(id))[0].id, g63), kB = await page.evaluate(() => __p63 + '|g:' + hgOf(E(__p63))[0].id);
+  const bA = await (await page.$$(`[data-hgh="${kA}"]`))[1].boundingBox(), bB = await (await page.$$(`[data-hgh="${kB}"]`))[0].boundingBox();
+  await page.mouse.move(bA.x + bA.width / 2, bA.y + bA.height / 2); await page.mouse.down(); await page.mouse.move(bB.x + 2, bB.y + 2, {steps:6}); await page.mouse.move(bB.x + bB.width / 2, bB.y + bB.height / 2); await page.mouse.up(); await page.waitForTimeout(250);
+  Object.assign(v63, await page.evaluate(() => ({ link: hgLinks().some(L => L.pa.id === __p63 || L.pb.id === __p63), toast: /hat bağlandı/.test($('#toast').textContent), drawn: document.querySelectorAll('#hgSvg [data-hgl]').length >= 1 })));
+  await page.evaluate(() => { undo(); }); await page.waitForTimeout(100); v63.undo = await page.evaluate(() => !hgLinks().some(L => L.pa.id === __p63 || L.pb.id === __p63));
+  ok('Pin grupları: şablondan grup ekleme, grup tutamağını sürükleyerek bağlama, grup bağlantısı çizimi, geri al', Object.values(v63).every(v => v === true), v63);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);
