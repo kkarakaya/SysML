@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü
 
+## v1.65.0 — 2026-11-24
+
+- **Test kablajları:** kablaj "Test kablajı" olarak işaretlenebilir. Projede saklanır, doğrulanır ve teknik resmi alınır; **genel mimaride görünmez** (sistem kablaj şeması, özet, hat tipine göre mimariler, hat tablosu, test kapsaması, arama)
+- **Bağımsız uçlar:** birime bağlı olmayan uç düğümü (banana jack 4 / 2 mm, banana fiş, krokodil, test probu, test noktası, BNC, terminal, açık uç); renk, parça no, kontak sayısı ve işlev. Kablaj detayında "+ Bağımsız uç", şemada yeşil tablo; zaten bağlı bir pinden bağımsız uca hat eklenince hat otomatik olarak splice'a bölünür
+- Test kablajı, işletim kablajı takılı birim konnektörüne de takılabilir ("başka bir kablaja da takılı" hatası verilmez); pin uyumluluğu, AWG, akım denetimleri aynen çalışır
+- **Test Kablajları görünümü** (Kablaj → Test kablajları): tüm test kablajlarının listesi (birim konnektörleri, bağımsız uçlar, hat, splice, denetim), birime ve metne göre süzme, seçim; **+ Yeni test kablajı** (konnektörler, etiketlere göre eşleme, banana jack sayısı); seçilenlerin teknik resmi tek PDF / her biri ayrı PDF, BOM Excel, liste Excel
+- Teknik resimde "TEST KABLAJI" notu ve bağımsız uç listesi, BOM'da bağımsız uçlar; antet başlığı "Test kablajı …". Teknik resim penceresinde test kablajları ayrıca listelenir (varsayılan seçili değil)
+- Splice ile bağımsız uç arasındaki hat, hat tipini ve sinyalini netteki pinden alır
+- Birim testleri 205, regresyon testi 68 adım
+
 ## v1.64.0 — 2026-11-24
 
 - **Konnektör üzerinden birime test:** test tanımında konnektör, hedef birim ve hat tipleri seçilir ya da serbest yazılır ("Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi" → kapsam otomatik çıkar); hatlar içten geçişli birimler üzerinden bütün kablajlar boyunca izlenir, kapsamdaki pinler test pin listesine yazılır

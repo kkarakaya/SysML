@@ -1416,6 +1416,22 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Test başarılı — kaydet:** Doğrulanan hatlar, tamamlanan adımlar ve tarih teste kayıt olarak yazılır. Kapsama sekmesinde "Kayıtlı doğrulama" oranı görünür.
 - **Mimaride göster:** Kapsamdaki (ya da yalnız doğrulanan) hatların geçtiği kablajlar, konnektörler ve pinler sistem şemasında vurgulanır, diğerleri soluklaşır. Paneldeki **Mimari PDF** bu görünümü A3 PDF olarak indirir.
 
+### 5ba. Test kablajları (v1.65)
+
+Test kablajı, birim konnektörlerine takılan, banana jack gibi birime bağlı olmayan uçlar içerebilen ve projede saklanan kablajdır. **Genel mimaride görünmez:** sistem kablaj şeması, özet, hat tipine göre mimariler, hat tablosu, test kapsaması ve arama yalnız işletim kablajlarını kullanır.
+
+Örnek: 5 birimli mimaride Birim1 J1 ve Birim2 J1 konnektörlerinden güç ve haberleşme hatlarını alan, 2 banana jack'li test kablajı.
+
+1. **Kablaj → Test kablajları** → **+ Yeni test kablajı**.
+2. Ad (varsayılan TW1), not, konnektörler (Birim1 · J1 ve Birim2 · J1; işletim kablajı takılı olsalar da seçilebilir). "Etiketlere göre birbirine bağla" işaretliyse güç ve haberleşme pinleri eşlenir. Bağımsız uç: 2 adet, Banana jack 4 mm (BJ1 kırmızı, BJ2 siyah). **Oluştur ve aç**.
+3. Kablaj detayında hat tablosunun altındaki **yeni** satırda Uç A olarak `J1-A` (28V), Uç B olarak `BJ1` seçip **+ Hat ekle**. Pin zaten Birim2'ye bağlı olduğu için hat otomatik olarak splice'a bölünür (J1-A → SP1 → Birim2 J1-A ve BJ1). GND / 28V_RTN için BJ2 ile aynısını yapın.
+4. Bağımsız ucun adını, tipini, rengini, parça numarasını ve işlevini (ör. "28V ölçüm") uç çipindeki **✎** ile değiştirin; **+ Bağımsız uç** ile test probu, krokodil, BNC gibi başka uçlar ekleyin.
+5. **Teknik resim oluştur** tek kablajın A3 PDF'ini verir (pin pin şema, bağımsız uçlar, hat listesi, BOM, "TEST KABLAJI" notu, antet).
+
+**Liste ve toplu çıktı:** Test kablajları görünümünde bütün test kablajları birim konnektörleri, bağımsız uçlar, hat / splice sayısı ve denetim sonucuyla listelenir. Birime veya metne göre süzün, satırları işaretleyin; **Teknik resim — tek PDF**, **Her biri ayrı PDF**, **BOM Excel** ve **Liste Excel** (liste + her kablajın hat listesi) seçilenler için çalışır. Sistem kablaj şemasının altındaki "n test kablajı (mimaride gösterilmez)" bağlantısı da bu görünümü açar.
+
+**Var olan kablajı çevirme:** Kablaj detayında **Kablaj türü → Test kablajı** kutusunu işaretleyin (geri almak için kaldırın).
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

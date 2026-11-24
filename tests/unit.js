@@ -360,5 +360,33 @@ T('kablaj çizim: kablaj detayı ve sistem şemasında eğri yok (dik köşeli d
   const paths = svgs.join('').match(/ d="[^"]*"/g) || [];
   return paths.length > 0 && paths.every(d => !/[CcQqSsAa]/.test(d.slice(4))) && (!sp || /<circle[^>]*fill="#111"/.test(hcCableSVG(sp, {exp:true}).svg)) || paths.filter(d => /[CcQqSsAa]/.test(d.slice(4))).slice(0, 3); }));
 
+/* ---------- v1.65 test kablajları ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n), PW = {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}}, us = [];
+  us.push(mkU('Birim1', [['J1', 'lib:38999-20-15-5P', 'c_pwr', Object.assign({C:{lbl:'l_txp', sig:'TXP'}}, PW)]]));
+  us.push(mkU('Birim2', [['J1', 'lib:38999-20-15-5S', 'c_pwr', Object.assign({C:{lbl:'l_rxp', sig:'RXP'}}, PW)]]));
+  for(let i = 3; i <= 5; i++) us.push(mkU('Birim' + i, [['J1', 'lib:md-9P', 'c_dis', {1:{lbl:'l_di', sig:'DI'}}]]));
+  const w1 = hcConnect(J(us[0], 'J1').id, J(us[1], 'J1').id);
+  const tw = hcNewTestCable({ports:[J(us[0], 'J1').id, J(us[1], 'J1').id], jacks:2, note:'güç ve haberleşme testi'});
+  window.__K = {w1:w1.id, tw:tw.id, u1:us[0].id, u3:us[2].id, p1:J(us[0], 'J1').id}; return true; });
+T('kablaj test kablajı: projede saklanır, genel mimaride görünmez (şema, özet, hat, kapsama), listede görünür', () => R(() => { const tw = hcR().cables[__K.tw], sys = hcSysSVG({exp:true, det:true}).svg;
+  return tw.test === true && tw.name === 'TW1' && hcCables().length === 1 && hcTestCables().length === 1 && hcAllCables().length === 2 && !/TW1/.test(sys) && /W1/.test(sys)
+    && hcLines().every(l => l.cable.id !== tw.id) && hcSummary().cs.length === 1 && hcTkFilter({}).length === 1 && hcTkFilter({unit:__K.u1}).length === 1 && hcTkFilter({unit:__K.u3}).length === 0 && hcTkFilter({q:'banana'}).length === 1 && JSON.parse(JSON.stringify(M)).hrn.cables[__K.tw].test === true
+    || {test:tw.test, name:tw.name, op:hcCables().length, sys:/TW1/.test(sys)}; }));
+T('kablaj test kablajı: işletim kablajındaki konnektöre takılır (çakışma yok), etiketlere göre eşlenir, 2 banana jack', () => R(() => { const tw = hcR().cables[__K.tw], w1 = hcR().cables[__K.w1], fr = tw.nodes.filter(n => n.kind === 'free');
+  const bad = hcCableIssues(tw).concat(hcCableIssues(w1)).filter(i => /başka bir kablaja/.test(i.msg));
+  return tw.wires.length === 3 && fr.length === 2 && fr.map(n => n.name).join() === 'BJ1,BJ2' && fr[0].col === 'Kırmızı' && fr[1].col === 'Siyah' && bad.length === 0 && !validateModel().some(i => /başka bir kablaja/.test(i.msg))
+    && hcNodeLabel(tw, fr[0]) === 'BJ1 (Banana jack 4 mm, kırmızı)' && hcEndLabel(tw, {n:fr[0].id, pin:'1'}) === 'BJ1' || {w:tw.wires.length, fr:fr.length, bad}; }));
+T('kablaj test kablajı: bağlı pinden banana jack\'e hat splice\'a bölünür; şema, BOM ve teknik resimde bağımsız uç', () => R(() => { const tw = hcR().cables[__K.tw], [b1, b2] = tw.nodes.filter(n => n.kind === 'free'), cn = tw.nodes.find(n => n.kind === 'conn' && n.port === __K.p1);
+  hcWireTo(tw, {n:cn.id, pin:'A'}, {n:b1.id, pin:'1'}); hcWireTo(tw, {n:cn.id, pin:'B'}, {n:b2.id, pin:'1'}); REV++;
+  const sps = tw.nodes.filter(n => n.kind === 'splice'), iss = hcCableIssues(tw), svg = hcCableSVG(tw, {exp:true}).svg, bom = hcBOM(tw), pg = hcDrawingPages(tw), st = hcCableStats(tw);
+  return sps.length === 2 && tw.wires.length === 7 && !iss.some(i => i.sev === 'hata') && !iss.some(i => /tek pin|bağımsız uca hat bağlı değil/.test(i.msg)) && /BJ1/.test(svg) && /Banana jack 4 mm/.test(svg)
+    && bom.filter(b => b.part === 'Bağımsız uç').length === 2 && pg.length >= 2 && /TEST KABLAJI/.test(pg[0].str) && /Bağımsız uçlar: BJ1/.test(pg[0].str) && hcDwg(tw).title === 'Test kablajı TW1' && st.byCat.c_pwr === 6 && !st.byCat[''] && hcWireList(tw).filter(x => x.b === 'BJ1' || x.a === 'BJ1')[0].sig === 'P28'
+    || {sp:sps.length, w:tw.wires.length, iss:iss.map(i => i.msg), bom:bom.map(b => b.part)}; }));
+T('kablaj test kablajı: işletim kablajı test kablajına çevrilir / geri alınır; bağımsız uç düğümü silinince hatları gider', () => R(() => { const w1 = hcR().cables[__K.w1]; w1.test = true; const a = hcCables().length, b = hcTestCables().length; delete w1.test;
+  const tw = hcR().cables[__K.tw], c2 = hcNewCable([], 'TX', {test:true}), f = hcAddFree(c2, {ft:'Krokodil klips', n:2}); const n0 = c2.nodes.length; hcRemoveNode(c2, f.id); delete hcM().cables[c2.id];
+  return a === 0 && b === 2 && hcCables().length === 1 && f.name === 'X1' && f.pins.length === 2 && n0 === 1 && c2.nodes.length === 0 && tw.test || {a, b}; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }

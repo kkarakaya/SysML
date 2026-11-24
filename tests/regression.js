@@ -1203,6 +1203,28 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.evaluate(() => { HCT.tab = 'cov'; openD('@hctest'); }); await page.waitForTimeout(150); v64.cov = await page.evaluate(() => /Kayıtlı doğrulama:/.test($('#view').textContent));
   ok('Kablaj test senaryosu: serbest tanımdan kapsam, potansiyel hat sayısı, adım tiki ile doğrulama, test başarılı kaydı, mimaride vurgu ve PDF', Object.values(v64).every(v => v === true), v64);
 
+  console.log('8h12) v1.65 test kablajları');
+  await page.evaluate(() => { window.__dl = []; Object.values(hcR().cables).filter(c => c.test).forEach(c => delete hcM().cables[c.id]); HCTK.unit = ''; HCTK.q = ''; HCTK.sel = null; openD('@hctk'); }); await page.waitForTimeout(200);
+  const v65 = await page.evaluate(() => ({ empty: /Henüz test kablajı yok/.test($('#view').textContent), menu: hcLibMenu().some(x => x && x.t === 'Test kablajları') }));
+  await page.click('#view [data-hctka="new"]'); await page.waitForTimeout(200);
+  const pk65 = await page.evaluate(() => { const c = hcCables().find(x => x.nodes.filter(n => n.kind === 'conn').length >= 2); return c.nodes.filter(n => n.kind === 'conn').slice(0, 2).map(n => n.port); });
+  for (const id of pk65) await page.check(`[data-hctk="${id}"]`);
+  await page.fill('#hcTkNote', 'güç ve haberleşme testi'); await page.click('#hcTkO'); await page.waitForTimeout(250);
+  Object.assign(v65, await page.evaluate(() => { const c = hcR().cables[HCS.cab]; return { open: ST.cur === '@hccable' && !!c && c.test === true, jacks: c.nodes.filter(n => n.kind === 'free').length === 2, chk: !!document.querySelector('[data-hck2="test"]:checked'), back: !!document.querySelector('[data-hsa="tests"]'), drawn: /BJ1/.test($('#hcCabSvg').innerHTML), noConflict: !hcCableIssues(c).some(i => /başka bir kablaja/.test(i.msg)) }; }));
+  await page.click('[data-hca2="free"]'); await page.waitForTimeout(150); await page.fill('[data-qf="name"]', 'TP1'); await page.selectOption('[data-qf="ft"]', 'Test probu'); await page.click('#qfO'); await page.waitForTimeout(200);
+  const w65 = await page.evaluate(() => { const c = hcR().cables[HCS.cab], w = c.wires.find(x => hcEndPin(c, x.a)), bj = c.nodes.find(n => n.name === 'BJ1'); return { a: w ? hcEndKey(hcEndPin(c, w.a) ? w.a : w.b) : '', b: bj.id + '|1', tp: c.nodes.some(n => n.name === 'TP1' && n.ft === 'Test probu') }; });
+  v65.tp = w65.tp; await page.selectOption('#hcNwA', w65.a); await page.selectOption('#hcNwB', w65.b); await page.click('[data-hca2="wadd"]'); await page.waitForTimeout(200);
+  v65.splice = await page.evaluate(() => { const c = hcR().cables[HCS.cab]; return c.nodes.some(n => n.kind === 'splice') && c.wires.some(w => [w.a, w.b].some(e => (hcNode(c, e.n) || {}).name === 'BJ1')); });
+  await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(200);
+  Object.assign(v65, await page.evaluate(() => { const t = hcTestCables()[0]; return { hidden: !$('#hcSys').innerHTML.includes('>' + t.name) && !document.querySelector(`#hcSys [data-hcw="${t.id}"]`), link: /test kablajı \(mimaride gösterilmez\)/.test($('#view').textContent) }; }));
+  await page.evaluate(() => openD('@hctk')); await page.waitForTimeout(200);
+  v65.list = await page.evaluate(() => document.querySelectorAll('#view [data-hctkc]').length === 2 && /güç ve haberleşme testi/.test($('#view').textContent));
+  await page.click('#view [data-hctka="pdf1"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v65.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /TW1 - teknik resim/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-'; });
+  await page.click('[data-hctka="xl"]'); await page.waitForTimeout(200);
+  v65.xl = await page.evaluate(() => { const f = window.__dl.pop(); return !!f && /test kablajları\.xlsx$/.test(f.name) && f.size > 500; });
+  ok('Test kablajları: yeni test kablajı (konnektör + banana jack), bağımsız uç ekleme, splice\'a bölme, genel mimaride gizli, liste, teknik resim PDF ve Excel', Object.values(v65).every(v => v === true), v65);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);
