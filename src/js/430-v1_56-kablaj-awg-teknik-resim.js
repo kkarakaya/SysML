@@ -84,7 +84,8 @@ function hcBOM(c){
   const rows = [], add = (part, pn, desc, qty, unit) => { const k = part + '|' + pn + '|' + desc + '|' + unit, r = rows.find(x => x.k === k); if(r) r.qty = +(r.qty + qty).toFixed(2); else rows.push({k, part, pn, desc, qty, unit}); };
   const on = c.wires.filter(w => w.on !== false), len = hcNum(c.len);
   c.nodes.filter(n => n.kind === 'conn').forEach(n => { const p = E(n.port); if(!p) return; const t = hcType(p.hc.ct), u = E(p.owner);
-    add('Konnektör (kablaj ucu)', t && t.mate || '', `${u ? u.name : '?'} · ${p.name} ile eşleşir${t ? ' (' + (t.pn || t.name) + ')' : ''}`, 1, 'adet');
+    if(u && u.hcInline) add('Geçiş konnektörü (kablaja ait)', t && t.pn || '', `${u.name} · ${p.name} — kablaj ortası 1:1 ara konnektör${t ? ' (' + t.name + ')' : ''}`, 1, 'adet');   /* v1.66 */
+    else add('Konnektör (kablaj ucu)', t && t.mate || '', `${u ? u.name : '?'} · ${p.name} ile eşleşir${t ? ' (' + (t.pn || t.name) + ')' : ''}`, 1, 'adet');
     if(t && t.backshell) add('Backshell', '', t.backshell, 1, 'adet');
     const cnt = {}; on.forEach(w => [w.a, w.b].forEach(e => { if(e.n !== n.id) return; const pt = t && (t.pins || []).find(x => x.no === e.pin); const sz = pt ? pt.size : '?'; cnt[sz] = (cnt[sz] || 0) + 1; }));
     const g = t && /Dişi/.test(t.gender || '') ? 'pin (erkek)' : t && /Erkek/.test(t.gender || '') ? 'soket (dişi)' : '';

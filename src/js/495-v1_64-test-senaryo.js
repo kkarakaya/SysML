@@ -5,11 +5,12 @@
    Kapsam uçtan uca hatlardır (hcChains: içten geçişli birimler üzerinden birden çok kablaj). Kapsamdaki pinler tc.hcPins'e yazılır,
    böylece mevcut kapsama hesabı da çalışır. Tik atılan adımların hatları "doğrulandı"; "Test başarılı" bunları tarihli kayda geçirir. */
 const HCT2 = {show:'', mode:'scope', open:{}};
-const hcScopeOf = tc => tc && tc.hcScope && tc.hcScope.port ? tc.hcScope : null;
+/* v1.66: birimden birime kapsam — tc.hcScope = {from:birimA, unit:birimB, cats} (konnektör yok); hatlar birim içi geçişlerle (hcChains) uçtan uca izlenir */
+const hcScopeOf = tc => tc && tc.hcScope && (tc.hcScope.port || tc.hcScope.from) ? tc.hcScope : null;
 function hcScopeChains(sc){
-  if(!sc || !E(sc.port)) return {all:[], toUnit:[], sel:[]};
-  const all = hcChains().filter(ch => ch.pins.some(p => p.port.id === sc.port));
-  const toUnit = sc.unit ? all.filter(ch => ch.pins.some(p => p.port.owner === sc.unit && p.port.id !== sc.port)) : all;
+  if(!sc || !(E(sc.port) || E(sc.from))) return {all:[], toUnit:[], sel:[]};
+  const all = hcChains().filter(ch => sc.port ? ch.pins.some(p => p.port.id === sc.port) : ch.ends.some(p => p.port.owner === sc.from));
+  const toUnit = sc.unit ? all.filter(ch => (sc.port ? ch.pins : ch.ends).some(p => p.port.owner === sc.unit && p.port.id !== sc.port)) : all;
   const cs = new Set(sc.cats || []), sel = toUnit.filter(ch => !cs.size || ch.cats.some(c => cs.has(c)) || (cs.has('') && !ch.cats.length));
   return {all, toUnit, sel};
 }
@@ -30,8 +31,8 @@ function hcTestState(tc){
 }
 /* adımları kapsamdan üret: konnektördeki pin grupları, kalan hatlar için hat tipleri */
 function hcGenSteps(tc){
-  const sc = hcScopeOf(tc), S = hcScopeChains(sc), p = E(sc.port), out = [], used = new Set(), tu = E(sc.unit);
-  (typeof hgOf === 'function' ? hgOf(p) : []).forEach(g => { const st = {id:'s' + uid(), txt:'', cats:[], grp:p.id + '|' + g.id, done:false}, chs = hcStepChains(tc, st, S.sel); if(!chs.length) return;
+  const sc = hcScopeOf(tc), S = hcScopeChains(sc), p = E(sc.port) || {name:(E(sc.from) || {}).name || '?'}, out = [], used = new Set(), tu = E(sc.unit);
+  (typeof hgOf === 'function' && sc.port ? hgOf(p) : []).forEach(g => { const st = {id:'s' + uid(), txt:'', cats:[], grp:p.id + '|' + g.id, done:false}, chs = hcStepChains(tc, st, S.sel); if(!chs.length) return;
     chs.forEach(ch => used.add(ch.id)); st.txt = `${p.name} · ${g.name} (${g.kind}) ${tu ? tu.name + ' ile ' : ''}doğrulandı`; out.push(st); });
   const rest = S.sel.filter(ch => !used.has(ch.id)), cats = [...new Set(rest.map(ch => ch.cat))];
   cats.forEach(c => { const cat = hcCat(c); out.push({id:'s' + uid(), txt:`${cat ? cat.name : 'Tipsiz'} hatları ${p.name} → ${tu ? tu.name : 'karşı uç'} doğrulandı`, cats:c ? [c] : [], grp:'', done:false, only:rest.filter(ch => ch.cat === c).map(ch => ch.id)}); });
@@ -50,10 +51,14 @@ function hcParseScope(txt){
     port = scored[0].p; }
   const rest = us.filter(u => !port || u.id !== port.owner), pj = port ? pos(port.name) : -1;
   unit = rest.find(u => pos(u.name) > pj) || rest[0] || null;
+  if(!port && us.length >= 2){ /* "Birim1 - Birim5 arası haberleşme": konnektörsüz, birimden birime (metindeki sıraya göre) */
+    const ord = us.slice().sort((a, b) => pos(a.name) - pos(b.name)), from = ord.find(u => !us.some(v => v !== u && low(v.name).includes(low(u.name)) && pos(v.name) === pos(u.name)));
+    const to = ord.filter(u => u !== from && !(low(from.name).includes(low(u.name)) && pos(u.name) === pos(from.name)))[0];
+    if(from && to) return {port:'', from:from.id, unit:to.id, cats}; }
   return {port:port ? port.id : '', unit:unit ? unit.id : '', cats};
 }
 function hcApplyScope(tc, sc, regen){
-  tc.hcScope = {port:sc.port, unit:sc.unit || '', cats:(sc.cats || []).slice()};
+  tc.hcScope = {port:sc.port || '', unit:sc.unit || '', cats:(sc.cats || []).slice()}; if(!sc.port && sc.from) tc.hcScope.from = sc.from;
   const S = hcScopeChains(tc.hcScope); tc.hcPins = hcChainPins(S.sel);
   if(regen || !(tc.hcSteps || []).length) tc.hcSteps = hcGenSteps(tc);
   return S;
@@ -88,13 +93,14 @@ async function hcTestArchPdf(tc){
 function hcScopeBlock(tc){
   const H = hcR(), st = hcTestState(tc), sc = st.sc || {port:'', unit:'', cats:[]}, cs = new Set(sc.cats || []);
   let popt = hcOpt('', '— konnektör seçin —', sc.port); hcUnits().forEach(u => { const ps = hcUnitConns(u.id); if(ps.length) popt += `<optgroup label="${esc(u.name)}">${ps.map(p => hcOpt(p.id, u.name + ' ' + p.name, sc.port)).join('')}</optgroup>`; });
-  const uopt = hcOpt('', '— tüm karşı uçlar —', sc.unit) + hcUnits().map(u => hcOpt(u.id, u.name, sc.unit)).join('');
+  const uopt = hcOpt('', '— tüm karşı uçlar —', sc.unit) + hcUnits().map(u => hcOpt(u.id, u.name, sc.unit)).join(''), fopt = hcOpt('', '—', sc.from) + hcUnits().map(u => hcOpt(u.id, u.name, sc.from)).join('');
+  const srcTxt = E(sc.port) ? esc((E(E(sc.port).owner) || {}).name + ' ' + E(sc.port).name) + '</b> konnektöründen' : esc((E(sc.from) || {}).name || '') + '</b> biriminden';
   const box = (inner, bg) => `<div style="border:1px solid #dde;border-radius:6px;padding:8px 10px;margin:6px 0;background:${bg || '#fff'}">${inner}</div>`;
-  let h = box(`<div class="hcsec" style="margin-top:0">Kapsam: konnektör üzerinden birime</div>
-    <div style="display:flex;gap:6px;align-items:center;font-size:12px;margin-bottom:6px"><input data-hct2f="txt" placeholder="ör. Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi" style="flex:1" class="noi18n"><button class="vb pri" data-hct2="parse">Tanımdan kapsam çıkar</button></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px"><label>Konnektör <select data-hct2f="port" class="noi18n">${popt}</select></label><label>Hedef birim <select data-hct2f="unit" class="noi18n">${uopt}</select></label>
+  let h = box(`<div class="hcsec" style="margin-top:0">Kapsam: konnektör üzerinden ya da birimden birime</div>
+    <div style="display:flex;gap:6px;align-items:center;font-size:12px;margin-bottom:6px"><input data-hct2f="txt" placeholder="ör. Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi · Birim1 - Birim5 arası haberleşme" style="flex:1" class="noi18n"><button class="vb pri" data-hct2="parse">Tanımdan kapsam çıkar</button></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px"><label>Konnektör <select data-hct2f="port" class="noi18n">${popt}</select></label><label title="Konnektör seçilmezse: başlangıç biriminin tüm konnektörlerinden, birim içi geçişlerle hedef birime giden hatlar">veya başlangıç birimi <select data-hct2f="from" class="noi18n">${fopt}</select></label><label>Hedef birim <select data-hct2f="unit" class="noi18n">${uopt}</select></label>
     <span>Hat tipleri:</span>${H.cats.map(c => `<label class="vchk"><input type="checkbox" data-hct2c="${c.id}"${cs.has(c.id) ? ' checked' : ''}> ${esc(c.name)}</label>`).join('')}</div>
-    ${st.sc ? `<div style="margin-top:8px;font-size:13px;background:#eef5ff;border-radius:5px;padding:6px 8px">Potansiyel: <b>${E(sc.port) ? esc((E(E(sc.port).owner) || {}).name + ' ' + E(sc.port).name) : ''}</b> konnektöründen geçen <b>${st.S.all.length}</b> hattın ${sc.unit ? `<b>${st.S.toUnit.length}</b> tanesi ${esc((E(sc.unit) || {}).name || '')} birimine gidiyor; bunlardan ` : ''}<b>${st.S.sel.length}</b> hattı bu testle doğrulayabilirsiniz${cs.size ? ' (' + [...cs].map(k => (hcCat(k) || {}).name).join(' + ') + ')' : ''}.
+    ${st.sc ? `<div style="margin-top:8px;font-size:13px;background:#eef5ff;border-radius:5px;padding:6px 8px">Potansiyel: <b>${srcTxt} geçen <b>${st.S.all.length}</b> hattın ${sc.unit ? `<b>${st.S.toUnit.length}</b> tanesi ${esc((E(sc.unit) || {}).name || '')} birimine gidiyor; bunlardan ` : ''}<b>${st.S.sel.length}</b> hattı bu testle doğrulayabilirsiniz${cs.size ? ' (' + [...cs].map(k => (hcCat(k) || {}).name).join(' + ') + ')' : ''}.
       <span class="muted">${hcChainSegs(st.S.sel)} pin-pin kablaj hattı · ${hcChainPins(st.S.sel).length} pin · kablajlar: ${esc([...new Set(st.S.sel.flatMap(c => c.cables.map(x => x.name)))].join(', ') || '—')} · mimarideki ${st.tot} hattın %${st.tot ? Math.round(st.S.sel.length / st.tot * 100) : 0}'i</span>${[...cs].filter(k => !st.S.sel.some(ch => ch.cats.includes(k))).map(k => `<div style="color:#b9770e;font-size:12px">⚠ ${esc((hcCat(k) || {}).name || k)}: bu konnektörden ${esc((E(sc.unit) || {}).name || 'karşı uca')} giden hat yok</div>`).join('')}</div>` : '<p class="muted" style="font-size:12px;margin:6px 0 0">Konnektörü ve hedef birimi seçin ya da tanımı yazıp “Tanımdan kapsam çıkar”a basın. Kapsamdaki pinler aşağıdaki pin listesinde otomatik işaretlenir.</p>'}`, '#fbfcfe');
   if(!st.sc) return h;
   const pct = st.S.sel.length ? Math.round(st.verified.length / st.S.sel.length * 100) : 0;
@@ -123,8 +129,8 @@ function hcScopeBlock(tc){
   const save = f => { snap(); const r = f(); afterChange(); renderViewBar(); renderView(); return r; };
   V.addEventListener('change', ev => { if(!on()) return; const t = ev.target, tc = E(HCT.tc); if(!tc) return;
     const sc = Object.assign({port:'', unit:'', cats:[]}, tc.hcScope || {});
-    if(t.dataset.hct2f === 'port' || t.dataset.hct2f === 'unit'){ sc[t.dataset.hct2f] = t.value; return save(() => { if(sc.port) hcApplyScope(tc, sc, true); else tc.hcScope = sc; }); }
-    if(t.dataset.hct2c != null){ const S = new Set(sc.cats); if(t.checked) S.add(t.dataset.hct2c); else S.delete(t.dataset.hct2c); sc.cats = [...S]; return save(() => { if(sc.port) hcApplyScope(tc, sc, true); else tc.hcScope = sc; }); }
+    if(t.dataset.hct2f === 'port' || t.dataset.hct2f === 'unit' || t.dataset.hct2f === 'from'){ sc[t.dataset.hct2f] = t.value; if(t.dataset.hct2f === 'port' && t.value) delete sc.from; if(t.dataset.hct2f === 'from' && t.value) sc.port = ''; return save(() => { if(sc.port || sc.from) hcApplyScope(tc, sc, true); else tc.hcScope = sc; }); }
+    if(t.dataset.hct2c != null){ const S = new Set(sc.cats); if(t.checked) S.add(t.dataset.hct2c); else S.delete(t.dataset.hct2c); sc.cats = [...S]; return save(() => { if(sc.port || sc.from) hcApplyScope(tc, sc, true); else tc.hcScope = sc; }); }
     const step = id => (tc.hcSteps || []).find(s => s.id === id);
     if(t.dataset.hct2s){ const s = step(t.dataset.hct2s); if(s) return save(() => { s.done = t.checked; s.at = t.checked ? new Date().toISOString() : ''; }); }
     if(t.dataset.hct2t){ const s = step(t.dataset.hct2t); if(s) return save(() => { s.txt = t.value.trim(); }); }
@@ -137,7 +143,7 @@ function hcScopeBlock(tc){
     if(a === 'back'){ HCT.tc = HCT2.show; HCT.tab = 'def'; openD('@hctest'); return; }
     if(a === 'pdf'){ const tc = E(HCT2.show); if(tc) hcTestArchPdf(tc); return; }
     const tc = E(HCT.tc); if(!tc || !on()) return;
-    if(a === 'parse'){ const txt = (document.querySelector('[data-hct2f="txt"]') || {}).value || ''; const sc = hcParseScope(txt); if(!sc.port) return toast('Tanımda konnektör bulunamadı (ör. "Görev Bilgisayarı J2")');
+    if(a === 'parse'){ const txt = (document.querySelector('[data-hct2f="txt"]') || {}).value || ''; const sc = hcParseScope(txt); if(!sc.port && !sc.from) return toast('Tanımda konnektör ya da iki birim bulunamadı (ör. "Görev Bilgisayarı J2", "Birim1 - Birim5 arası")');
       return save(() => { const S = hcApplyScope(tc, sc, true); if(/test/i.test(txt) && /^Kablaj süreklilik testi|^Yeni test/.test(tc.name)) tc.name = txt.trim().replace(/^\S/, c => c.toLocaleUpperCase('tr')); toast(`${S.sel.length} hat kapsamda · ${(tc.hcSteps || []).length} adım`); }); }
     if(a === 'sadd') return save(() => { tc.hcSteps = (tc.hcSteps || []).concat([{id:'s' + uid(), txt:'Yeni adım', cats:[], grp:'', done:false}]); });
     if(a === 'sgen'){ if((tc.hcSteps || []).some(s => s.done) && !confirm('Adımlar yeniden üretilsin mi? İşaretli adımlar sıfırlanır.')) return; return save(() => { tc.hcSteps = hcGenSteps(tc); }); }
@@ -154,5 +160,5 @@ function hcScopeBlock(tc){
 /* yeni test formunda serbest tanım */
 { const _qf = quickForm; quickForm = function(title, fields, cb){ if(title === 'Yeni kablaj testi' && Array.isArray(fields) && !fields.some(f => f.k === 'scope')){
     fields = fields.concat([{k:'scope', l:'Kapsam (isteğe bağlı) — ör. Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi', v:''}]);
-    const cb0 = cb; cb = r => { const res = cb0(r); if(res) return res; if(r.scope){ const tc = E(HCT.tc), sc = hcParseScope(r.scope); if(tc && sc.port){ snap(); hcApplyScope(tc, sc, true); if(/^Kablaj süreklilik testi/.test(tc.name)) tc.name = r.scope.trim().replace(/^\S/, c => c.toLocaleUpperCase('tr')); afterChange(); renderViewBar(); renderView(); toast(`${hcScopeChains(tc.hcScope).sel.length} hat kapsamda`); } else toast('Kapsamda konnektör bulunamadı; elle seçin'); } }; }
+    const cb0 = cb; cb = r => { const res = cb0(r); if(res) return res; if(r.scope){ const tc = E(HCT.tc), sc = hcParseScope(r.scope); if(tc && (sc.port || sc.from)){ snap(); hcApplyScope(tc, sc, true); if(/^Kablaj süreklilik testi/.test(tc.name)) tc.name = r.scope.trim().replace(/^\S/, c => c.toLocaleUpperCase('tr')); afterChange(); renderViewBar(); renderView(); toast(`${hcScopeChains(tc.hcScope).sel.length} hat kapsamda`); } else toast('Kapsamda konnektör bulunamadı; elle seçin'); } }; }
   return _qf.call(this, title, fields, cb, arguments[3]); }; }

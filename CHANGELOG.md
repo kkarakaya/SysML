@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü
 
+## v1.66.0 — 2026-11-24
+
+- **Kablaj – konnektör eşleşme tablosu:** her kablaj birleşik hücrede, uçları (P1, P2… — değiştirilebilir), kablaj ucu parça no, takıldığı konnektör ve en sağda karşı taraf (birim ya da geçiş konnektörünün öbür yanındaki kablaj, ardışık aynı değerler birleşik). Sistem şemasında **Eşleşme tablosu ⤓** ile tek tuşta Excel; görünümde Excel ve A3 PDF. Excel'e birleşik hücre (merge) desteği
+- **Takılı konnektörler:** sistem şemasında **Takılı işaretle** kipinde konnektöre tıklayınca kablaj ucu takılı olur (yeşil), eşleşme tablosunda **Takıldı** kutusu; tümü / hiçbiri
+- **Test hazırlığı:** bir hat, geçtiği bütün kablaj uçları takılıysa icra edilebilir; testin icra edilebilirlik yüzdesi adım sayısından değil, toplam hat sayısından (ör. 5 hattın 3'ü → %60). Test tanımında hazırlık kutusu (adım başına yapılabilir / kısmi, takılmamış uçlar), **Test hazırlığı** görünümünde tüm testler (tamamı icra edilebilenler yeşil) ve Excel
+- **Birimden birime rota:** "Birim1 - Birim5 arası haberleşme" yazınca kapsam birimden birime kurulur; kablajlar, dallanmalar, geçiş konnektörleri ve ara birimler üzerinden en kısa yol aranır. Ara birimlerdeki bilinmeyen iç geçişler pin gruplarından (aynı tür / rol), aynı sinyal adından ve etiketten tahmin edilip güç işaretiyle önerilir; onaylanan geçişler birime yazılır (hat tablosu ve diğer testler de kullanır). Birim içi geçiş elle eklenip silinebilir
+- **Geçiş konnektörü:** kablajın bir ucuna montaj kolaylığı için 1:1 ara konnektör (X1 · A / X1 · B, aynı pin numaraları); o uçtaki hatlar yeni kablaja aktarılır, hat iki kablaj boyunca tek hat olarak izlenir; BOM'da "Geçiş konnektörü (kablaja ait)"
+- **Hat tablosu — yan yana:** her hattın başlangıçtan sona geçtiği kablajlar, varış ve geçiş (çıkış) konnektörleri ayrı sütunlarda; birime göre süzme ve o birimden başlatma; Excel ve PDF
+- Birim testleri 208, regresyon testi 69 adım
+
 ## v1.65.0 — 2026-11-24
 
 - **Test kablajları:** kablaj "Test kablajı" olarak işaretlenebilir. Projede saklanır, doğrulanır ve teknik resmi alınır; **genel mimaride görünmez** (sistem kablaj şeması, özet, hat tipine göre mimariler, hat tablosu, test kapsaması, arama)
