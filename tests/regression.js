@@ -1030,7 +1030,7 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
     o.unit = !!u && u.kind === 'Block' && u.hcUnit === true; o.port = !!p && p.kind === 'Port' && p.owner === u.id && p.hc.ct === 'lib:38999-20-15-5P';
     o.labelDefaults = p.hc.pins.A.vmin === 22 && p.hc.pins.A.sig === '28V';
     o.overCurrent = hcConnStats(p).iss.some(x => x[0] === 'hata' && /#16/.test(x[1]));
-    o.rowsShown = document.querySelectorAll('#view table.hcpt tbody tr').length === 5;
+    o.rowsShown = document.querySelectorAll('#view table.hcpt tbody tr [data-hcp$="|sig"]').length === 5;
     o.validator = validateModel().some(x => x.rule === 'Konnektör pinout' && x.id === p.id && /#16/.test(x.msg));
     o.excel = hcPinoutRows([u]).length === 6;
     HC.tab = 'types'; HC.sel = 'lib:md-9S'; openD('@hclib'); o.libView = /Micro-D 9 soket/.test(document.querySelector('#view').textContent) && document.querySelector('[data-hct="name"]').disabled;
@@ -1111,6 +1111,35 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.click('[data-hc5="sys"]'); await page.waitForTimeout(200); v58.layer = await page.evaluate(() => ST.cur === '@hcsys' && HCS.cov && /test %/.test(document.querySelector('#view').innerHTML));
   await page.evaluate(() => { HCS.cov = false; HCT.flt = 'all'; });
   ok('Kablaj test kapsaması: test oluşturma, birim pinlerini seçme, kapsama %, açıkta kalan hatlar, Excel, şema kapsama katmanı', Object.values(v58).every(v => v === true), v58);
+
+  console.log('8h7) v1.59 haberleşme protokolleri ve ekler');
+  await page.evaluate(() => { window.__dl = []; document.querySelector('[data-act="harnessMenu"]').click(); });
+  await page.waitForTimeout(150); await page.click('#ctx .mi:has-text("Haberleşme protokolleri")'); await page.waitForTimeout(200);
+  const v59 = { view: await page.evaluate(() => ST.cur === '@hcproto' && document.querySelectorAll('#view [data-hp6="open"]').length >= 2) };
+  await page.click('[data-hp6="new"]'); await page.waitForTimeout(150); await page.keyboard.press('Enter'); await page.waitForTimeout(200);
+  v59.created = await page.evaluate(() => !!hpGet(HPV.sel) && hpGet(HPV.sel).phy === 'RS-422');
+  await page.selectOption('[data-hp6p="endian"]', 'little'); await page.waitForTimeout(150);
+  await page.click('[data-hp6="madd"]'); await page.waitForTimeout(150); await page.click('[data-hp6="xadd"]'); await page.waitForTimeout(150);
+  v59.msg = await page.evaluate(() => { const p = hpGet(HPV.sel); return p.endian === 'little' && p.msgs.length === 1 && p.msgs[0].fields.length === 1 && hpMsgLen(p.msgs[0]) === 1; });
+  const newPr = await page.evaluate(() => HPV.sel);
+  for(const [u, pr] of [['OZ A', 'pr_ser1'], ['OZ B', newPr]]){
+    await page.evaluate(n => { const x = hcUnits().find(y => y.name === n); HC.unit = x.id; HC.port = hcUnitConns(x.id)[0].id; openD('@hcunits'); }, u); await page.waitForTimeout(150);
+    await page.click('[data-hp6="iadd"]'); await page.waitForTimeout(150);
+    await page.selectOption('[data-hp6i$="|pr"]', pr); await page.waitForTimeout(150);
+    await page.fill('[data-hp6i$="|pins"]', '2'); await page.press('[data-hp6i$="|pins"]', 'Enter'); await page.waitForTimeout(150);
+  }
+  v59.mismatch = await page.evaluate(() => { const P = hpPairs().pairs.find(x => /OZ/.test(hpIfLabel(x.a))); return !!P && P.iss.some(i => /Bayt sırası/.test(i[1])) && /Bayt sırası/.test(document.querySelector('#view').textContent); });
+  const [fc] = await Promise.all([page.waitForEvent('filechooser'), page.click('[data-hp6="fadd"]')]);
+  await fc.setFiles({ name: 'Arayuz ICD.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%x\n') }); await page.waitForTimeout(300);
+  v59.att = await page.evaluate(() => { const L = hpAtts(E(HC.port)); return L.length === 1 && L[0].name === 'Arayuz ICD.pdf' && !!L[0].data && /Arayuz ICD\.pdf/.test(document.querySelector('#view').textContent); });
+  await page.evaluate(() => openD('@hcsys')); await page.waitForTimeout(200);
+  v59.badge = await page.evaluate(() => [...document.querySelectorAll('#hcSys [data-hp6port]')].some(t => /RS-422.*📎1/.test(t.textContent)));
+  await page.evaluate(() => { HPV.sel = 'pr_ser1'; openD('@hcproto'); }); await page.waitForTimeout(150);
+  await page.click('[data-hp6="docx"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v59.docx = await page.evaluate(async () => { const f = window.__dl.pop(); return /Yazılım ICD\.docx$/.test(f.name) && (await f.blob.slice(0, 2).text()) === 'PK'; });
+  await page.click('[data-hp6="xlsx"]'); await page.waitForTimeout(150); v59.xlsx = await page.evaluate(() => /Yazılım ICD\.xlsx$/.test(window.__dl.pop().name));
+  v59.valid = await page.evaluate(() => validateModel().some(x => x.rule === 'Haberleşme protokolü' && /Bayt sırası/.test(x.msg)));
+  ok('Haberleşme protokolleri: profil, mesaj/alan, porta atama, endian uyumsuzluğu, ek (gömülü), şema rozeti, yazılım ICD Word/Excel, doğrulama', Object.values(v59).every(v => v === true), v59);
 
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });

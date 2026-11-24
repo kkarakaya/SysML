@@ -427,8 +427,95 @@ func main() {
 		})
 	})
 
+	// Doküman ekleri (v1.59): seçilen dosya modelin yanındaki "<model>_ekler" klasörüne
+	// (model kaydedilmemişse uygulama klasöründeki "ekler"e) kopyalanır. replace verilirse
+	// o dosyanın üzerine yazılır (güncelleme). Sonuç window.__ncb ile döner.
+	w.Bind("nativeAttach", func(id int, modelPath, replace string) {
+		w.Dispatch(func() {
+			res := map[string]interface{}{}
+			src := fileDialog(hwnd, false, "", "Dokümanlar|*.docx;*.doc;*.xlsx;*.xls;*.pdf;*.txt;*.csv;*.pptx;*.png;*.jpg|Tüm dosyalar (*.*)|*.*", "")
+			if src != "" {
+				dst, err := attachCopy(src, modelPath, replace)
+				if err != nil {
+					res["error"] = err.Error()
+				} else {
+					res["path"] = dst
+					res["name"] = filepath.Base(src)
+					if fi, e := os.Stat(dst); e == nil {
+						res["size"] = fi.Size()
+						res["mtime"] = fi.ModTime().UTC().Format(time.RFC3339)
+					}
+				}
+			}
+			js, _ := json.Marshal(res)
+			w.Eval("window.__ncb(" + jsonInt(id) + "," + string(js) + ")")
+		})
+	})
+	// Eki (veya klasörü) Windows'un varsayılan uygulamasıyla aç: Word/Excel'de düzenlenip
+	// aynı yere kaydedildiğinde ek güncellenmiş olur.
+	w.Bind("nativeOpenFile", func(path string) string {
+		if _, err := os.Stat(path); err != nil {
+			return err.Error()
+		}
+		if err := windows.ShellExecute(windows.Handle(hwnd), windows.StringToUTF16Ptr("open"), windows.StringToUTF16Ptr(path), nil, windows.StringToUTF16Ptr(filepath.Dir(path)), windows.SW_SHOWNORMAL); err != nil {
+			return err.Error()
+		}
+		return ""
+	})
+	w.Bind("nativeFileInfo", func(path string) map[string]interface{} {
+		res := map[string]interface{}{}
+		if fi, err := os.Stat(path); err != nil {
+			res["error"] = err.Error()
+		} else {
+			res["size"] = fi.Size()
+			res["mtime"] = fi.ModTime().UTC().Format(time.RFC3339)
+		}
+		return res
+	})
+
 	w.Navigate("http://" + ln.Addr().String() + "/")
 	w.Run()
 }
 
 func jsonInt(i int) string { b, _ := json.Marshal(i); return string(b) }
+
+// attachDir: "<model klasörü>/<model adı>_ekler" (model kaydedilmemişse uygulama klasörü/ekler)
+func attachDir(modelPath string) string {
+	if modelPath == "" {
+		return filepath.Join(appDir(), "ekler")
+	}
+	base := strings.TrimSuffix(filepath.Base(modelPath), filepath.Ext(modelPath))
+	return filepath.Join(filepath.Dir(modelPath), base+"_ekler")
+}
+
+// attachCopy: kaynağı ek klasörüne kopyalar; aynı adlı farklı bir dosya varsa "ad (2).ext" yapar.
+func attachCopy(src, modelPath, replace string) (string, error) {
+	b, err := os.ReadFile(src)
+	if err != nil {
+		return "", err
+	}
+	dst := replace
+	if dst == "" {
+		dir := attachDir(modelPath)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return "", err
+		}
+		name := filepath.Base(src)
+		ext := filepath.Ext(name)
+		stem := strings.TrimSuffix(name, ext)
+		dst = filepath.Join(dir, name)
+		for i := 2; ; i++ {
+			if _, e := os.Stat(dst); e != nil {
+				break
+			}
+			if a, _ := filepath.Abs(src); a == dst {
+				return dst, nil
+			}
+			dst = filepath.Join(dir, stem+" ("+jsonInt(i)+")"+ext)
+		}
+	}
+	if a, _ := filepath.Abs(src); a == dst {
+		return dst, nil
+	}
+	return dst, writeAtomic(dst, b)
+}
