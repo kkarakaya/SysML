@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü
 
+## v1.64.0 — 2026-11-24
+
+- **Konnektör üzerinden birime test:** test tanımında konnektör, hedef birim ve hat tipleri seçilir ya da serbest yazılır ("Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi" → kapsam otomatik çıkar); hatlar içten geçişli birimler üzerinden bütün kablajlar boyunca izlenir, kapsamdaki pinler test pin listesine yazılır
+- **Potansiyel:** "J2 konnektöründen geçen N hattın M tanesi Sensör'e gidiyor; bunlardan K hattı bu testle doğrulayabilirsiniz", pin-pin hat, pin ve kablaj sayısı, mimarideki payı; seçilen tipte hat yoksa uyarı
+- **Test adımları:** konnektörün pin gruplarından ve hat tiplerinden otomatik; adım eklenir, düzenlenir, hat tipi / grup atanır; tik atılan adımın hatları "doğrulandı" (tarihli), ilerleme çubuğu
+- **Test başarılı — kaydet:** doğrulanan hatlar, adımlar ve güzergâhlar tarihli kayıt olarak teste yazılır, sonuç Geçti / Kısmen; kapsama sekmesinde kayıtlı doğrulama oranı
+- **Mimaride göster:** kapsamdaki ya da yalnız doğrulanan hatların geçtiği kablajlar, konnektörler ve pinler sistem şemasında ve kablaj detayında vurgulu; mimari PDF
+- Birim testleri 201, regresyon testi 67 adım
+
 ## v1.63.0 — 2026-11-24
 
 - **Pin grupları:** birim arayüzü panelinde her konnektöre grup tanımlanır (ör. Haberleşme UART 1, UART 2, RS-485, CAN, Güç, Ayrık sinyal); şablon rolleri (TX / RX / GND, A / B / GND, CAN_H / CAN_L…) ve sinyal adından otomatik pin önerisi

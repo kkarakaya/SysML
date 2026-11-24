@@ -1184,6 +1184,25 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.evaluate(() => { undo(); }); await page.waitForTimeout(100); v63.undo = await page.evaluate(() => !hgLinks().some(L => L.pa.id === __p63 || L.pb.id === __p63));
   ok('Pin grupları: şablondan grup ekleme, grup tutamağını sürükleyerek bağlama, grup bağlantısı çizimi, geri al', Object.values(v63).every(v => v === true), v63);
 
+  console.log('8h11) v1.64 konnektör üzerinden birime test, adımlar, test başarılı kaydı');
+  await page.evaluate(() => { window.__dl = []; HCT.tab = 'def'; HCT.tc = ''; openD('@hctest'); }); await page.waitForTimeout(200);
+  const sc64 = await page.evaluate(() => { const ch = hcChains().find(c => c.pins.some(p => E(p.port.owner).name !== E(c.pins[0].port.owner).name)), p = ch.pins[0].port, u = ch.pins.find(q => q.port.owner !== p.owner).port.owner;
+    return {txt:`${E(p.owner).name} ${p.name} üzerinden ${E(u).name} birimine ${(hcCat(ch.cat) || {name:'haberleşme'}).name.toLocaleLowerCase('tr')} testi`, port:p.id, unit:u}; });
+  await page.click('[data-hc5="new"]'); await page.waitForTimeout(250);
+  const qin = await page.$$('.qf input, #qf input, dialog input, .modal input'); await qin[qin.length - 1].fill(sc64.txt); await page.keyboard.press('Enter'); await page.waitForTimeout(300);
+  const v64 = await page.evaluate(s => { const tc = E(HCT.tc); return { scope: !!tc && tc.hcScope && tc.hcScope.port === s.port && tc.hcScope.unit === s.unit, named: !!tc && /üzerinden/.test(tc.name), pot: /Potansiyel:/.test($('#view').textContent) && /bu testle doğrulayabilirsiniz/.test($('#view').textContent), steps: document.querySelectorAll('[data-hct2s]').length >= 1 }; }, sc64);
+  await page.click('[data-hct2s] >> nth=0'); await page.waitForTimeout(200);
+  v64.ver = await page.evaluate(() => hcTestState(E(HCT.tc)).verified.length >= 1 && /doğrulandı/.test($('#view').textContent));
+  await page.evaluate(() => { window.__cf = window.confirm; window.confirm = () => true; }); await page.click('[data-hct2="pass"]'); await page.waitForTimeout(200); await page.evaluate(() => { window.confirm = window.__cf; });
+  v64.run = await page.evaluate(() => { const tc = E(HCT.tc); return (tc.hcRuns || []).length === 1 && /Geçti/.test(tc.result + tc.hcRuns[0].result) && hcVerifiedBy().size >= 1 && /Doğrulama kayıtları/.test($('#view').textContent); });
+  await page.click('[data-hct2="show"]'); await page.waitForTimeout(250);
+  v64.hl = await page.evaluate(() => ST.cur === '@hcsys' && !!$('#hcT2Panel') && document.querySelectorAll('#hcSys [stroke="#f39c12"]').length >= 2);
+  await page.click('[data-hct2="pdf"]'); await page.waitForFunction(() => window.__dl.length > 0, null, { timeout: 20000 });
+  v64.pdf = await page.evaluate(async () => { const f = window.__dl.pop(); return /Test kapsamı/.test(f.name) && (await f.blob.slice(0, 5).text()) === '%PDF-'; });
+  await page.click('[data-hct2="close"]'); await page.waitForTimeout(150); v64.closed = await page.evaluate(() => !$('#hcT2Panel'));
+  await page.evaluate(() => { HCT.tab = 'cov'; openD('@hctest'); }); await page.waitForTimeout(150); v64.cov = await page.evaluate(() => /Kayıtlı doğrulama:/.test($('#view').textContent));
+  ok('Kablaj test senaryosu: serbest tanımdan kapsam, potansiyel hat sayısı, adım tiki ile doğrulama, test başarılı kaydı, mimaride vurgu ve PDF', Object.values(v64).every(v => v === true), v64);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);

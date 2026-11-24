@@ -333,6 +333,27 @@ T('pin grubu: grupsuz pinler el ile pin pin bağlanır; grup görünümü ve PDF
   HG.pins = true; const s = hgSVG({}).svg, e = hgSVG({exp:true}).svg; HG.pins = false;
   return r.added === 1 && r2.added === 0 && /data-hgh="[^"]*\|g:/.test(s) && /data-hgh="[^"]*\|p:6"/.test(s) && /2\/3 ⚠/.test(s) && !/data-hgh/.test(e) && /RS-485 1/.test(e) || {r:r.added, s:s.length}; }));
 
+/* ---------- v1.64 konnektör üzerinden birime test, adımlar, doğrulama kaydı ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n);
+  const a = mkU('Ana Bilgisayar', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}, C:{lbl:'l_txp', sig:'TXP'}}], ['J2', 'lib:md-9P', 'c_dis', {1:{lbl:'l_do', sig:'DO1'}}]]);
+  const x = mkU('Ara Kutu', [['J1', 'lib:38999-20-15-5S', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}, C:{lbl:'l_rxp', sig:'TXP'}}], ['J2', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}, C:{lbl:'l_txp', sig:'TXP'}}]]);
+  const c = mkU('Kamera', [['J1', 'lib:38999-20-15-5S', 'c_pwr', {A:{lbl:'l_28v', sig:'P28'}, B:{lbl:'l_28r', sig:'P28_RTN'}, C:{lbl:'l_rxp', sig:'TXP'}}], ['J2', 'lib:md-9S', 'c_dis', {1:{lbl:'l_di', sig:'DI1'}}]]);
+  x.hcThru = true; hcConnect(J(a, 'J1').id, J(x, 'J1').id); hcConnect(J(x, 'J2').id, J(c, 'J1').id); hcConnect(J(a, 'J2').id, J(c, 'J2').id);
+  window.__T = {a1:J(a, 'J1').id, cam:c.id, box:x.id}; return true; });
+T('kablaj test senaryo: serbest tanımdan kapsam (konnektör, hedef birim, hat tipleri)', () => R(() => { const s1 = hcParseScope('Ana Bilgisayar J1 üzerinden Kamera birimine haberleşme ve güç testi'), s2 = hcParseScope('Kamera J2 den Ana Bilgisayar ayrık testi');
+  return s1.port === __T.a1 && s1.unit === __T.cam && s1.cats.join() === 'c_com,c_pwr' && E(s2.port).name === 'J2' && E(E(s2.port).owner).name === 'Kamera' && E(s2.unit).name === 'Ana Bilgisayar' && s2.cats.join() === 'c_dis' || {s1, s2}; }));
+T('kablaj test senaryo: konnektörden birime potansiyel / seçilen hat, içten geçişli kutu üzerinden birden çok kablaj', () => R(() => {
+  const tc = newTest({name:'T1', hcPins:[]}); const S = hcApplyScope(tc, {port:__T.a1, unit:__T.cam, cats:['c_pwr']}, true), S2 = hcScopeChains({port:__T.a1, unit:__T.box, cats:[]});
+  return S.all.length === 3 && S.toUnit.length === 3 && S.sel.length === 2 && S.sel.every(ch => ch.cables.length === 2) && hcChainSegs(S.sel) === 4 && tc.hcPins.length === 8 && tc.hcSteps.length === 1 && S2.toUnit.length === 3 || {all:S.all.length, sel:S.sel.length, pins:tc.hcPins.length, steps:tc.hcSteps}; }));
+T('kablaj test senaryo: adımlara tik → doğrulanan hatlar; test başarılı kaydı ve kayıtlı doğrulama; mimari vurgu', () => R(() => {
+  const tc = newTest({name:'T2', hcPins:[]}); hcApplyScope(tc, {port:__T.a1, unit:__T.cam, cats:['c_pwr', 'c_com']}, true); tc.hcSteps = [{id:'s1', txt:'28V', cats:[], grp:'', done:false}, {id:'s2', txt:'Haberleşme', cats:['c_com'], grp:'', done:false}];
+  const st0 = hcTestState(tc); tc.hcSteps[1].done = true; const st1 = hcTestState(tc);
+  tc.hcRuns = [{id:'r1', at:new Date().toISOString(), result:'Geçti', pins:hcChainPins(st1.verified), n:st1.verified.length}]; REV++;
+  const by = hcVerifiedBy(), hl = hcTestHL(tc, 'scope'), hv = hcTestHL(tc, 'ver'); HCT2.show = tc.id; const live = hcSysSVG({}).svg; HCT2.show = '';
+  return st0.S.sel.length === 3 && st0.verified.length === 0 && st1.verified.length === 1 && st1.open.length === 2 && by.size === 2 && hl.cables.size === 2 && hl.units.size === 3 && hv.pins.size === 4 && /#f9d56e/.test(live) || {sel:st0.S.sel.length, v:st1.verified.length, by:by.size, hl:hl.cables.size}; }));
+
 /* ---------- v1.61 dik köşeli bağlantı çizimi ---------- */
 T('kablaj çizim: kablaj detayı ve sistem şemasında eğri yok (dik köşeli doğrular), splice birleşimleri siyah nokta', () => R(() => {
   const cs = hcCables(), svgs = cs.map(c => hcCableSVG(c, {exp:true}).svg).concat([hcSysSVG({exp:true, det:true}).svg]), sp = cs.find(c => c.nodes.some(n => n.kind === 'splice'));
