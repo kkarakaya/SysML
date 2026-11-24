@@ -70,7 +70,10 @@ const hcLblMatch = (a, b) => !!(a && b && (a === b || hcR().rules.some(r => (r.a
 function hcAutoMap(c, nid){
   const n = hcNode(c, nid), p = n && E(n.port); if(!p || !p.hc) return 0;
   const wired = new Set(); c.wires.forEach(w => { wired.add(hcEndKey(w.a)); wired.add(hcEndKey(w.b)); });
-  let added = 0;
+  let added = 0, nets = null;
+  /* v1.67: dolu bir pine dal (splice) açılırken o netin zaten bu konnektörün başka bir pinini içermemesi gerekir; aksi halde çok kanallı
+     konnektörde (ör. 4 birimin RS-422 kanalları tek J1'de) boştaki kanal pinleri aynı konnektörün dolu kanalına kısa devre edilirdi. */
+  const selfNet = k => { nets = nets || hcNets(c); const net = nets.find(x => x.keys.includes(k)); return !!(net && net.ends.some(e => e.n === nid)); };
   hcPins(p).filter(x => hcPinUsed(x.d) && !wired.has(nid + '|' + x.no)).forEach(x => {
     const lbl = x.d.lbl, sig = x.d.sig; if(!lbl && !sig) return;
     let best = null, bestWired = null;
@@ -79,18 +82,18 @@ function hcAutoMap(c, nid){
       for(const y of hcPins(q)){
         if(!hcPinUsed(y.d)) continue;
         const ok = lbl ? hcLblMatch(lbl, y.d.lbl) : (!y.d.lbl && y.d.sig && y.d.sig === sig); if(!ok) continue;
-        const k = m.id + '|' + y.no; if(!wired.has(k)){ best = {n:m.id, pin:y.no}; break; } if(!bestWired) bestWired = {n:m.id, pin:y.no};
+        const k = m.id + '|' + y.no; if(!wired.has(k)){ best = {n:m.id, pin:y.no}; break; } if(!bestWired && !selfNet(k)) bestWired = {n:m.id, pin:y.no};
       }
       if(best) break;
     }
-    if(best){ hcAddWire(c, {n:nid, pin:x.no}, best); wired.add(hcEndKey(best)); wired.add(nid + '|' + x.no); added++; return; }
+    if(best){ hcAddWire(c, {n:nid, pin:x.no}, best); wired.add(hcEndKey(best)); wired.add(nid + '|' + x.no); added++; nets = null; return; }
     if(bestWired){
       const k = hcEndKey(bestWired), w = c.wires.find(w0 => hcEndKey(w0.a) === k || hcEndKey(w0.b) === k);
       if(!w) return;
       const oth = hcEndKey(w.a) === k ? w.b : w.a, on = hcNode(c, oth.n);
       if(on && on.kind === 'splice'){ hcAddWire(c, {n:nid, pin:x.no}, {n:on.id, pin:''}, {awg:w.awg, grp:'', color:w.color}); }
       else { const sp = hcAddSplice(c), keepB = w.b; w.b = {n:sp.id, pin:''}; hcAddWire(c, {n:sp.id, pin:''}, keepB, {awg:w.awg, color:w.color, grp:w.grp, shield:w.shield}); hcAddWire(c, {n:sp.id, pin:''}, {n:nid, pin:x.no}, {awg:w.awg, color:w.color}); }
-      wired.add(nid + '|' + x.no); added++;
+      wired.add(nid + '|' + x.no); added++; nets = null;
     }
   });
   return added;
