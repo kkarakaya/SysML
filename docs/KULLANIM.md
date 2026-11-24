@@ -1260,6 +1260,19 @@ Kablaj şemasında iki pin bağlandığında kullanılacak uyumluluk kuralları:
 - **BOM:** kablo ucu konnektörü (tipteki "eşleşen konnektör PN"), backshell, kontaklar (boyut ve cinsiyete göre adet), teller (AWG'ye göre, uzunluk girilmişse metre), bükümlü / ekranlı kablolar, splice, kimlik etiketi, makaron. Tel ve splice parça numaraları örnektir.
 - **Antet:** başlık, çizim no (varsayılan kablo adı), revizyon, hazırlayan, kontrol, onay, tarih (Kablo detayında "Teknik resim anteti"), proje adı, sayfa no ve modelin gizlilik derecesi.
 
+## 5at. Kablaj özeti ve hat tipine göre mimariler
+
+**Kablaj ▾ → Kablaj özeti ve mimariler** (`@hcsum`):
+- Üstte sayaçlar: birim, arayüz, kablo, **hat** (uçtan uca), bağlı tel, bağlı olmayan tel, splice, eşleştirme hatası ve uyarı.
+- **Hat tiplerine göre:** her hat tipi (Güç, Haberleşme, Ayrık…) için arayüz, dolu pin, hat, tel ve kablo sayıları. **Hat**, bir kablodaki tellerle uçtan uca bağlanan pinlerdir; splice üzerinden dallanan besleme hattı tek hat sayılır.
+- **Birimlere göre:** arayüz, dolu pin, kabloya bağlı ve bağlanmamış pin, kablo sayısı ve hat tipine göre pin dağılımı (birim adına tıklayınca pinout açılır).
+- **Kablolara göre:** uçlar, hat, tel, splice, uzunluk, kullanılan AWG'ler, hat tipine göre tel sayısı, denetim (kablo adına tıklayınca kablo detayı açılır).
+- **Özet Excel:** hat tipleri, birimler, kablolar ve hat listesi sayfaları.
+
+**Mimari görünümleri:** özet tablosunda bir hat tipinin **Görüntüle** düğmesi ya da sistem şeması çubuğundaki **Mimari** seçimi şemayı o tipe süzer (ör. güç mimarisi): o tipte teli olmayan kablolar ve ilgisiz birimler gizlenir, diğer konnektörler soluklaşır, detaylı görünümde kablo etiketinde o tipteki tel sayısı gösterilir.
+
+**Mimarileri PDF olarak indir…** — tüm sistem ve seçilen hat tipleri, her biri A3 yatay bir sayfa (süzülmüş detaylı şema, lejant, MIM-… çizim numaralı antet); tablodaki **PDF** düğmesi tek bir mimariyi indirir.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.

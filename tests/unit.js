@@ -245,5 +245,19 @@ T('kablaj teknik resim: A3 sayfaları (şema + tel listesi + BOM + antet, konnek
   for(let i = 0; i < 70; i++) hcAddWire(c, {n:c.nodes[0].id, pin:String(10 + (i % 12))}, {n:c.nodes[1].id, pin:'5'}, {on:true}); const pg2 = hcDrawingPages(c); return ok1 && pg2.length >= 3 && /TEL LİSTESİ \(devam\)/.test(pg2[1].str) || pg.length; }));
 T('kablaj konnektör yüzü: başlangıç köşesine göre numaralandırma (sağ alt → ilk pin sağ altta)', () => R(() => { const g = hcFaceGrid(6, 2, 'Sağ alt'), h = hcFaceGrid(6, 2, 'Sol üst'); return g.pos[0].r === 1 && g.pos[0].c === 2 && h.pos[0].r === 0 && h.pos[0].c === 0 && h.pos[3].r === 1; }));
 
+/* ---------- v1.57 kablaj özeti ve mimariler ---------- */
+fresh();
+R(() => { const mkU = (n, conns) => { const u = hcNewUnit(n); conns.forEach(([nm, ct, cat, pins]) => { const p = hcNewPort(u.id, nm); p.hc.ct = ct; p.hc.cat = cat; Object.entries(pins).forEach(([no, o]) => Object.entries(o).forEach(([f, v]) => hcSetPin(p, no, f, v))); }); return u; };
+  const J = (u, n) => hcUnitConns(u.id).find(p => p.name === n).id;
+  const a = mkU('A', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', ipk:5}, B:{lbl:'l_28r', ipk:5}}], ['J2', 'lib:md-9P', 'c_com', {1:{lbl:'l_txp'}, 2:{lbl:'l_txn'}, 3:{lbl:'l_canh'}}]]);
+  const b = mkU('B', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', ipk:3}, B:{lbl:'l_28r', ipk:3}}], ['J2', 'lib:md-9S', 'c_com', {1:{lbl:'l_rxp'}, 2:{lbl:'l_rxn'}}]]);
+  const c = mkU('C', [['J1', 'lib:38999-20-15-5P', 'c_pwr', {A:{lbl:'l_28v', ipk:2}, B:{lbl:'l_28r', ipk:2}}]]);
+  hcConnect(J(a, 'J1'), J(b, 'J1')); hcConnect(J(c, 'J1'), J(b, 'J1')); hcConnect(J(a, 'J2'), J(b, 'J2')); return true; });
+T('kablaj özeti: hat = uçtan uca net (splice üzerinden dallanan hat tek hat), hat tipine göre sayılar', () => R(() => { const S = hcSummary(), L = hcLines();
+  return L.length === 4 && L.filter(l => l.cat === 'c_pwr').length === 2 && L.find(l => l.cat === 'c_pwr').pins.length === 3 && S.cat.c_pwr.wires === 6 && S.cat.c_com.lines === 2 && S.cat.c_com.pins === 5 && S.sp === 2 && S.byUnit.find(o => o.u.name === 'A').free === 1 || {L:L.map(l => l.name), cat:S.cat}; }));
+T('kablaj özeti: hat kimliği pin uçlarından (kablo düğümü değişse de aynı)', () => R(() => { const L1 = hcLines().map(l => l.id).sort().join(';'); const c = hcCables()[0]; c.nodes.forEach(n => { if(n.kind === 'splice') n.id = n.id; }); const L2 = hcLines().map(l => l.id).sort().join(';'); return L1 === L2 && L1.includes('|A'); }));
+T('kablaj mimari: hat tipine süzülmüş şema ve A3 sayfa (ilgisiz birim gizli)', () => R(() => { const all = hcSysSVG({exp:true}).svg, com = hcSysSVG({exp:true, catF:'c_com'}).svg, page = hcArchPage('c_pwr', 1, 1);
+  return /W1/.test(all) && /W2/.test(all) && /W2/.test(com) && !/>W1/.test(com) && !/>C</.test(com) && /GÜÇ MİMARİSİ/.test(page) && /MIM-GÜÇ/.test(page); }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
