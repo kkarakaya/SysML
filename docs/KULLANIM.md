@@ -1407,6 +1407,15 @@ Test Durumu elemanının özellik panelinde de kablaj kapsamı ve **Test pinleri
 - **Pin pin bağlantı:** "Grupsuz pinler" kutusunu açın; gri pin tutamaklarını sürükleyerek tek tek pin bağlayın. Kablaj detayında el ile hat eklemek de mümkündür.
 - Konnektör başlığına tıklayınca grup düzenleyici açılır; çizgiye çift tıklayınca kablaj detayı açılır.
 
+### 5az. Konnektör üzerinden birime test, adımlar ve doğrulama kaydı (v1.64)
+
+- **Tanım:** Kablaj → Kablaj test tanımı ve kapsama → **+ Yeni test**. "Kapsam" alanına örneğin `Görev Bilgisayarı J2 üzerinden Sensör birimine haberleşme ve güç testi` yazın. Konnektör, hedef birim ve hat tipleri metinden çıkarılır. Sonradan "Kapsam" kutusunda konnektör, hedef birim ve hat tipleri elle değiştirilebilir ya da metin yazılıp **Tanımdan kapsam çıkar**a basılabilir.
+- **Potansiyel:** Kutuda konnektörden geçen toplam hat, hedef birime gidenler ve bu testle doğrulanabilecek hat sayısı görünür (pin-pin hat, pin, kablaj ve mimarideki pay ile). İçten geçişli birimler (ara kutu) üzerinden giden hatlar uçtan uca tek hat sayılır.
+- **Adımlar:** Konnektörde pin grupları varsa her grup için, kalan hatlar için hat tipine göre adımlar otomatik oluşur. **+ Adım** ile ekleyin, metni değiştirin, "Hat tipi / grup" ile adımın kapsadığı hatları seçin. Adıma tik attıkça o adımın hatları "doğrulandı" olur (tarih ile). "n hat ▸" bağlantısı adımın hatlarını gösterir.
+- **Testin kapsadığı hatlar:** Tabloda her hattın durumu (doğrulandı / bekliyor) ve güzergâhı (kablaj ve pinler) listelenir.
+- **Test başarılı — kaydet:** Doğrulanan hatlar, tamamlanan adımlar ve tarih teste kayıt olarak yazılır. Kapsama sekmesinde "Kayıtlı doğrulama" oranı görünür.
+- **Mimaride göster:** Kapsamdaki (ya da yalnız doğrulanan) hatların geçtiği kablajlar, konnektörler ve pinler sistem şemasında vurgulanır, diğerleri soluklaşır. Paneldeki **Mimari PDF** bu görünümü A3 PDF olarak indirir.
+
 ## 6. Otomatik düzen ve hizalama
 
 **Düzen ▾** menüsü (`Ctrl+Shift+L` ilk düzeni uygular) veya boş alana sağ tık → *Otomatik düzen*.
