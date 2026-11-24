@@ -1094,6 +1094,24 @@ const ok = (name, cond, info) => { results.push({ name, ok: !!cond, info }); con
   await page.evaluate(() => { HCS.catF = ''; });
   ok('Kablaj özeti: sayılar, hat tipine göre mimari görünümü (süzgeç), özet Excel, mimari PDF penceresi ve indirme', Object.values(v57).every(v => v === true), v57);
 
+  console.log('8h6) v1.58 kablaj test tanımı ve kapsama');
+  await page.evaluate(() => { window.__dl = []; document.querySelector('[data-act="harnessMenu"]').click(); });
+  await page.waitForTimeout(150); await page.click('#ctx .mi:has-text("Kablaj test tanımı")'); await page.waitForTimeout(200);
+  const v58 = { view: await page.evaluate(() => ST.cur === '@hctest') };
+  await page.click('[data-hc5="new"]'); await page.waitForTimeout(150); await page.keyboard.press('Enter'); await page.waitForTimeout(200);
+  v58.created = await page.evaluate(() => !!E(HCT.tc) && E(HCT.tc).kind === 'TestCase' && Array.isArray(E(HCT.tc).hcPins));
+  const u58 = await page.evaluate(() => hcUnits().find(u => u.name === 'OZ A').id);
+  await page.click(`[data-hc5="uall"][data-k="${u58}"]`); await page.waitForTimeout(200);
+  v58.pins = await page.evaluate(() => E(HCT.tc).hcPins.length === 2 && hcTestCov(E(HCT.tc)).k >= 2);
+  await page.click('[data-hc5="tab"][data-k="cov"]'); await page.waitForTimeout(150);
+  v58.cov = await page.evaluate(() => /toplam kapsama/.test(document.querySelector('#view').textContent));
+  await page.selectOption('[data-hc5f="flt"]', 'open'); await page.waitForTimeout(100);
+  v58.open = await page.evaluate(() => { const C = hcCoverage(); return /Açıkta kalan hatlar \(/.test(document.querySelector('#view').textContent) && C.open.length + C.covered.length === C.lines.length; });
+  await page.click('[data-hc5="xl"]'); await page.waitForTimeout(100); v58.xlsx = await page.evaluate(() => /kablaj test kapsaması\.xlsx$/.test(window.__dl.pop().name));
+  await page.click('[data-hc5="sys"]'); await page.waitForTimeout(200); v58.layer = await page.evaluate(() => ST.cur === '@hcsys' && HCS.cov && /test %/.test(document.querySelector('#view').innerHTML));
+  await page.evaluate(() => { HCS.cov = false; HCT.flt = 'all'; });
+  ok('Kablaj test kapsaması: test oluşturma, birim pinlerini seçme, kapsama %, açıkta kalan hatlar, Excel, şema kapsama katmanı', Object.values(v58).every(v => v === true), v58);
+
   console.log('8i) İngilizce arayüz (TR | EN)');
   await run(() => { setLang('en'); openD('@reqtable'); });
   await page.waitForTimeout(150);

@@ -259,5 +259,15 @@ T('kablaj özeti: hat kimliği pin uçlarından (kablo düğümü değişse de a
 T('kablaj mimari: hat tipine süzülmüş şema ve A3 sayfa (ilgisiz birim gizli)', () => R(() => { const all = hcSysSVG({exp:true}).svg, com = hcSysSVG({exp:true, catF:'c_com'}).svg, page = hcArchPage('c_pwr', 1, 1);
   return /W1/.test(all) && /W2/.test(all) && /W2/.test(com) && !/>W1/.test(com) && !/>C</.test(com) && /GÜÇ MİMARİSİ/.test(page) && /MIM-GÜÇ/.test(page); }));
 
+/* ---------- v1.58 kablaj test kapsaması ---------- */
+T('kablaj test kapsama: test pinleri hat kapsamasını verir (uçlardan biri / tüm uçlar kuralı)', () => R(() => { const L = hcLines(), pw = L.filter(l => l.cat === 'c_pwr'), a = hcUnits().find(u => u.name === 'A'), pa = hcUnitConns(a.id).find(p => p.name === 'J1');
+  const t = newTest({name:'KT1', hcPins:[pa.id + '|A']}), c1 = hcTestCov(t, L); const H = hcM(); H.opt = Object.assign({}, H.opt, {covRule:'all'}); const c2 = hcTestCov(t, L); H.opt.covRule = 'any';
+  return c1.k === 1 && c1.n === 4 && Math.abs(c1.r - 0.25) < 1e-9 && c2.k === 0 && pw.some(l => l.pins.some(x => x.key === pa.id + '|A')) || {c1, c2}; }));
+T('kablaj test kapsama: toplam kapsama, açıkta kalan hatlar, hat tipine göre ve kablo bazında', () => R(() => { const a = hcUnits().find(u => u.name === 'A'), pj2 = hcUnitConns(a.id).find(p => p.name === 'J2'); newTest({name:'KT2', hcPins:[pj2.id + '|1']}); afterChange();
+  const C = hcCoverage(), cv = hcCableCov(hcCables().find(c => c.wires.some(w => w.a.pin === '1' || w.b.pin === '1') && C.lines.some(l => l.cable === c && l.cat === 'c_com')));
+  return C.tests.length === 2 && C.covered.length === 2 && C.open.length === 2 && Math.abs(C.r - 0.5) < 1e-9 && C.cat.c_pwr.k === 1 && C.cat.c_com.k === 1 && cv.n === 2 && cv.k === 1 || {cov:C.covered.length, open:C.open.length, cat:C.cat, cv}; }));
+T('kablaj test kapsama: konnektör silinince test pin listesi temizlenir, şema kapsama katmanı', () => R(() => { HCS.cov = true; const svg = hcSysSVG({exp:false, cov:true}).svg; HCS.cov = false; const b = hcUnits().find(u => u.name === 'C'), pc = hcUnitConns(b.id)[0], t = newTest({name:'KT3', hcPins:[pc.id + '|A']}); delModel([pc.id]);
+  return /test %/.test(svg) && t.hcPins.length === 0; }));
+
 console.log(`Birim testleri: ${pass} geçti, ${fail} kaldı`);
 if(fails.length){ fails.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }

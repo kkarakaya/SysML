@@ -53,6 +53,7 @@
   {"id": "F54", "ad": "Kablaj: konnektör kütüphanesi, hat etiketleri, birim arayüzleri ve pinout", "surum": "1.54", "unit": ["^kablaj"], "reg": ["Kablaj: birim ve konnektör"]},
   {"id": "F55", "ad": "Kablaj şeması: sistem şeması, kablo detayı, dallanma / splice, eşleştirme denetimi", "surum": "1.55", "unit": ["^kablaj şeması"], "reg": ["Kablaj şeması: konnektörden"]},
   {"id": "F56", "ad": "Kablaj: AWG / bükümlü çift önerisi, BOM, teknik resim PDF ve konnektör görünümleri", "surum": "1.56", "unit": ["^kablaj AWG", "^kablaj bükümlü", "^kablaj öneri", "^kablaj teknik", "^kablaj konnektör yüzü"], "reg": ["Kablaj AWG ve teknik resim"]},
+  {"id": "F58", "ad": "Kablaj test tanımı (pin seçimi) ve hat kapsaması, açıkta kalan hatlar, kapsama katmanı", "surum": "1.58", "unit": ["^kablaj test kapsama"], "reg": ["Kablaj test kapsaması:"]},
   {"id": "F57", "ad": "Kablaj özeti, hat tipine göre mimariler ve mimari PDF", "surum": "1.57", "unit": ["^kablaj özeti", "^kablaj mimari"], "reg": ["Kablaj özeti:"]},
   {"id": "F41", "ad": "Performans (~6000 eleman)", "surum": "1.17", "reg": ["6000 elemanlı"]},
   {"id": "F42", "ad": "Kararlılık: tüm senaryolarda JavaScript hatası yok", "surum": "tümü", "reg": ["JavaScript hatası yok"]}
